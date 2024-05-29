@@ -1,5 +1,5 @@
 <?php
-    ob_start();
+   ob_start();
    session_start();
    include 'db_con.php';
    if (!isset($_SESSION['username'])){ 

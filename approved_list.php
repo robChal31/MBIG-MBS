@@ -34,37 +34,29 @@
                             <?php
                                 $sql_q = " WHERE ";
                                 $id_user = $_SESSION['id_user'];
-                                $sql = "SELECT * from draft_benefit a left join user b on a.id_user=b.id_user"; 
+
                                 $sql = "SELECT 
-                                            a.id_draft_approval, a.id_draft, b.status, a.token,
-                                            b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver
-                                        FROM `draft_approval` a 
-                                        INNER JOIN draft_benefit b on a.id_draft = b.id_draft 
+                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
+                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl
+                                        FROM draft_benefit b
+                                        LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
                                         LEFT JOIN user c on c.id_user = b.id_user 
-                                        LEFT JOIN user d on d.id_user = a.id_user_approver 
-                                        LEFT JOIN (
-                                            SELECT 
-                                                id_draft,
-                                                MAX(date) AS max_date
-                                            FROM `draft_approval`
-                                            GROUP BY id_draft
-                                        ) latest_approval ON a.id_draft = latest_approval.id_draft ";
+                                        LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
                                 if($_SESSION['role'] == 'ec'){
                                     $sql .= " WHERE (a.id_user_approver =" . $_SESSION['id_user'] . " or c.leadId='" . $_SESSION['id_user'] . "') ";
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q (a.date = latest_approval.max_date OR latest_approval.max_date IS NULL) AND b.status = 1 ORDER BY id_draft";
+                                $sql .= "$sql_q b.status = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");
                                 if (mysqli_num_rows($result) > 0) {
                                     while($row = mysqli_fetch_assoc($result)) {
                                         $id_draft = $row['id_draft'];
-                                        $token = $row['token'];
-                                        $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
+                                        $status_class = $row['verified'] == 1 ? 'bg-success' :  'bg-primary';
+                                        $status_msg = ($row['verified'] == 1 ? 'Verified' : 'Waiting Verification');
                                 ?>
                                         <tr>
                                             <td><?= $id_draft ?></td>
@@ -75,11 +67,22 @@
                                             <td><?= $row['program'] ?></td>
                                            
                                             <td>
-                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?=  ($row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected'))  ?></span>
+                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
                                             </td>
                                             <td scope='col'>
-                                                <?php if($row['status'] == 1 && $role == 'admin') { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm' style='font-size: .7rem' data-toggle='tooltip' title='Approve'><i class='fas fa-pen'></i> Input PK</span>
+                                                <?php if($row['fileUrl']) { ?>
+                                                    <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'  class='btn btn-outline-success btn-sm me-2' style='font-size: .6rem'><i class="bi bi-paperclip"></i> Doc</a>
+                                                <?php } ?>
+                                                <?php if($row['verified'] == 1 && $row['status'] == 1 && $role == 'admin' && $row['pk_id'] == null) { ?>
+                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-2' style='font-size: .6rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i> Create PK</span>
+                                                <?php }else if($row['verified'] == 1 && $row['status'] == 1 && $role == 'admin' && $row['pk_id']) { ?>
+                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .6rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i> Edit PK</span>
+                                                <?php } ?>
+
+                                                <?php if($row['verified'] == 0 && $id_user == 70) {?>
+                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-2' style='font-size: .6rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i> Verify</a>
+
+                                                    <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-2 delete-btn' style='font-size: .6rem' data-toggle='tooltip' title='Approve'><i class='fas fa-trash'></i> Delete</a>
                                                 <?php } ?>
                                             </td>
                                         </tr>
@@ -127,6 +130,22 @@
         </div>
     </div>
 
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="pkModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pkModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="pkModalBody">
+                ...
+            </div>
+            </div>
+        </div>
+    </div>
+
 
 
 <?php include 'footer.php';?>
@@ -151,8 +170,10 @@
     var pkModal = document.getElementById('pkModal');
     pkModal.addEventListener('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
+        let action = event.relatedTarget.getAttribute('data-action');
+
         var modalTitle = pkModal.querySelector('.modal-title')
-        modalTitle.textContent = "Input PK";
+        modalTitle.textContent = action == 'create' ?  "Input PK" : "Edit PK";
         $.ajax({
             url: 'input-pk.php',
             type: 'POST',
@@ -160,13 +181,53 @@
                 id_draft: rowid,
             },
             success: function(data) {
-                $('#pkModalBody').html(data)
+                $('#pkModalBody').html(data);
             }
         });
     })
 
-    $('.close').click(function() {
-        // Cari modal yang sedang terbuka dan tutup modal tersebut
+    $(document).ready(function() {
+        $('.delete-btn').click(function() {
+            let idDraft = $(this).data('id');
+            Swal.fire({
+                title: "Are you sure?",
+                text: "You will delete this draft!",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#3085d6",
+                cancelButtonColor: "#d33",
+                confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                if (result.isConfirmed) {
+                   
+                    $.ajax({
+                        url: 'delete-benefit.php',
+                        type: 'POST',
+                        data: {
+                            id_draft: idDraft
+                        },
+                        success: function(data) {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: "Your draft has been deleted.",
+                                icon: "success"
+                            });
+                            location.reload();
+                        },
+                        error: function(data) {
+                            Swal.fire({
+                                title: "Error!",
+                                text: "Something went wrong.",
+                                icon: "error"
+                            });
+                        }
+                    });
+                }
+            });
+        })
+    })
+
+    $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');
         $('#pkModal').modal('hide');
     });

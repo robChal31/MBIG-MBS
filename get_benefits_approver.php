@@ -9,8 +9,8 @@ if($conn->connect_error) {
 
 $id_draft = $_POST['id_draft'];                                                                      
 $sql = "SELECT 
-            a.id_draft_approval, a.id_draft, a.status, a.token, a.approved_at,
-            a.notes, c.generalname as ec_name, d.generalname as leadername 
+            a.id_draft_approval, a.id_draft, a.status, a.token, a.approved_at, b.status as draft_status, b.verified,
+            a.notes, c.generalname as ec_name, d.generalname as leadername, a.id_user_approver as approver
         FROM `draft_approval` a 
         INNER JOIN draft_benefit b on a.id_draft = b.id_draft 
         LEFT JOIN user c on c.id_user = b.id_user 
@@ -30,13 +30,19 @@ if ($result->num_rows > 0) {
         </thead>
         <tbody>
             <?php 
-              while ($row = $result->fetch_assoc()) { ?>
+              while ($row = $result->fetch_assoc()) { 
+                $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
+                $status_msg = $row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected');
+                if($row['approver'] == 70) {
+                  $status_msg = $row['verified'] == 1 && $status_msg == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $row['status'] == 0 ? 'Waiting Verification' : $status_msg);    
+                }
+            ?>
                 <tr>
                   <td><?= $row['leadername'] ?></td>
                   <td><?= $row['approved_at'] ?? '-' ?></td>
                   <td>
                     <span class="py-1 px-2 text-white rounded bg-<?= $row['status'] == 0 ? 'warning' : ($row['status'] == 1 ? 'success' : 'danger') ?>">
-                      <?= $row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected') ?>
+                      <?= $status_msg ?>
                     </span>
                   </td>
                   <td><?= $row['notes'] ?? '-' ?></td>

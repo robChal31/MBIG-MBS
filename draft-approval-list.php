@@ -40,11 +40,10 @@
                             <?php
                                 $sql_q = " WHERE ";
                                 $id_user = $_SESSION['id_user'];
-                                $sql = "SELECT * from draft_benefit a left join user b on a.id_user=b.id_user"; 
                                 $sql = "SELECT 
-                                            a.id_draft_approval, a.id_draft, a.status, a.token,
+                                            a.id_draft_approval, a.id_draft, a.status, a.token, b.status as draft_status, b.verified,
                                             b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver
+                                            c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver, b.deleted_at
                                         FROM `draft_approval` a 
                                         INNER JOIN draft_benefit b on a.id_draft = b.id_draft
                                         LEFT JOIN schools as sc on sc.id = b.school_name 
@@ -62,7 +61,7 @@
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q a.date = latest_approval.max_date OR latest_approval.max_date IS null ORDER BY id_draft";
+                                $sql .= "$sql_q b.deleted_at IS NULL AND a.date = latest_approval.max_date OR latest_approval.max_date IS null ORDER BY id_draft";
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");
@@ -78,8 +77,10 @@
                                             echo "<td>".$row['date']."</td>";
                                             echo "<td>".$row['program']."</td>";
                                             echo "<td>".$row['leadername']."</td>";
-                                            $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
-                                            echo "<td><span data-id='" . $row['id_draft'] . "' data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold $status_class py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'>". ($row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected')) ."</span></td>";
+                                            $status_class = $row['draft_status'] == 0 ? 'bg-warning' : ($row['draft_status'] == 1 ? 'bg-success' : 'bg-danger');
+                                            $status_msg = $row['draft_status'] == 0 ? 'Waiting Approval' : ($row['draft_status'] == 1 ? 'Approved' : 'Rejected');
+                                            $status_msg = $row['verified'] == 1 && $status_msg == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $status_msg == 'Approved' ? 'Waiting Verification' : $status_msg);
+                                            echo "<td><span data-id='" . $row['id_draft'] . "' data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold $status_class py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'>". ($status_msg) ."</span></td>";
                                             if($row['status'] < 1 && $row['id_user_approver'] == $id_user) {
                                                 echo "<td scope='col'><a target='_blank' href='approve-draft-benefit-form.php?id_draft=$id_draft&token=$token' class='btn btn-outline-primary btn-sm' style='font-size: .7rem' data-toggle='tooltip' title='Approve'><i class='fas fa-fingerprint'></i> Approve</a></td>";
                                             }else{

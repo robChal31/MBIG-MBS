@@ -21,7 +21,7 @@
               <div class="col-12">
                   <div class="bg-white rounded h-100 p-4">
                     <h6 class="mb-4">Create Draft Benefit</h6>
-                    <form method="POST" action="new-benefit-ec-input-action1.php" enctype="multipart/form-data">
+                    <form method="POST" action="new-benefit-ec-input-action1.php" enctype="multipart/form-data" id="input_form">
                         
                       <table class="table table-striped">
                         <tr>
@@ -233,6 +233,11 @@
         }
       });
     }
+
+    $('#submt').click(function(){
+      $('#submt').prop('disabled',true);
+      $('#input_form').submit();
+    });
 
     populateDropdown('row1');
     $('#submt').prop('disabled',true);

@@ -96,10 +96,9 @@
     $leng = count($benefits);
     
     //update value benefit di table draft_benefit
-    $sql = "UPDATE draft_benefit set alokasi = $sumalok, total_benefit = $total_benefit, selisih_benefit = $selisih_benefit, status = 0, fileUrl = NULL where id_draft = $id_draft";
+    $sql = "UPDATE draft_benefit set alokasi = $sumalok, total_benefit = $total_benefit, selisih_benefit = $selisih_benefit, status = 0, fileUrl = NULL, updated_at = current_timestamp() where id_draft = $id_draft";
     mysqli_query($conn,$sql);
     
-
     if($editmode == 'true'){
         mysqli_query($conn, "DELETE FROM `draft_benefit_list` where id_draft = '$id_draft';");
         mysqli_query($conn, "DELETE FROM draft_approval where id_draft = '$id_draft';");
@@ -379,7 +378,7 @@
     
         $excelFile = 'draft-benefit/'.$fileName.'.xlsx';
         $writer->save($excelFile);
-        $sql = "UPDATE draft_benefit set fileUrl = '$fileName' where id_draft = '$id_draft'";
+        $sql = "UPDATE draft_benefit set fileUrl = '$fileName', updated_at = current_timestamp() where id_draft = '$id_draft'";
         
         mysqli_query($conn,$sql);
         //add approval

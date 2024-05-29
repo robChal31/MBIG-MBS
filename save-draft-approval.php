@@ -87,6 +87,8 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     mysqli_query($conn,$sql);
     $leadid =  null;
     $uc_program = '';
+
+    $tokenLeader = generateRandomString(16);
     if(mysqli_affected_rows($conn) == 1){
         // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
         $sql = "SELECT 
@@ -123,7 +125,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
     if($status == 1) {
         
-        if(!is_null($leadid) && $leadid != 16){
+        if(!is_null($leadid) && $leadid != 16 && $id_user != 70) {
             $sql = "select * from user where id_user = $leadid";
             $result = mysqli_query($conn,$sql);
             while ($dra = $result->fetch_assoc()){
@@ -136,8 +138,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $message = "<p>Mantap! Formulir kamu sudah disetujui oleh Leader, sekarang kita akan ajukan formulir kerja sama $program untuk $school_name ke Leader $leadname.</p><p> Jika ada yang perlu direvisi atau disetujui, kita bakal kasih tau kamu lewat email.</p><p> Terima kasih.</p>";
 
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl);
-
-            $tokenLeader = generateRandomString(16);
+            
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid."', '0');";
             mysqli_query($conn,$sql);
 
@@ -174,11 +175,10 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                                 </div>
                             ";
             sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
-
             
             $mail = new PHPMailer(true);
             
-        }else if(($leadid == 16 || is_null($leadid)) && $id_user != 16){
+        }else if(($leadid == 16 || (is_null($leadid)) && ($id_user != 16 && $id_user != 70))) {
             $leademail='dwinanto@mentaribooks.com';
             $leadname = 'Dwinanto Setiawan';
 
@@ -186,7 +186,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $message = 'Yeay, formulir '.$program.' buat '.$school_name.' sudah disetujui oleh leader! Menunggu persetujuan top leader';
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl);
     
-            $tokenLeader = generateRandomString(16);
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '16', '0');";
             mysqli_query($conn,$sql);
             
@@ -249,6 +248,9 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             ];
 
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
+
+            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
+            mysqli_query($conn,$sql);
         }
     }else if($status == 2) {
         $mail = new PHPMailer(true);
@@ -273,22 +275,29 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
           }
         }
         sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
-        $sql = "UPDATE draft_benefit set status = 2 where id_draft = '$id_draft';";
+        $sql = "UPDATE draft_benefit set status = 2, set verified = 0 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
 
         $sql = "INSERT INTO `approval_reject_history` (`id`, `id_draft`, `id_user`, `id_user_approver`, `note`, `created_at`) VALUES (NULL, '$id_draft', $id_ec, $id_user, '$notes', current_timestamp());";
         mysqli_query($conn,$sql);
     }
 
-    if($id_user != 16 && $status == 1) {
+    if($id_user != 16 && $status == 1 && $id_user != 70) {
         $sql = "UPDATE draft_benefit set status = 0 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
     }else if($id_user == 16 && $status == 1) {
         $sql = "UPDATE draft_benefit set status = 1 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
+    }elseif($id_user == 70 && $status == 1) {
+        $sql = "UPDATE draft_benefit set verified = 1 where id_draft = '$id_draft';";
+        mysqli_query($conn, $sql);
     }
     
     $_SESSION['toast_status'] = "Success";
     $_SESSION['toast_msg'] = "Berhasil $status_msg Draft Benefit";
-    header('Location: ./draft-approval-list.php');
+    if($id_user == 70){
+        header('Location: ./approved_list.php');
+    }else {
+        header('Location: ./draft-approval-list.php');
+    }
     exit();

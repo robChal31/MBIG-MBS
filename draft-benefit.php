@@ -28,20 +28,21 @@
                             <table class="table table-striped table-bordered" id="table_id">
                                 <thead>
                                     <tr>
-                                        <th scope="col" style="width: 15%">Nama EC</th>
-                                        <th scope="col" style="width: 25%">Nama Sekolah</th>
+                                        <th scope="col" style="width: 10%">Nama EC</th>
+                                        <th scope="col" style="width: 20%">Nama Sekolah</th>
                                         <th scope="col">Segment</th>
-                                        <th scope="col">Jenis Program</th>
-                                        <th scope="col">Tanggal Pembuatan</th>
+                                        <th scope="col">Program</th>
+                                        <th scope="col">Created at</th>
+                                        <th scope="col">Updated at</th>
+                                        <th scope="col">Deleted at</th>
                                         <th scope="col" style="width: 13%">Status</th>
-                                        <th scope="col">View</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
                                         $order_by = ' ORDER BY date';
-                                        $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2
+                                        $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                                 left join user b on a.id_user = b.id_user"; 
@@ -58,6 +59,8 @@
                                                 $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
                                                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                                                 $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
+                                                $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'];
                                     ?>
                                                 <tr>
                                                     <td><?= $row['generalname'] ?></td>
@@ -65,19 +68,15 @@
                                                     <td><?= $row['segment'] ?></td>
                                                     <td><?= $row['program'] ?></td>
                                                     <td><?= $row['date'] ?></td>
+                                                    <td><?= $row['updated_at'] ?></td>
+                                                    <td><?= $row['deleted_at'] ?></td>
                                                     <td><span data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded" style="cursor:pointer; font-size:.65rem"><?= $stat ?></span></td>
-                                                    <td>
+                                                    <td scope="col">
                                                         <?php if($row['fileUrl']) { ?>
                                                             <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'><i class="bi bi-paperclip"></i> Doc</a>
                                                         <?php } ?>
-                                                    </td>
-                                                    <td scope="col">
-                                                        <!-- <?php
-                                                            if($_SESSION['role'] == 'admin'){ ?>
-                                                                <i class="fas fa-check text-success" data-bs-toggle="tooltip" data-bs-placement="top" title="Approve"></i>
-                                                        <?php } ?> -->
                                                         <?php 
-                                                            if(($_SESSION['id_user'] == $row['id_ec'] && $row['status'] == 0 && !$row['fileUrl']) || ($row['status'] == 2 && ($_SESSION['id_user'] == $row['id_ec'] || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0 && !$row['fileUrl'])){ ?>
+                                                            if((($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl']) || ($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0 && !$row['fileUrl'])) && (!$row['deleted_at'])){ ?>
                                                                 <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?=$row['id_draft']?>" class="ms-2 text-success"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                         <?php } ?>
                                                     </td>

@@ -9,34 +9,66 @@
 </style>
 
 <?php
-    $id_user = $_SESSION['id_user'];
-    $id_draft = $_GET['id_draft'];
-    $token = $_GET['token'];
-    $sql     = "SELECT da.token, b.generalname as ec_name, a.school_name, a.program, a.segment, da.id_draft_approval
-                FROM draft_approval da 
-                LEFT JOIN draft_benefit a  on a.id_draft = da.id_draft 
-                LEFT JOIN user b on a.id_user = b.id_user 
-                LEFT JOIN user c on c.id_user = da.id_user_approver 
-                WHERE da.id_draft = $id_draft
-                AND da.token = '$token'";
+
+    function generateRandomString($length = 10) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[random_int(0, $charactersLength - 1)];
+        }
+        return $randomString;
+    }
+
+    $id_user    = $_SESSION['id_user'];
+    $id_draft   = $_GET['id_draft'];
+    $token      = $_GET['token'];
+
+    if (!$token && $id_user == 70) {
+        $tokenLeader = generateRandomString(16);
+        $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
+        
+        if (mysqli_query($conn, $sql)) {
+            $url = "http://localhost:8056/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader";
+            header("Location: $url");
+            exit;
+        } else {
+            echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+        }
+    }
+    
+    $sql        = "SELECT 
+                        da.token, b.generalname as ec_name, a.school_name, a.program, a.segment, da.id_draft_approval,
+                        da.notes, da.status
+                    FROM draft_approval da 
+                    LEFT JOIN draft_benefit a  on a.id_draft = da.id_draft 
+                    LEFT JOIN user b on a.id_user = b.id_user 
+                    LEFT JOIN user c on c.id_user = da.id_user_approver 
+                    WHERE da.id_draft = $id_draft
+                    AND da.token = '$token'";
+
     if($_SESSION['role'] != 'admin' && $_SESSION['role'] != 'bani') {
         $sql .= " AND da.id_user_approver = $id_user";
     }
 
-    $ec_name = '';
-    $program = '';
-    $segment = '';
-    $program = '';
-    $token = '';
+    $ec_name    = '';
+    $program    = '';
+    $segment    = '';
+    $program    = '';
+    $token      = '';
+    $notes      = '';
+    $status     = 1;
     $id_draft_approval = '';
     $result = mysqli_query($conn, $sql);
 
     while($row = mysqli_fetch_assoc($result)) {
-        $ec_name = $row['ec_name'];
-        $school_name = $row['school_name'];
-        $segment = $row['segment'];
-        $program = $row['program'];
-        $token = $row['token'];
+        $ec_name        = $row['ec_name'];
+        $school_name    = $row['school_name'];
+        $segment        = $row['segment'];
+        $program        = $row['program'];
+        $token          = $row['token'];
+        $notes          = $row['notes'];
+        $status         = $row['status'];
         $id_draft_approval = $row['id_draft_approval'];
     }
 ?>
@@ -58,14 +90,14 @@
                 <?php else: ?>
                     <div class="col-md-7 col-12">
                         <div class="bg-white rounded h-100 p-4">
-                            <h6 class="mb-4">Approve Draft Benefit</h6>    
-                            <form action="save-draft-approval.php" method="POST">
+                            <h6 class="mb-4"><?= $id_user == 70 ? 'Verify' : 'Approve' ?> Draft Benefit</h6>    
+                            <form action="save-draft-approval.php" method="POST" id="form">
                                 <input type="hidden" name="token" value="<?= $token ?>">
                                 <input type="hidden" name="id_user" value="<?= $id_user ?>">
                                 <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
                                 <input type="hidden" name="id_draft_approval" value="<?= $id_draft_approval ?>">
                                 <div class="mb-2 row">
-                                    <table class="table table-striped table-bordered" id="table_id">
+                                    <table class="table table-striped table-bordered" id="">
                                         <tbody>
                                             <tr>
                                                 <td class="fw-bold">EC Name</td>
@@ -89,19 +121,19 @@
                                 <div class="my-2 py-2">
                                     <label for="approval_status" class="form-label px-1 mb-0 pb-0" style="font-size: .85rem;">Status</label>
                                     <select class="form-select form-select-sm" aria-label="Default select" name='status' id="approval_status" required>
-                                        <option value="1">Approve</option>
-                                        <option value="2">Reject</option>
+                                        <option value="1" <?= $status == 1 ? 'selected' : '' ?>><?= $id_user == 70 ? 'Verify' : 'Approve'; ?></option>
+                                        <option value="2" <?= $status == 2 ? 'selected' : '' ?>>Reject</option>
                                     </select>
                                 </div>
                                 
                                 <div class="my-2">
                                     <div class="form-floating">
-                                        <textarea class="form-control" placeholder="Notes" style="height: 200px;" name="notes" required></textarea>
+                                        <textarea class="form-control" placeholder="Notes" style="height: 200px;" name="notes" required><?= $notes ?></textarea>
                                         <label for="floatingTextarea">Notes</label>
                                     </div>
                                 </div>
                                 <div class="d-flex justify-content-end mt-4">
-                                    <button class="btn btn-sm btn-primary">
+                                    <button class="btn btn-sm btn-primary" id="btn-submit">
                                         Submit
                                     </button>
                                 </div>
@@ -115,4 +147,12 @@
         <!-- Sale & Revenue End -->
 
 <?php include 'footer.php';?>
+<script>
+    $(document).ready( function () {
+        $('#btn-submit').click(function() {
+            $('#btn-submit').prop('disabled', true);
+            $('#form').submit();
+        });
+    });
+</script>
        

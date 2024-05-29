@@ -85,7 +85,7 @@
                         total_benefit = '0',
                         selisih_benefit = '0',
                         fileUrl = '',
-                        date = current_timestamp(),
+                        updated_at = current_timestamp(),
                         status = '0',
                         alokasi = $alokasi
                     WHERE id_draft = $id_draft";
