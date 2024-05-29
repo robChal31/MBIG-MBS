@@ -26,15 +26,37 @@
 
     if (!$token && $id_user == 70) {
         $tokenLeader = generateRandomString(16);
-        $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
+        $sql_check = "SELECT * FROM draft_approval WHERE id_draft = '$id_draft' AND id_user_approver = '$id_user'";
+        $result = $conn->query($sql_check);
         
-        if (mysqli_query($conn, $sql)) {
-            $url = "./approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader";
-            header("Location: $url");
-            exit;
+        if ($result->num_rows > 0) {
+            $token = '';
+            while ($row = $result->fetch_assoc()) {
+                $token = $row['token'];
+            }
+            if($token) {
+                $url = "./approve-draft-benefit-form.php?id_draft=$id_draft&token=$token";
+                header("Location: $url");
+                exit;
+            }else {
+                $url = "./approved-list.php";
+                header("Location: $url");
+                exit;
+            }
+           
+           
         } else {
-            echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
+        
+            if (mysqli_query($conn, $sql)) {
+                $url = "./approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader";
+                header("Location: $url");
+                exit;
+            } else {
+                echo "Error: " . $sql . "<br>" . mysqli_error($conn);
+            }
         }
+        
     }
     
     $sql        = "SELECT 
