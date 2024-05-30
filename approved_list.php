@@ -37,7 +37,7 @@
 
                                 $sql = "SELECT 
                                             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl
+                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
@@ -71,19 +71,23 @@
                                             </td>
                                             <td scope='col'>
                                                 <?php if($row['fileUrl']) { ?>
-                                                    <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'  class='btn btn-outline-success btn-sm me-2' style='font-size: .6rem'><i class="bi bi-paperclip"></i> Doc</a>
-                                                <?php } ?>
-                                                <?php if($row['verified'] == 1 && $row['status'] == 1 && $role == 'admin' && $row['pk_id'] == null) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-2' style='font-size: .6rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i> Create PK</span>
-                                                <?php }else if($row['verified'] == 1 && $row['status'] == 1 && $role == 'admin' && $row['pk_id']) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .6rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i> Edit PK</span>
+                                                    <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'  class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i></a>
                                                 <?php } ?>
 
-                                                <?php if($row['verified'] == 0 && $id_user == 70) {?>
-                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-2' style='font-size: .6rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i> Verify</a>
-
-                                                    <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-2 delete-btn' style='font-size: .6rem' data-toggle='tooltip' title='Approve'><i class='fas fa-trash'></i> Delete</a>
+                                                <?php if($row['status'] == 1 && $role == 'admin' && $row['pk_id'] == null) { ?>
+                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
+                                                <?php }else if($row['status'] == 1 && $role == 'admin' && $row['pk_id']) { ?>
+                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-secondary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
                                                 <?php } ?>
+
+                                                <?php if($row['verified'] == 0 && $id_user == 70 && $row['file_pk']) {?>
+                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-success btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
+                                                <?php } ?>
+
+                                                <?php if($id_user == 70 && $row['verified'] == 0) { ?>
+                                                    <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-2 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
+                                                <?php } ?>
+                                               
                                             </td>
                                         </tr>
                                <?php     }
@@ -186,45 +190,65 @@
         });
     })
 
-    $(document).ready(function() {
-        $('.delete-btn').click(function() {
-            let idDraft = $(this).data('id');
-            Swal.fire({
-                title: "Are you sure?",
-                text: "You will delete this draft!",
-                icon: "warning",
-                showCancelButton: true,
-                confirmButtonColor: "#3085d6",
-                cancelButtonColor: "#d33",
-                confirmButtonText: "Yes, delete it!"
-            }).then((result) => {
-                if (result.isConfirmed) {
-                   
-                    $.ajax({
-                        url: 'delete-benefit.php',
-                        type: 'POST',
-                        data: {
-                            id_draft: idDraft
-                        },
-                        success: function(data) {
+    $('.delete-btn').click(function() {
+        let idDraft = $(this).data('id');
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You will delete this draft!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                $.ajax({
+                    url: 'delete-benefit.php',
+                    type: 'POST',
+                    data: {
+                        id_draft: idDraft
+                    },
+                    success: function(data) {
+                        let resData = JSON.parse(data)
+                        console.log(resData)
+                        if(resData.status == 'Success') {
                             Swal.fire({
                                 title: "Deleted!",
-                                text: "Your draft has been deleted.",
+                                text: resData.message,
                                 icon: "success"
                             });
-                            location.reload();
-                        },
-                        error: function(data) {
+                            setTimeout(function() {
+                                location.reload();
+                            }, 3000);
+                            
+                            
+                        }else {
                             Swal.fire({
                                 title: "Error!",
-                                text: "Something went wrong.",
+                                text: resData.message,
                                 icon: "error"
                             });
                         }
-                    });
-                }
-            });
-        })
+                        // location.reload();
+                    },
+                    error: function(data) {
+                        console.log(data)
+                        let resData = JSON.parse(data)
+                        Swal.fire({
+                            title: "Error!",
+                            text: resData.message,
+                            icon: "error"
+                        });
+                            // location.reload();
+                    }
+                });
+            }
+        });
+    })
+
+    $(document).ready(function() {
+    
     })
 
     $(document).on('click', '.close', function() {

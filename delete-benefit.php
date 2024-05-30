@@ -4,15 +4,34 @@
     include 'db_con.php';
     require 'vendor/autoload.php';
 
-    $id_user    = $_SESSION['id'];
+    $id_user  = $_SESSION['id_user'];
+    $id_draft = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
 
-    if (!isset($_SESSION['username']) && $id_user != 70){ 
-        header("Location: https://mentarigroups.com/benefit/index.php");
+    $sql      = "SELECT * FROM draft_benefit as db where id_draft = $id_draft";
+    $result   = mysqli_query($conn,$sql);
+    $data     = $result->fetch_assoc();
+
+    $id_ec    = '';
+    $status   = '';
+    $fileUrl  = '';
+
+    if($data) {
+        $id_ec = $data['id_ec'];
+        $status = $data['status'];
+        $fileUrl = $data['fileUrl'];
+    }
+   
+
+    $is_creator_or_admin = $id_user == $id_ec || $id_user == 70;
+
+    if (($id_user != $id_ec && $row['status'] != 0 && $row['fileUrl']) || ($id_user != 70 && $id_user != $id_ec)) {
+        $response = [
+            'status' => 'Error',
+            'message' => 'Unauthorized Access'
+        ];
+        echo json_encode($response);
         exit();
     }
-
-    $id_draft   = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
-    $id_user    = $_SESSION['id'];
 
     try {
         $sql = "UPDATE draft_benefit SET 
@@ -21,16 +40,21 @@
                 WHERE id_draft = $id_draft";
 
         mysqli_query($conn, $sql);
-        $_SESSION['toast_status'] = 'Success';
-        $_SESSION['toast_msg'] = 'Berhasil Menghapus Draft Benefit';
+        $response = [
+            'status' => 'Success',
+            'message' => 'Berhasil Menghapus Draft Benefit'
+        ];
+        echo json_encode($response);
         exit();
     } catch (\Throwable $th) {
-        $_SESSION['toast_status'] = 'Error';
-        $_SESSION['toast_msg'] = 'Gagal Menghapus Draft Benefit';
         
-        $location = 'Location: ./draft-benefit.php'; 
+        $response = [
+            'status' => 'Error',
+            'message' => 'Gagal Menghapus Draft Benefit'
+        ];
+        echo json_encode($response);
+
         mysqli_close($conn);
-        header($location);
         exit();
     }
 

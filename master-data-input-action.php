@@ -3,7 +3,7 @@
    session_start();
    include 'db_con.php';
    if (!isset($_SESSION['username'])){ 
-        header("Location: https://mentarigroups.com/benefit/index.php");
+        header("Location: ./index.php");
         exit();
     }
     $action = $_POST['action'];

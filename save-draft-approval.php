@@ -275,7 +275,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
           }
         }
         sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
-        $sql = "UPDATE draft_benefit set status = 2, set verified = 0 where id_draft = '$id_draft';";
+        $sql = "UPDATE draft_benefit set status = 2, verified = 0 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
 
         $sql = "INSERT INTO `approval_reject_history` (`id`, `id_draft`, `id_user`, `id_user_approver`, `note`, `created_at`) VALUES (NULL, '$id_draft', $id_ec, $id_user, '$notes', current_timestamp());";

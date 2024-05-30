@@ -3,7 +3,7 @@
    session_start();
    include 'db_con.php';
    if (!isset($_SESSION['username'])){ 
-        header("Location: https://mentarigroups.com/benefit/index.php");
+        header("Location: ./index.php");
         exit();
     }
     
@@ -18,4 +18,4 @@
             echo $row['qty'];
         }
     }
-    mysqli_close();
+    mysqli_close($conn);

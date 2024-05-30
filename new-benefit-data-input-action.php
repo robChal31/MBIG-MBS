@@ -5,7 +5,7 @@
 
 
     if (!isset($_SESSION['username'])){ 
-        header("Location: https://mentarigroups.com/benefit/index.php");
+        header("Location: ./index.php");
         exit();
     }
     $id_master=$_POST['id_master'];

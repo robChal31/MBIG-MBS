@@ -45,9 +45,10 @@
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
-                                                left join user b on a.id_user = b.id_user"; 
+                                                left join user b on a.id_user = b.id_user
+                                                WHERE a.deleted_at is null"; 
                                         if($_SESSION['role'] == 'ec'){
-                                            $sql.=" where a.id_user=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."'";
+                                            $sql.=" AND a.id_user=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."'";
                                         }
                                         $sql .= $order_by;
                                         
@@ -60,7 +61,7 @@
                                                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                                                 $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
                                                 $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'];
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70;
                                     ?>
                                                 <tr>
                                                     <td><?= $row['generalname'] ?></td>
@@ -70,14 +71,20 @@
                                                     <td><?= $row['date'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
                                                     <td><?= $row['deleted_at'] ?></td>
-                                                    <td><span data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded" style="cursor:pointer; font-size:.65rem"><?= $stat ?></span></td>
+                                                    <td>
+                                                        <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>
+                                                    </td>
                                                     <td scope="col">
                                                         <?php if($row['fileUrl']) { ?>
-                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'><i class="bi bi-paperclip"></i> Doc</a>
+                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip me-2"></i></a>
                                                         <?php } ?>
                                                         <?php 
                                                             if((($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl']) || ($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0 && !$row['fileUrl'])) && (!$row['deleted_at'])){ ?>
-                                                                <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?=$row['id_draft']?>" class="ms-2 text-success"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
+                                                                <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?=$row['id_draft']?>" class="text-success me-2"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
+                                                        <?php } ?>
+
+                                                        <?php if(($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl'])){ ?>
+                                                            <a href='#' data-id="<?= $row['id_draft'] ?>" class='delete-btn text-danger me-2' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
                                                         <?php } ?>
                                                     </td>
                                                 </tr>
@@ -133,5 +140,64 @@
         // Cari modal yang sedang terbuka dan tutup modal tersebut
         $('#approvalModal').modal('hide');
     });
+
+    $('.delete-btn').click(function() {
+        let idDraft = $(this).data('id');
+        Swal.fire({
+            title: "Are you sure?",
+            text: "You will delete this draft!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                
+                $.ajax({
+                    url: 'delete-benefit.php',
+                    type: 'POST',
+                    data: {
+                        id_draft: idDraft
+                    },
+                    success: function(data) {
+                        let resData = JSON.parse(data)
+                        console.log(resData)
+                        if(resData.status == 'Success') {
+                            Swal.fire({
+                                title: "Deleted!",
+                                text: resData.message,
+                                icon: "success"
+                            });
+                            setTimeout(function() {
+                                location.reload();
+                            }, 3000);
+                        }else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: resData.message,
+                                icon: "error"
+                            });
+                        }
+                        // location.reload();
+                    },
+                    error: function(data) {
+                        console.log(data)
+                        let resData = JSON.parse(data)
+                        Swal.fire({
+                            title: "Error!",
+                            text: resData.message,
+                            icon: "error"
+                        });
+                            // location.reload();
+                    }
+                });
+            }
+        });
+    })
+
+    $(document).ready(function() {
+       
+    })
 </script>
        

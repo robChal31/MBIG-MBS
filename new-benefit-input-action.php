@@ -7,7 +7,7 @@
     use PHPMailer\PHPMailer\Exception;
     require 'vendor/autoload.php';
     if (!isset($_SESSION['username'])){ 
-        header("Location: https://mentarigroups.com/benefit/index.php");
+        header("Location: ./index.php");
         exit();
     }
     $peserta = $_POST['name'];

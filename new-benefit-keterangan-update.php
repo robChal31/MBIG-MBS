@@ -8,7 +8,7 @@
     require 'vendor/autoload.php';
     $config = require 'config.php';
     if (!isset($_SESSION['username'])){ 
-        header("Location: https://mentarigroups.com/benefit/index.php");
+        header("Location: ./index.php");
         exit();
     }
     $id_benefit = $_POST['id_benefit'];
