@@ -3,7 +3,7 @@
     session_start();
     include 'db_con.php';
     if (!isset($_SESSION['username'])){ 
-        header("Location: ./index.php");
+        header("Location: ./main.php");
         exit();
     }
     $id_master = $_POST['id_master'];

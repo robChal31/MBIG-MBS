@@ -3,7 +3,7 @@
     session_start();
     include 'db_con.php';
     if (!isset($_SESSION['username'])){ 
-        header("Location: ./index.php");
+        header("Location: ./main.php");
         exit();
     }
 
@@ -58,36 +58,36 @@
 
     if ($uploadOk == 1 && !$is_no_pk_exist) {
          
-            if(!$is_pk_exist){
-                if (move_uploaded_file($_FILES["file_pk"]["tmp_name"], $target_file_pk) && move_uploaded_file($_FILES["file_benefit"]["tmp_name"], $target_file_benefit)) {
-                    $sql = "INSERT INTO `pk` 
-                    (`benefit_id`, `no_pk`, `start_at`, `expired_at`, `sa_id`,`file_pk`, `file_benefit`, `created_at`, `updated_at`) VALUES 
-                    ($id_draft, '$no_pk', '$start_date', '$end_date', $id_sa, '$target_file_pk', '$target_file_benefit', current_timestamp(), NULL)";
-                }else {
-                    echo $sql;die;
-                    file_pk_error_session();
-                }
-                
-            }else{
-                $upadte_file_query = ",";
-                if($_FILES["file_pk"]["name"]) {
-                    move_uploaded_file($_FILES["file_pk"]["tmp_name"], $target_file_pk);
-                    $upadte_file_query .= "file_pk = '$target_file_pk',";
-                }
-                if($_FILES["file_benefit"]["name"]){
-                    move_uploaded_file($_FILES["file_benefit"]["tmp_name"], $target_file_benefit);
-                    $upadte_file_query .= " file_benefit = '$target_file_benefit',";
-                }
-                
-                $sql = "UPDATE pk set no_pk = '$no_pk', start_at = '$start_date', expired_at = '$end_date', sa_id = $id_sa $upadte_file_query updated_at = current_timestamp() where benefit_id = $id_draft";
+        if(!$is_pk_exist){
+            if (move_uploaded_file($_FILES["file_pk"]["tmp_name"], $target_file_pk) && move_uploaded_file($_FILES["file_benefit"]["tmp_name"], $target_file_benefit)) {
+                $sql = "INSERT INTO `pk` 
+                (`benefit_id`, `no_pk`, `start_at`, `expired_at`, `sa_id`,`file_pk`, `file_benefit`, `created_at`, `updated_at`) VALUES 
+                ($id_draft, '$no_pk', '$start_date', '$end_date', $id_sa, '$target_file_pk', '$target_file_benefit', current_timestamp(), NULL)";
+            }else {
+                echo $sql;die;
+                file_pk_error_session();
             }
             
-            $_SESSION['toast_status'] = 'Success';
-            $_SESSION['toast_msg'] = 'Saved successfully';
+        }else{
+            $upadte_file_query = ",";
+            if($_FILES["file_pk"]["name"]) {
+                move_uploaded_file($_FILES["file_pk"]["tmp_name"], $target_file_pk);
+                $upadte_file_query .= "file_pk = '$target_file_pk',";
+            }
+            if($_FILES["file_benefit"]["name"]){
+                move_uploaded_file($_FILES["file_benefit"]["tmp_name"], $target_file_benefit);
+                $upadte_file_query .= " file_benefit = '$target_file_benefit',";
+            }
+            
+            $sql = "UPDATE pk set no_pk = '$no_pk', start_at = '$start_date', expired_at = '$end_date', sa_id = $id_sa $upadte_file_query updated_at = current_timestamp() where benefit_id = $id_draft";
+        }
+        
+        $_SESSION['toast_status'] = 'Success';
+        $_SESSION['toast_msg'] = 'Saved successfully';
 
-            mysqli_query($conn, $sql);
-            header('Location: ./approved_list.php');
-            exit();
+        mysqli_query($conn, $sql);
+        header('Location: ./approved_list.php');
+        exit();
         
     }
 

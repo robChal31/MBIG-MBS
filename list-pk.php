@@ -15,12 +15,13 @@
         <div class="col-12">
             
             <div class="bg-white rounded h-100 p-4">
-                <h6 class="mb-4">Approved Benefit List</h6>                      
+                <h6 class="mb-4">Partnership Agreement List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
                         <thead>
                             <tr>
                                 <th>No Draft</th>
+                                <th>No PK</th>
                                 <th scope="col" style="width:10%">Nama EC</th>
                                 <th scope="col" style="width: 20%">Nama Sekolah</th>
                                 <th scope="col">Segment</th>
@@ -37,7 +38,7 @@
 
                                 $sql = "SELECT 
                                             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk
+                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, pk.no_pk
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
@@ -48,7 +49,7 @@
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q b.status = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
+                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");
@@ -60,6 +61,7 @@
                                 ?>
                                         <tr>
                                             <td><?= $id_draft ?></td>
+                                            <td><?= $row['no_pk'] ?></td>
                                             <td><?= $row['generalname'] ?></td>
                                             <td><?= $row['school_name2'] ?></td>
                                             <td><?= ucfirst($row['segment']) ?></td>
@@ -70,23 +72,8 @@
                                                 <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
                                             </td>
                                             <td scope='col'>
-                                                <?php if($row['fileUrl']) { ?>
-                                                    <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'  class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i></a>
-                                                <?php } ?>
-
-                                                <?php if($row['status'] == 1 && $role == 'admin' && $row['pk_id'] == null) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
-                                                <?php }else if($row['status'] == 1 && $role == 'admin' && $row['pk_id']) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-secondary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
-                                                <?php } ?>
-
-                                                <?php if($row['verified'] == 0 && $id_user == 70 && $row['file_pk']) {?>
-                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
-                                                <?php } ?>
-
-                                                <?php if($id_user == 70 && $row['verified'] == 0) { ?>
-                                                    <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-1 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
-                                                <?php } ?>
+                                               
+                                                <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
                                                
                                             </td>
                                         </tr>
@@ -121,39 +108,26 @@
     <div class="modal fade" id="pkModal" tabindex="-1" role="dialog" aria-labelledby="pkModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pkModalLabel">Modal title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="pkModalBody">
-                ...
-            </div>
-            </div>
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pkModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="pkModalBody">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary close" data-dismiss="modal">Close</button>
+                    <a href="#" class="btn btn-primary" id='detail-benefit'>See Details</a>
+                </div>
+            </div> 
         </div>
     </div>
-
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="pkModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="pkModalLabel">Modal title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="pkModalBody">
-                ...
-            </div>
-            </div>
-        </div>
-    </div>
-
-
 
 <?php include 'footer.php';?>
 <script>
+
     var approvalModal = document.getElementById('approvalModal');
     approvalModal.addEventListener('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
@@ -177,72 +151,16 @@
         let action = event.relatedTarget.getAttribute('data-action');
 
         var modalTitle = pkModal.querySelector('.modal-title')
-        modalTitle.textContent = action == 'create' ?  "Input PK" : "Edit PK";
+        modalTitle.textContent = "Detail PK";
         $.ajax({
-            url: 'input-pk.php',
+            url: 'detail-pk.php',
             type: 'POST',
             data: {
                 id_draft: rowid,
             },
             success: function(data) {
                 $('#pkModalBody').html(data);
-            }
-        });
-    })
-
-    $('.delete-btn').click(function() {
-        let idDraft = $(this).data('id');
-        Swal.fire({
-            title: "Are you sure?",
-            text: "You will delete this draft!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#3085d6",
-            cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!"
-        }).then((result) => {
-            if (result.isConfirmed) {
-                
-                $.ajax({
-                    url: 'delete-benefit.php',
-                    type: 'POST',
-                    data: {
-                        id_draft: idDraft
-                    },
-                    success: function(data) {
-                        let resData = JSON.parse(data)
-                        console.log(resData)
-                        if(resData.status == 'Success') {
-                            Swal.fire({
-                                title: "Deleted!",
-                                text: resData.message,
-                                icon: "success"
-                            });
-                            setTimeout(function() {
-                                location.reload();
-                            }, 3000);
-                            
-                            
-                        }else {
-                            Swal.fire({
-                                title: "Error!",
-                                text: resData.message,
-                                icon: "error"
-                            });
-                        }
-                        // location.reload();
-                    },
-                    error: function(data) {
-                        console.log(data)
-                        let resData = JSON.parse(data)
-                        Swal.fire({
-                            title: "Error!",
-                            text: resData.message,
-                            icon: "error"
-                        });
-                            // location.reload();
-                    }
-                });
+                $('#detail-benefit').attr('href', 'detail-benefit.php?id=' + rowid);
             }
         });
     })

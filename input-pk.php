@@ -12,7 +12,7 @@ $sql = "SELECT
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
         LEFT JOIN user as c on c.id_user = b.id_user
-        LEFT JOIn pk on pk.benefit_id = b.id_draft
+        LEFT JOIN pk on pk.benefit_id = b.id_draft
         LEFT JOIN (
             SELECT 
                 id_draft, 
@@ -99,14 +99,14 @@ if ($result->num_rows > 0) {
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">PK</label>
                     <?php if($file_pk) { ?>
-                        <a href="<?= $file_pk ?>" class="d-block m-0 p-0" target="_blank"><i class="fa fa-paperclip"></i> <span style="font-size: .85rem;"><?= $file_pk ?></span></a>
+                        <a href="<?= $file_pk ?>" class="d-block m-0 p-0" target="_blank"><i class="fa fa-paperclip"></i> <span style="font-size: .85rem;">File PK</span></a>
                     <?php } ?>
                     <input type="file" name="file_pk" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?>>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Benefit</label>
                     <?php if($file_benefit) { ?>
-                        <a href="<?= $file_benefit ?>" class="d-block m-0 p-0" target="_blank"><i class="fa fa-paperclip"></i> <span style="font-size: .85rem;"><?= $file_benefit ?></span></a>
+                        <a href="<?= $file_benefit ?>" class="d-block m-0 p-0" target="_blank"><i class="fa fa-paperclip"></i> <span style="font-size: .85rem;">File Benefit</span></a>
                     <?php } ?>
                     <input type="file" name="file_benefit" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?>>
                 </div>

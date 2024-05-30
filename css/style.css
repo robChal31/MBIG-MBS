@@ -68,7 +68,7 @@
   top: 0;
   left: 0;
   bottom: 0;
-  width: 280px;
+  width: 250px;
   height: 100vh;
   overflow-y: auto;
   scrollbar-width: none;
@@ -97,7 +97,7 @@
 }
 
 .content {
-  margin-left: 280px;
+  margin-left: 250px;
   min-height: 100vh;
   background: var(--light);
   transition: 0.5s;
@@ -109,11 +109,11 @@
   }
 
   .sidebar.open {
-    margin-left: -280px;
+    margin-left: -250px;
   }
 
   .content {
-    width: calc(100% - 280px);
+    width: calc(100% - 250px);
   }
 
   .content.open {
@@ -124,7 +124,7 @@
 
 @media (max-width: 991.98px) {
   .sidebar {
-    margin-left: -280px;
+    margin-left: -250px;
   }
 
   .sidebar.open {

@@ -76,15 +76,15 @@
                                                     </td>
                                                     <td scope="col">
                                                         <?php if($row['fileUrl']) { ?>
-                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip me-2"></i></a>
+                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip me-1"></i></a>
                                                         <?php } ?>
                                                         <?php 
                                                             if((($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl']) || ($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0 && !$row['fileUrl'])) && (!$row['deleted_at'])){ ?>
-                                                                <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?=$row['id_draft']?>" class="text-success me-2"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
+                                                                <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?=$row['id_draft']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                         <?php } ?>
 
                                                         <?php if(($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl'])){ ?>
-                                                            <a href='#' data-id="<?= $row['id_draft'] ?>" class='delete-btn text-danger me-2' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
+                                                            <a href='#' data-id="<?= $row['id_draft'] ?>" class='delete-btn text-danger me-1' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
                                                         <?php } ?>
                                                     </td>
                                                 </tr>

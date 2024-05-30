@@ -4,7 +4,7 @@
     include 'db_con.php';
     require 'vendor/autoload.php';
     if (!isset($_SESSION['username'])){ 
-        header("Location: ./index.php");
+        header("Location: ./main.php");
         exit();
     }
 

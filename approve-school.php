@@ -3,7 +3,7 @@
    session_start();
    include 'db_con.php';
    if (!isset($_SESSION['username']) && ($_SESSION['role']!=='admin')){ 
-        header("Location: ./index.php");
+        header("Location: ./main.php");
         exit();
     }
     $id_school = $_GET['id'];
