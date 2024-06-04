@@ -6,16 +6,40 @@
 </style>
 <?php 
     $role = $_SESSION['role'];
-
+    
+    if($_SERVER['REQUEST_METHOD'] == 'POST') {
+        var_dump($_POST);
+    }
 ?>
 
 <div class="content">
     <?php include 'navbar.php'; ?>
     <div class="container-fluid p-4">
         <div class="col-12">
+
+            <div class="bg-white rounded h-100 p-4 mb-4">
+                <h6 class="mb-4" style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
+                <form action="./benefits.php" method="POST">
+                    <div class="row justify-content-center align-items-end">
+                        <div class="col-6">
+                            <label for="type">Benefit Type</label>
+                            <select class="form-select select2" name="type[]" aria-label="Default select example" multiple>
+                                <option selected>Segment</option>
+                                <option value="1">One</option>
+                                <option value="2">Two</option>
+                                <option value="3">Three</option>
+                            </select>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-primary"><i class="fa fa-filter"></i> Filter</button>
+                        </div>
+                    </div>
+                </form>
+                
+            </div>
             
             <div class="bg-white rounded h-100 p-4">
-                <h6 class="mb-4">Partnership Agreement List</h6>                      
+                <h6 class="mb-4">Benefits</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
                         <thead>
@@ -171,8 +195,9 @@
     })
 
     $(document).ready(function() {
-    
-    })
+        $('.select2').select2({
+        });
+    });
 
     $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');

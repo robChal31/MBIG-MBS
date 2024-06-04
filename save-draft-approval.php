@@ -35,7 +35,12 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
         //Recipients
         $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
-        $mail->addAttachment('draft-benefit/'.$fileUrl.'.xlsx', $fileUrl.'.xlsx');
+        $file_path = 'draft-benefit/'.$fileUrl.'.xlsx';
+        
+        if (file_exists($file_path)) {
+            $mail->addAttachment($file_path, $fileUrl.'.xlsx');
+        }
+
         $mail->addAddress($email, $name);
         if(count($cc) > 0) {
             foreach ($cc as $key => $value) {
@@ -73,7 +78,9 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     $id_draft_approval = ISSET($_POST['id_draft_approval']) ? $_POST['id_draft_approval'] : '';
     $notes = ISSET($_POST['notes']) ? $_POST['notes'] : '';
 
-    $status_msg = $status == 1 ? 'Approve' : 'Reject'; 
+    $status_msg = $status == 1 ? 'Approve' : 'Reject';
+
+    $url_redirect = $id_user == 70 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
 
     date_default_timezone_set('Asia/Jakarta');
     $current_time = date('Y-m-d H:i:s');
@@ -117,7 +124,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     }else{
         $_SESSION['toast_status'] = "Error";
         $_SESSION['toast_msg'] = "Sudah pernah approve. Operation terminated";
-        header('Location: ./draft-approval-list.php');
+        header($url_redirect);
         exit();
     }
 
@@ -298,6 +305,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     if($id_user == 70){
         header('Location: ./approved_list.php');
     }else {
-        header('Location: ./draft-approval-list.php');
+        header($url_redirect);
     }
     exit();

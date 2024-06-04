@@ -73,6 +73,7 @@
     $calcValues = $_POST["calcValue"];
     $manvals = $_POST["manval"];
     $valbens = $_POST["valben"];
+    $id_templates = $_POST["id_templates"];
     $editmode = $_POST["editmode"];
     
     if($selisih_benefit < 0){
@@ -108,7 +109,7 @@
         $manual_val = preg_replace("/[^0-9-]/", "", $valbens[$i]);
         $calc_val = preg_replace("/[^0-9-]/", "", $calcValues[$i]);
         if($members[$i] > 0 || $members2[$i] > 0 || $members3[$i] > 0 ){
-            $sql = "INSERT INTO `draft_benefit_list` (`id_benefit_list`, `id_draft`, `status`, `isDeleted`, `benefit_name`, `subbenefit`, `description`, `keterangan`, `qty`, `qty2`, `qty3`, `pelaksanaan`, `type`,`manualValue`,`calcValue`) VALUES (NULL, '$id_draft', '0', '0', '".$benefitNames[$i]."', '".$subbenefits[$i]."', '".$descriptions[$i]."', '".$keterangans[$i]."', '".$members[$i]."', '".$members2[$i]."', '".$members3[$i]."', '".$pelaksanaans[$i]."', '".$benefits[$i]."','".$manual_val."','".$calc_val."');";
+            $sql = "INSERT INTO `draft_benefit_list` (`id_benefit_list`, `id_draft`, `status`, `isDeleted`, `benefit_name`, `subbenefit`, `description`, `keterangan`, `qty`, `qty2`, `qty3`, `pelaksanaan`, `type`,`manualValue`,`calcValue`, `id_template`) VALUES (NULL, '$id_draft', '0', '0', '".$benefitNames[$i]."', '".$subbenefits[$i]."', '".$descriptions[$i]."', '".$keterangans[$i]."', '".$members[$i]."', '".$members2[$i]."', '".$members3[$i]."', '".$pelaksanaans[$i]."', '".$benefits[$i]."','".$manual_val."','".$calc_val."', '".$id_templates[$i]."');";
             mysqli_query($conn,$sql);
         }
     }

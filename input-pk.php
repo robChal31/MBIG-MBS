@@ -1,8 +1,10 @@
 <?php
 
+session_start();
 include 'db_con.php';
 
-$id_draft = $_POST['id_draft'];                                                                      
+$id_draft = $_POST['id_draft'];  
+$role = $_SESSION['role'];                                                                 
 $sql = "SELECT 
             b.*, 
             c.*, 
@@ -37,6 +39,7 @@ if ($result->num_rows > 0) {
         $id_sa = $row['sa_id'];
         $file_pk = $row['file_pk'];
         $file_benefit = $row['file_benefit'];
+        $fileUrl = $row['fileUrl'];
     }
 
     $sq_query = "SELECT * FROM dash_sa WHERE is_active = 1";
@@ -71,9 +74,17 @@ if ($result->num_rows > 0) {
                 <td>:</td>
                 <td><?= number_format($total_qty, 0, ',', '.') ?></td>
             </tr>
+            <tr>
+                <td><strong>File Draft Benefit</strong></td>
+                <td>:</td>
+                <td><a href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i> Document</a></td>
+            </tr>
         </table>
-    
-        <h6 class="mt-4 pt-4">Form PK</h6>
+
+        <?php
+            if($role == 'sa') { ?>
+                <h6 class="mt-4 pt-4">Form PK</h6>
+        <?php } ?>
         <form action="save-pk.php" method="POST" enctype="multipart/form-data">
             <div class="row">
                 <div class="col-12 mb-3">
@@ -112,12 +123,28 @@ if ($result->num_rows > 0) {
                 </div>
                 <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
             </div>
-            <div class="d-flex justify-content-end">
-                <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
-                <button class="btn btn-primary btn-sm">Save</button>
-            </div>
+            <?php
+                if($role == 'sa') {?>
+                    <div class="d-flex justify-content-end">
+                        <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
+                        <button class="btn btn-primary btn-sm">Save</button>
+                    </div>
+            <?php } else {?>
+                <div class="d-flex justify-content-end">
+                        <button type="button" class="me-2 btn btn-secondary btn-sm close">Close</button>
+                    </div>
+            <?php } ?>
         </form>
     </div>
+
+<script>
+    $(document).ready(function() {
+        let role = '<?= $role ?>';
+        if(role != 'sa') {
+            $('input').attr('disabled', true);
+        }
+    })
+</script>
  
 <?php } $conn->close();?>
 

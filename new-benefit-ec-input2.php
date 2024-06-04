@@ -145,8 +145,9 @@ if($data_status['status'] != 2 && $data_status['status'] != null){
                             <?php if(($current_row == 1 && !ISSET($_GET['edit'])) || ($current_row < 1 && ISSET($_GET['edit']))): ?>
                               <tr id="row<?= $current_row ?>">
                                   <td>
-                                    <span name="benefit"><?= ucfirst($program); ?> Benefit</span>
+                                    <span><?= ucfirst($program); ?> Benefit</span>
                                     <input type='hidden' name='benefit[]' value=''>
+                                    <input type='hidden' name='id_templates[]' value=''>
                                   </td>
                                   <td>
                                     <span>Subbenefit</span>
@@ -193,8 +194,9 @@ if($data_status['status'] != 2 && $data_status['status'] != null){
                               while ($data = $result->fetch_assoc()): ?>
                                 <tr id="row<?= $x; ?>">
                                   <td>
-                                    <span name="benefit"><?= $data['type'] ?></span>
+                                    <span><?= $data['type'] ?></span>
                                     <input type='hidden' name='benefit[]' value='<?= $data['type'] ?>'>
+                                    <input type='hidden' name='id_templates[]' value='<?= $data['id_template'] ?>'>
                                   </td>
                                   <td>
                                     <span><?= $data['subbenefit'] ?></span>
@@ -347,6 +349,7 @@ if($data_status['status'] != 2 && $data_status['status'] != null){
         },
         success: function(data) {
             row.find('input[name="benefit[]"]').val(data[0].benefit);
+            row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
             row.find('span[name="benefit"]').html(data[0].benefit);
             row.find('span[name="subbenefit"]').html(data[0].subbenefit);
             row.find('textarea[name="description[]"]').html(data[0].description);
@@ -457,7 +460,7 @@ if($data_status['status'] != 2 && $data_status['status'] != null){
     $('#add_row').click(function(){
       if(x < maxRows){
         x++;
-        var newRow = '<tr id="row'+x+'"><td><span>Benefit</span><input type="hidden" name="benefit[]" value=""></td><td><span>Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="benefit-desc"><textarea id="description" name="description[]" cols="16"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><td><input type="text" class="form-control form-control-sm" id="pelaksanaan" name="pelaksanaan[]" value=""></td><td class="benefit-ket"><input type="text" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"></td><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)"></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "disabled";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "disabled";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
+        var newRow = '<tr id="row'+x+'"><td><span>Benefit</span><input type="hidden" name="benefit[]" value=""><input type="hidden" name="id_templates[]" value=""></td><td><span>Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="benefit-desc"><textarea id="description" name="description[]" cols="16"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><td><input type="text" class="form-control form-control-sm" id="pelaksanaan" name="pelaksanaan[]" value=""></td><td class="benefit-ket"><input type="text" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"></td><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)"></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "disabled";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "disabled";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
         $('#input_form').append(newRow); 
          populateDropdown('row'+x);
       }

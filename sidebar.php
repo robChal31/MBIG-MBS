@@ -35,11 +35,12 @@ $last_path_with_query;
             <a href="main.php" class="nav-item nav-link <?= $last_path_with_query == 'main.php' ? "active" : '' ?>"><i class="fa fa-tachometer-alt"></i>Dashboard</a>
             <a href="draft-benefit.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-benefit.php' ? "active" : '' ?>"><i class="fas fa-ruler"></i>Draft Benefit</a>
             <a href="draft-approval-list.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-approval-list.php' ? "active" : '' ?>"><i class="fas fa-fingerprint"></i>Draft Approval List</a>
-            <a href="list-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'list-pk.php' ? "active" : '' ?>" style="font-size: .7rem">
+            <!-- <a href="list-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'list-pk.php' ? "active" : '' ?>" style="font-size: .7rem">
                 <i class="fas fa-file-contract"></i> Partnership Agreement List
-            </a>
+            </a> -->
 
-            <?php if($_SESSION['role'] == 'admin' || $_SESSION['role']=='bani'): ?>
+            <?php if($_SESSION['role'] == 'admin' || $_SESSION['role']=='bani' || $_SESSION['role'] == 'sa' ): ?>
+                <!-- <a href="benefits.php" class="nav-item nav-link <?= $last_path_with_query == 'benefits.php' ? "active" : '' ?>"><i class="fa fa-gift"></i>Benefits</a> -->
                 <a href="approved_list.php" class="nav-item nav-link <?= $last_path_with_query == 'approved_list.php' ? "active" : '' ?>"><i class="fas fa-signature"></i>Approved Benefit</a>
                 <a href="masters.php" class="nav-item nav-link <?= $last_path_with_query == 'masters.php' ? "active" : '' ?>"><i class="fas fa-school"></i>Master School</a>
                 <a href="customer_data.php" class="nav-item nav-link <?= $last_path_with_query == 'customer_data.php' ? "active" : '' ?>"><i class="fas fa-users"></i>Customer Data</a>

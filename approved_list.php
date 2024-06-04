@@ -6,7 +6,7 @@
 </style>
 <?php 
     $role = $_SESSION['role'];
-
+  
 ?>
 
 <div class="content">
@@ -70,18 +70,19 @@
                                                 <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
                                             </td>
                                             <td scope='col'>
-                                                <?php if($row['fileUrl']) { ?>
-                                                    <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>'  class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i></a>
-                                                <?php } ?>
 
-                                                <?php if($row['status'] == 1 && $role == 'admin' && $row['pk_id'] == null) { ?>
+                                                <?php if($row['status'] == 1 && $role == 'sa' && $row['pk_id'] == null) { ?>
                                                     <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
-                                                <?php }else if($row['status'] == 1 && $role == 'admin' && $row['pk_id']) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-secondary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                                <?php }else if($row['status'] == 1 && $row['pk_id']) { ?>
+                                                    <?php if($role == 'sa') { ?>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                                    <?php }else { ?>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fas fa-eye'></i></span>
+                                                    <?php } ?>
                                                 <?php } ?>
 
                                                 <?php if($row['verified'] == 0 && $id_user == 70 && $row['file_pk']) {?>
-                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
+                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
                                                 <?php } ?>
 
                                                 <?php if($id_user == 70 && $row['verified'] == 0) { ?>
@@ -171,6 +172,7 @@
         });
     })
 
+    let role = '<?= $role ?>';
     var pkModal = document.getElementById('pkModal');
     pkModal.addEventListener('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
@@ -178,6 +180,9 @@
 
         var modalTitle = pkModal.querySelector('.modal-title')
         modalTitle.textContent = action == 'create' ?  "Input PK" : "Edit PK";
+        if(role != 'sa') {
+            modalTitle.textContent = "Detail PK";
+        }
         $.ajax({
             url: 'input-pk.php',
             type: 'POST',
