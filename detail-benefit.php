@@ -102,12 +102,12 @@ if ($result->num_rows > 0) {
                                 <table class="table table-striped">
                                     <tbody>
                                         <tr>
-                                            <td style="width: 30%"><strong>Berlaku Mulai</strong></td>
+                                            <td style="width: 30%"><strong>Active From</strong></td>
                                             <td style="width: 1%">:</td>
                                             <td><?= $start_date ?></td>
                                         </tr>
                                         <tr>
-                                            <td><strong>Berakhir Sampai</strong></td>
+                                            <td><strong>Expired At</strong></td>
                                             <td>:</td>
                                             <td><?= $end_date ?></td>
                                         </tr>

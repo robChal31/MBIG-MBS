@@ -92,11 +92,11 @@ if ($result->num_rows > 0) {
                     <input type="text" name="no_pk" class="form-control form-control-sm" value="<?= $no_pk ?>" placeholder="Nomor PK" required>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
-                    <label class="form-label">Berlaku Mulai</label>
+                    <label class="form-label">Active From</label>
                     <input type="date" name="start_date" class="form-control form-control-sm" value="<?= $start_date ?>" required>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
-                    <label class="form-label">Berakhir Sampai</label>
+                    <label class="form-label">Expired At</label>
                     <input type="date" name="end_date" class="form-control form-control-sm" value="<?= $end_date ?>" required>
                 </div>
                 <div class="col-12 mb-3">

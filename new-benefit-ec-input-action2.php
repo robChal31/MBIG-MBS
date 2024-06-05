@@ -135,7 +135,7 @@
         $sheet->setCellValue('B8', ': '.ucfirst($segment));
         $sheet->setCellValue('A9', 'Tanggal Dibuat');
         $sheet->setCellValue('B9', ': '.date('d M Y'));
-    
+        
         $sheet->setCellValue('A10','Mata Ajar');
         $sheet->setCellValue('B10','Judul Buku');
         $sheet->setCellValue('C10','Jumlah Siswa');
@@ -374,7 +374,9 @@
         $rowStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
     
         $writer = new Xlsx($spreadsheet);
-        $fileName = "Draft Benefit - ".$school_name."-".$_SESSION['generalname'].'-'.date('Ymd');
+        $pattern = '/[^a-zA-Z0-9\s]/';
+        $school_name_file = preg_replace($pattern, '', $school_name);
+        $fileName = "Draft Benefit - ".$school_name_file."-".$_SESSION['generalname'].'-'.date('Ymd');
         $fileName = addslashes($fileName);
     
         $excelFile = 'draft-benefit/'.$fileName.'.xlsx';

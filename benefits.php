@@ -2,13 +2,45 @@
 <style>
   table.dataTable tbody td {
       vertical-align: middle !important;
+      font-size: .75rem;
+  }
+
+  table.dataTable thead th {
+      vertical-align: middle !important;
+      font-size: .75rem;
   }
 </style>
-<?php 
+<?php
     $role = $_SESSION['role'];
-    
+    $selected_type = [];
+
     if($_SERVER['REQUEST_METHOD'] == 'POST') {
-        var_dump($_POST);
+        $selected_type = $_POST['type'];
+    }
+
+    $types = [];
+    $query_type = "SELECT GROUP_CONCAT(br.id_template SEPARATOR ',') as id_templates, br.benefit, br.code
+                    FROM benefit_role br
+                    WHERE br.code = 'mkt'
+                    GROUP BY br.code, br.benefit;";
+
+    $exec_type = mysqli_query($conn, $query_type);
+    if (mysqli_num_rows($exec_type) > 0) {
+        $types = mysqli_fetch_all($exec_type, MYSQLI_ASSOC);    
+    }
+
+    $benefits = [];
+    $query_benefits = "SELECT *, IFNULL(sc.name, db.school_name) as school_name2
+                        FROM draft_benefit db 
+                        LEFT JOIN draft_benefit_list dbl on db.id_draft = dbl.id_draft
+                        LEFT JOIN pk p on p.benefit_id = db.id_draft
+                        LEFT JOIN schools as sc on sc.id = db.school_name
+                    WHERE db.verified = 1
+                    AND dbl.id_template IN (8,9,77);";
+
+    $exec_benefits = mysqli_query($conn, $query_benefits);
+    if (mysqli_num_rows($exec_benefits) > 0) {
+        $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);    
     }
 ?>
 
@@ -24,10 +56,9 @@
                         <div class="col-6">
                             <label for="type">Benefit Type</label>
                             <select class="form-select select2" name="type[]" aria-label="Default select example" multiple>
-                                <option selected>Segment</option>
-                                <option value="1">One</option>
-                                <option value="2">Two</option>
-                                <option value="3">Three</option>
+                                <?php foreach($types as $type) : ?>
+                                    <option value="<?= $type['id_templates'] ?>" <?= count($selected_type) < 1 ? 'selected' : (in_array($type['id_templates'], $selected_type) ? 'selected' : '') ?>><?= $type['benefit'] ?></option>
+                                <?php endforeach; ?>
                             </select>
                         </div>
                         <div class="col-6">
@@ -44,71 +75,33 @@
                     <table class="table table-striped" id="table_id">
                         <thead>
                             <tr>
-                                <th>No</th>
                                 <th>No PK</th>
-                                <th scope="col" style="width:10%">EC</th>
                                 <th scope="col" style="width: 20%">School Name</th>
-                                <th scope="col">Segment</th>
                                 <th scope="col">Active From</th>
                                 <th scope="col">Expired At</th>
-                                <th scope="col">Jenis Program</th>
-                                <th scope="col">Created At</th>
                                 <th scope="col" style="width: 13%">Status</th>
                                 <th scope="col">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
-                                $sql_q = " WHERE ";
-                                $id_user = $_SESSION['id_user'];
-
-                                $sql = "SELECT 
-                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, pk.no_pk, pk.start_at, pk.expired_at, pk.created_at
-                                        FROM draft_benefit b
-                                        LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
-                                        LEFT JOIN schools sc on sc.id = b.school_name
-                                        LEFT JOIN user c on c.id_user = b.id_user 
-                                        LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
-                                if($_SESSION['role'] == 'ec'){
-                                    $sql .= " WHERE (a.id_user_approver =" . $_SESSION['id_user'] . " or c.leadId='" . $_SESSION['id_user'] . "') ";
-                                    $sql_q = " AND ";
-                                }
-
-                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
-
-                                $result = mysqli_query($conn, $sql);
-                                setlocale(LC_MONETARY,"id_ID");
-                                if (mysqli_num_rows($result) > 0) {
-                                    while($row = mysqli_fetch_assoc($result)) {
-                                        $id_draft = $row['id_draft'];
-                                        $status_class = $row['verified'] == 1 ? 'bg-success' :  'bg-primary';
-                                        $status_msg = ($row['verified'] == 1 ? 'Verified' : 'Waiting Verification');
-                                ?>
-                                        <tr>
-                                            <td><?= $id_draft ?></td>
-                                            <td><?= $row['no_pk'] ?></td>
-                                            <td><?= $row['generalname'] ?></td>
-                                            <td><?= $row['school_name2'] ?></td>
-                                            <td><?= ucfirst($row['segment']) ?></td>
-                                            <td><?= $row['start_at'] ?></td>
-                                            <td><?= $row['expired_at'] ?></td>
-                                            <td><?= $row['program'] ?></td>
-                                            <td>
-                                                <?= $row['created_at'] ?>
-                                            </td>
-                                            <td>
-                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
-                                            </td>
-                                            <td scope='col'>
-                                               
-                                                <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
-                                               
-                                            </td>
-                                        </tr>
-                               <?php     }
-                                }
+                                foreach($benefits as $benefit) {
                             ?>
+                                    <tr>
+                                        <td><?= $benefit['no_pk'] ?></td>
+                                        <td><?= $benefit['school_name2'] ?></td>
+                                        <td><?= $benefit['start_at'] ?></td>
+                                        <td><?= $benefit['expired_at'] ?></td>
+                                        <td>
+                                            <span data-id="<?= $benefit['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
+                                        </td>
+                                        <td scope='col'>
+                                            
+                                            <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
+                                            
+                                        </td>
+                                    </tr>
+                               <?php } ?>
                         </tbody>
                     </table>
                 </div>
@@ -195,8 +188,23 @@
     })
 
     $(document).ready(function() {
-        $('.select2').select2({
-        });
+        $('.select2').select2({});
+
+        // $.ajax({
+        //     url: './get-verified-benefits.php',
+        //     type: 'POST',
+        //     data: {
+        //         types: rowid,
+        //     },
+            
+        //     success: function(response) {
+        //         console.log(response);
+                
+        //     },
+        //     error: function(xhr, status, error) {
+        //         console.error('Error:', error); 
+        //     }
+        // });
     });
 
     $(document).on('click', '.close', function() {

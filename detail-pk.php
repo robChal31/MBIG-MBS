@@ -76,12 +76,12 @@ if ($result->num_rows > 0) {
                 <td><?= $no_pk ?></td>
             </tr>
             <tr>
-                <td><strong>Berlaku Mulai</strong></td>
+                <td><strong>Active From</strong></td>
                 <td>:</td>
                 <td><?= $start_date ?></td>
             </tr>
             <tr>
-                <td><strong>Berakhir Sampai</strong></td>
+                <td><strong>Expired At</strong></td>
                 <td>:</td>
                 <td><?= $end_date ?></td>
             </tr>
