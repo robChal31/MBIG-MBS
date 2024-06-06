@@ -19,7 +19,7 @@
                     FROM benefit_role br
                     $filter_sql
                     GROUP BY br.code, br.benefit;";
-
+    echo $query_type; die;
     $exec_type = mysqli_query($conn, $query_type);
     if (mysqli_num_rows($exec_type) > 0) {
         $types = mysqli_fetch_all($exec_type, MYSQLI_ASSOC);    
