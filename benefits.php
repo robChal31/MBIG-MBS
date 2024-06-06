@@ -218,20 +218,20 @@
 
     function getBenefit() {
         let selectedType = $('select[name="type[]"]').val();
-        $.ajax({
-            url: './get-confirmed-benefits.php',
-            type: 'POST',
-            data: {
-                types: selectedType,
-            },
-            success: function(response) {
-                $('#benefits-container').html(response)
-            },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                $('#benefits-container').html("<div class='alert alert-danger'>Error: " + error + "</div>");
-            }
-        });
+        // $.ajax({
+        //     url: './get-confirmed-benefits.php',
+        //     type: 'POST',
+        //     data: {
+        //         types: selectedType,
+        //     },
+        //     success: function(response) {
+        //         $('#benefits-container').html(response)
+        //     },
+        //     error: function(xhr, status, error) {
+        //         console.error('Error:', error);
+        //         $('#benefits-container').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+        //     }
+        // });
     }
 
     $(document).on('click', '.close', function() {
