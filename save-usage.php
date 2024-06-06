@@ -9,7 +9,7 @@
     error_reporting(E_ALL);
 
     if (!isset($_SESSION['username'])){ 
-        header("Location: ./main.php");
+        header("Location: ./index.php");
         exit();
     }
 
