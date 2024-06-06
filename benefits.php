@@ -11,6 +11,7 @@
   }
 </style>
 <?php
+echo 'testttt';die;
     $role = $_SESSION['role'];
     $types = [];
 
