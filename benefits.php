@@ -1,4 +1,4 @@
-<?php include 'header.php'; ?>
+<?php echo 'testttt';die; include 'header.php'; ?>
 <style>
   table.dataTable tbody td {
       vertical-align: middle !important;
