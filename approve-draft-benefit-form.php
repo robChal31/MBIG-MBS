@@ -24,7 +24,7 @@
     $id_draft   = $_GET['id_draft'];
     $token      = $_GET['token'];
 
-    if (!$token && $id_user == 70) {
+    if (!$token && ($id_user == 70 || $id_user == 5)) {
         $tokenLeader = generateRandomString(16);
         $sql_check = "SELECT * FROM draft_approval WHERE id_draft = '$id_draft' AND id_user_approver = '$id_user'";
         $result = $conn->query($sql_check);
@@ -46,7 +46,7 @@
            
            
         } else {
-            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
+            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '$id_user', '0');";
         
             if (mysqli_query($conn, $sql)) {
                 $url = "./approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader";

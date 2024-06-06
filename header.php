@@ -102,6 +102,16 @@
         .dataTables_paginate {
             font-size: .7rem;
         }
+
+        table.dataTable tbody td {
+            vertical-align: middle !important;
+            font-size: .7rem;
+        }
+
+        table.dataTable thead th {
+            vertical-align: middle !important;
+            font-size: .7rem;
+        }
     </style>
 </head>
 

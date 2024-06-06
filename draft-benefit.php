@@ -2,11 +2,6 @@
 <?php 
     include 'header.php'; 
 ?>
-<style>
-  table.dataTable tbody td {
-      vertical-align: middle !important;
-  }
-</style>
 
     <!-- Content Start -->
     <div class="content">
@@ -25,7 +20,7 @@
                         
 
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered" id="table_id">
+                            <table class="table table-striped table-bordered" id="table_draft">
                                 <thead>
                                     <tr>
                                         <th scope="col" style="width: 10%">Nama EC</th>
@@ -41,7 +36,7 @@
                                 </thead>
                                 <tbody>
                                     <?php
-                                        $order_by = ' ORDER BY date';
+                                        $order_by = ' ORDER BY a.date ASC';
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
@@ -197,7 +192,43 @@
     })
 
     $(document).ready(function() {
-       
+        $('#table_draft').DataTable({
+            dom: 'Bfrtip',
+            pageLength: 20,
+            order: [
+                [4, 'desc'] 
+            ],
+            buttons: [
+                { 
+                    extend: 'copyHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                    }
+                },
+                { 
+                    extend: 'excelHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                    }
+                },
+                { 
+                    extend: 'csvHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                    }
+                },
+                { 
+                    extend: 'pdfHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                    }
+                }
+            ]
+        })
     })
 </script>
        

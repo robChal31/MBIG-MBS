@@ -51,7 +51,7 @@
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
+                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.deleted_at IS NULL ORDER BY b.id_draft DESC";
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");

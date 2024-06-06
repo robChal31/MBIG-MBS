@@ -12,36 +12,19 @@
 </style>
 <?php
     $role = $_SESSION['role'];
-    $selected_type = [];
-
-    if($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $selected_type = $_POST['type'];
-    }
-
     $types = [];
+
+    $filter_sql = $role == 'admin' ? '' : "WHERE br.code = '$role'";
     $query_type = "SELECT GROUP_CONCAT(br.id_template SEPARATOR ',') as id_templates, br.benefit, br.code
                     FROM benefit_role br
-                    WHERE br.code = 'mkt'
+                    $filter_sql
                     GROUP BY br.code, br.benefit;";
 
     $exec_type = mysqli_query($conn, $query_type);
     if (mysqli_num_rows($exec_type) > 0) {
         $types = mysqli_fetch_all($exec_type, MYSQLI_ASSOC);    
     }
-
-    $benefits = [];
-    $query_benefits = "SELECT *, IFNULL(sc.name, db.school_name) as school_name2
-                        FROM draft_benefit db 
-                        LEFT JOIN draft_benefit_list dbl on db.id_draft = dbl.id_draft
-                        LEFT JOIN pk p on p.benefit_id = db.id_draft
-                        LEFT JOIN schools as sc on sc.id = db.school_name
-                    WHERE db.verified = 1
-                    AND dbl.id_template IN (8,9,77);";
-
-    $exec_benefits = mysqli_query($conn, $query_benefits);
-    if (mysqli_num_rows($exec_benefits) > 0) {
-        $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);    
-    }
+    
 ?>
 
 <div class="content">
@@ -50,61 +33,25 @@
         <div class="col-12">
 
             <div class="bg-white rounded h-100 p-4 mb-4">
-                <h6 class="mb-4" style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
-                <form action="./benefits.php" method="POST">
-                    <div class="row justify-content-center align-items-end">
-                        <div class="col-6">
-                            <label for="type">Benefit Type</label>
-                            <select class="form-select select2" name="type[]" aria-label="Default select example" multiple>
-                                <?php foreach($types as $type) : ?>
-                                    <option value="<?= $type['id_templates'] ?>" <?= count($selected_type) < 1 ? 'selected' : (in_array($type['id_templates'], $selected_type) ? 'selected' : '') ?>><?= $type['benefit'] ?></option>
-                                <?php endforeach; ?>
-                            </select>
-                        </div>
-                        <div class="col-6">
-                            <button class="btn btn-primary"><i class="fa fa-filter"></i> Filter</button>
-                        </div>
+                <h6 style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
+                <div class="row justify-content-center align-items-end">
+                    <div class="col-6">
+                        <label for="type">Benefit Type</label>
+                        <select class="form-select select2" name="type[]" aria-label="Default select example" multiple>
+                            <?php foreach($types as $type) : ?>
+                                <option value="<?= $type['id_templates'] ?>" <?= count($selected_type) < 1 ? 'selected' : (in_array($type['id_templates'], $selected_type) ? 'selected' : '') ?>><?= $type['benefit'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
                     </div>
-                </form>
-                
+                    <div class="col-6">
+                        <button class="btn btn-primary" id="filter-btn"><i class="fa fa-filter"></i> Filter</button>
+                    </div>
+                </div>
             </div>
             
             <div class="bg-white rounded h-100 p-4">
                 <h6 class="mb-4">Benefits</h6>                      
-                <div class="table-responsive">
-                    <table class="table table-striped" id="table_id">
-                        <thead>
-                            <tr>
-                                <th>No PK</th>
-                                <th scope="col" style="width: 20%">School Name</th>
-                                <th scope="col">Active From</th>
-                                <th scope="col">Expired At</th>
-                                <th scope="col" style="width: 13%">Status</th>
-                                <th scope="col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                                foreach($benefits as $benefit) {
-                            ?>
-                                    <tr>
-                                        <td><?= $benefit['no_pk'] ?></td>
-                                        <td><?= $benefit['school_name2'] ?></td>
-                                        <td><?= $benefit['start_at'] ?></td>
-                                        <td><?= $benefit['expired_at'] ?></td>
-                                        <td>
-                                            <span data-id="<?= $benefit['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
-                                        </td>
-                                        <td scope='col'>
-                                            
-                                            <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
-                                            
-                                        </td>
-                                    </tr>
-                               <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
+                <div class="" id="benefits-container"></div>
             </div>
         </div>
     </div>
@@ -147,6 +94,41 @@
         </div>
     </div>
 
+    <div class="modal fade" id="historyUsageModal" tabindex="-1" role="dialog" aria-labelledby="historyUsageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="historyUsageModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="historyUsageModalBody">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary close" data-dismiss="modal">Close</button>
+                </div>
+            </div> 
+        </div>
+    </div>
+
+    <div class="modal fade" id="usageModal" tabindex="-1" role="dialog" aria-labelledby="usageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="usageModalLabel">Usage</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="usageModalBody">
+                    ...
+                </div>
+                
+            </div> 
+        </div>
+    </div>
 <?php include 'footer.php';?>
 <script>
 
@@ -167,13 +149,11 @@
         });
     })
 
-    var pkModal = document.getElementById('pkModal');
-    pkModal.addEventListener('show.bs.modal', function (event) {
+    $('#pkModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
         let action = event.relatedTarget.getAttribute('data-action');
 
-        var modalTitle = pkModal.querySelector('.modal-title')
-        modalTitle.textContent = "Detail PK";
+        $('#pkModalLabel').html("Detail PK");
         $.ajax({
             url: 'detail-pk.php',
             type: 'POST',
@@ -187,28 +167,77 @@
         });
     })
 
+    $('#usageModal').on('show.bs.modal', function (event) {
+        var rowid = event.relatedTarget.getAttribute('data-id')
+        let action = event.relatedTarget.getAttribute('data-action');
+
+        $('#usageModalLabel').html("Add Benefit Usage");
+        $.ajax({
+            url: 'input-usage.php',
+            type: 'POST',
+            data: {
+                id_benefit_list : rowid,
+            },
+            success: function(data) {
+                $('#usageModalBody').html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error); 
+            }
+        });
+    });
+
+    $('#historyUsageModal').on('show.bs.modal', function (event) {
+        var rowid = event.relatedTarget.getAttribute('data-id')
+        let action = event.relatedTarget.getAttribute('data-action');
+
+        $('#historyUsageModalLabel').html("History Benefit Usage");
+        $.ajax({
+            url: 'history-usage.php',
+            type: 'POST',
+            data: {
+                id_benefit_list : rowid,
+            },
+            success: function(data) {
+                $('#historyUsageModalBody').html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error); 
+            }
+        });
+    })
+
     $(document).ready(function() {
         $('.select2').select2({});
+        getBenefit();
 
-        // $.ajax({
-        //     url: './get-verified-benefits.php',
-        //     type: 'POST',
-        //     data: {
-        //         types: rowid,
-        //     },
-            
-        //     success: function(response) {
-        //         console.log(response);
-                
-        //     },
-        //     error: function(xhr, status, error) {
-        //         console.error('Error:', error); 
-        //     }
-        // });
+        $('#filter-btn').click(function() {
+            getBenefit();
+        })
     });
+
+    function getBenefit() {
+        let selectedType = $('select[name="type[]"]').val();
+        $.ajax({
+            url: './get-confirmed-benefits.php',
+            type: 'POST',
+            data: {
+                types: selectedType,
+            },
+            success: function(response) {
+                $('#benefits-container').html(response)
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error);
+                $('#benefits-container').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+            }
+        });
+    }
 
     $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');
         $('#pkModal').modal('hide');
+        $('#usageModal').modal('hide');
+        $('#historyUsageModal').modal('hide');
     });
 </script>

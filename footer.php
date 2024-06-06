@@ -235,7 +235,7 @@
                 dom: 'Bfrtip',
                 pageLength: 20,
                 order: [
-                    [4, 'desc'] 
+                    [0, 'desc'] 
                 ],
                 buttons: [
                     { 
@@ -268,7 +268,6 @@
                     }
                 ]
             });
-
 
             $('[data-toggle="popover"]').popover();
 

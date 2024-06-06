@@ -37,7 +37,7 @@
 
                                 $sql = "SELECT 
                                             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk
+                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
@@ -55,8 +55,13 @@
                                 if (mysqli_num_rows($result) > 0) {
                                     while($row = mysqli_fetch_assoc($result)) {
                                         $id_draft = $row['id_draft'];
-                                        $status_class = $row['verified'] == 1 ? 'bg-success' :  'bg-primary';
+                                        $status_class = $row['verified'] == 1 ? 'bg-success' :  'bg-info';
                                         $status_msg = ($row['verified'] == 1 ? 'Verified' : 'Waiting Verification');
+                                        if($row['verified'] == 1) {
+                                            $status_class = $row['confirmed'] == 1 ? 'bg-success' :  'bg-primary';
+                                            $status_msg = ($row['confirmed'] == 1 ? 'Confirmed' : 'Waiting Confirmation');
+                                        }
+
                                 ?>
                                         <tr>
                                             <td><?= $id_draft ?></td>
@@ -87,6 +92,10 @@
 
                                                 <?php if($id_user == 70 && $row['verified'] == 0) { ?>
                                                     <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-1 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
+                                                <?php } ?>
+
+                                                <?php if($id_user == 5 && $row['verified'] == 1) { ?>
+                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Confirm'><i class='fas fa-fingerprint'></i></a>
                                                 <?php } ?>
                                                
                                             </td>
