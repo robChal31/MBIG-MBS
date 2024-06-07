@@ -24,9 +24,9 @@
                         LEFT JOIN draft_benefit_list dbl on db.id_draft = dbl.id_draft
                         LEFT JOIN (
                             SELECT 
-                                SUM(bu.qty1) as tot_usage1,
-                                SUM(bu.qty2) as tot_usage2,
-                                SUM(bu.qty3) as tot_usage3,
+                            SUM(COALESCE(bu.qty1, 0)) AS tot_usage1,
+                            SUM(COALESCE(bu.qty2, 0)) AS tot_usage2,
+                            SUM(COALESCE(bu.qty3, 0)) AS tot_usage3
                                 bu.id_benefit_list as id_bl
                             FROM benefit_usages bu
                             GROUP BY bu.id_benefit_list

@@ -7,9 +7,9 @@ $id_benefit_llist = $_POST['id_benefit_list'];
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT
             dbl.*,
-            SUM(bu.qty1) AS tot_usage1,
-            SUM(bu.qty2) AS tot_usage2,
-            SUM(bu.qty3) AS tot_usage3
+            SUM(COALESCE(bu.qty1, 0)) AS tot_usage1,
+            SUM(COALESCE(bu.qty2, 0)) AS tot_usage2,
+            SUM(COALESCE(bu.qty3, 0)) AS tot_usage3
         FROM benefit_usages AS bu
         LEFT JOIN draft_benefit_list AS dbl ON dbl.id_benefit_list = bu.id_benefit_list
         WHERE dbl.id_benefit_list = $id_benefit_llist";
