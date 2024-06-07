@@ -18,6 +18,8 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
     $usages = $usages[0];  
+
+    var_dump($usages);
 ?>
     <div class="p-2">
         <h6>Benefit Usage</h6>
@@ -57,28 +59,29 @@ if ($result->num_rows > 0) {
 
 <script>
     $(document).ready(function() {
+
+        let quantity = {
+            qty1: {
+                max : <?= isset($usages['qty']) ? $usages['qty'] : 0 ?>,
+                used : <?= isset($usages['tot_usage1']) ? $usages['tot_usage1'] : 0 ?>,
+                remain : <?= isset($usages['qty']) ? $usages['qty'] - $usages['tot_usage1'] : 0 ?>
+            },
+            qty2: {
+                max : <?= isset($usages['qty2']) ? $usages['qty2'] : 0 ?>,
+                used : <?= isset($usages['tot_usage2']) ? $usages['tot_usage2'] : 0 ?>,
+                remain : <?= isset($usages['qty2']) ? $usages['qty2'] - $usages['tot_usage2'] : 0 ?>
+            },
+            qty3: {
+                max : <?= isset($usages['qty3']) ? $usages['qty3'] : 0 ?>,
+                used : <?= isset($usages['tot_usage3']) ? $usages['tot_usage3'] : 0 ?>,
+                remain : <?= isset($usages['qty3']) ? $usages['qty3'] - $usages['tot_usage3'] : 0 ?>
+            }
+        };
+
+        console.log('quantity : ', quantity)
         $('#quantity').on('input', function() {
             var value = $(this).val();
             var isValid = /^\d+$/.test(value) && parseInt(value) > 0;
-
-
-            let quantity = {
-                qty1: {
-                    max : <?= isset($usages['qty']) ? $usages['qty'] : 0 ?>,
-                    used : <?= isset($usages['tot_usage1']) ? $usages['tot_usage1'] : 0 ?>,
-                    remain : <?= isset($usages['qty']) ? $usages['qty'] - $usages['tot_usage1'] : 0 ?>
-                },
-                qty2: {
-                    max : <?= isset($usages['qty2']) ? $usages['qty2'] : 0 ?>,
-                    used : <?= isset($usages['tot_usage2']) ? $usages['tot_usage2'] : 0 ?>,
-                    remain : <?= isset($usages['qty2']) ? $usages['qty2'] - $usages['tot_usage2'] : 0 ?>
-                },
-                qty3: {
-                    max : <?= isset($usages['qty3']) ? $usages['qty3'] : 0 ?>,
-                    used : <?= isset($usages['tot_usage3']) ? $usages['tot_usage3'] : 0 ?>,
-                    remain : <?= isset($usages['qty3']) ? $usages['qty3'] - $usages['tot_usage3'] : 0 ?>
-                }
-            };
 
             let yearValue = $('#year').val();
 
