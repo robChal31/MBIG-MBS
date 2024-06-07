@@ -10,8 +10,8 @@ $sql = "SELECT
             SUM(COALESCE(bu.qty1, 0)) AS tot_usage1,
             SUM(COALESCE(bu.qty2, 0)) AS tot_usage2,
             SUM(COALESCE(bu.qty3, 0)) AS tot_usage3
-        FROM benefit_usages AS bu
-        LEFT JOIN draft_benefit_list AS dbl ON dbl.id_benefit_list = bu.id_benefit_list
+        FROM draft_benefit_list AS dbl
+        LEFT JOIN benefit_usages AS bu ON dbl.id_benefit_list = bu.id_benefit_list
         WHERE dbl.id_benefit_list = $id_benefit_llist";
 $result = $conn->query($sql);
 
@@ -19,7 +19,6 @@ if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
     $usages = $usages[0];  
 
-    var_dump($usages);
 ?>
     <div class="p-2">
         <h6>Benefit Usage</h6>
