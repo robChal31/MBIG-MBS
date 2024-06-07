@@ -14,11 +14,11 @@
     $role = $_SESSION['role'];
     $types = [];
 
-    $filter_sql = $role == 'admin' ? '' : "WHERE br.code = '$role'";
+    $filter_sql = $role == 'admin' ? 'GROUP BY br.benefit' : "WHERE br.code = '$role' GROUP BY br.code, br.benefit";
     $query_type = "SELECT GROUP_CONCAT(br.id_template SEPARATOR ',') as id_templates, br.benefit, br.code
                     FROM benefit_role br
                     $filter_sql
-                    GROUP BY br.code, br.benefit;";
+                    ";
 
     $exec_type = mysqli_query($conn, $query_type);
     if (mysqli_num_rows($exec_type) > 0) {
