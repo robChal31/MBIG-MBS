@@ -64,6 +64,7 @@
                         <thead>
                             <tr>
                                 <th>No PK</th>
+                                <th>School</th>
                                 <th scope="col">Benefit</th>
                                 <th scope="col">Sub Benefit</th>
                                 <th scope="col" style="width: 15%">Description</th>
@@ -85,6 +86,7 @@
                             ?>
                                     <tr>
                                         <td><?= $benefit['no_pk'] ?></td>
+                                        <td><?= $benefit['school_name2'] ?></td>
                                         <td><?= $benefit['benefit'] ?></td>
                                         <td><?= $benefit['subbenefit'] ?></td>
                                         <td><?= $benefit['description'] ?></td>
