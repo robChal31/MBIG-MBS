@@ -197,7 +197,7 @@
         // ];
 
         $cc[] = [
-            'email' => "bany@mentarigroups.com",
+            'email' => "secretary@mentaribooks.com",
             'name' => "Putri"
         ];
 
