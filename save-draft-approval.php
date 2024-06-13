@@ -255,6 +255,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                 'name' => "AR"
             ];
 
+            $cc[] = [
+                'email' => "secretary@mentaribooks.com",
+                'name' => "Putri"
+            ];
+
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
 
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";

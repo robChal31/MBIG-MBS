@@ -37,6 +37,8 @@
     $program = ISSET($_POST["program"]) ? $_POST["program"] : (ISSET($_SESSION["program"]) ? $_SESSION['program'] : '');
     $sumalok = ISSET($_POST["sumalok"]) ? $_POST["sumalok"] : (ISSET($_SESSION["sumalok"]) ? $_SESSION['sumalok'] : 0);
 
+    $program = strtolower($program);
+
     $id_draft       = $_SESSION["id_draft"];
     $school_name    = $_SESSION["school_name"];
     $school_name    = str_replace("'", "", $school_name);
@@ -428,8 +430,8 @@
             $mail->addAttachment($excelFile,$fileName);
             //Content
             $mail->isHTML(true);
-            $mail->Subject = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$program.' untuk '.$school_name;
             $uc_program = strtoupper($program);
+            $mail->Subject = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
             $mail->Body    = "<style>
                                 * {
                                     font-family: Helvetica, sans-serif;
@@ -483,9 +485,10 @@
             $mail->addAddress($_SESSION['username'],$_SESSION['generalname']);
             $mail->addAttachment($excelFile,$fileName);
             //Content
-            $mail->isHTML(true);    
-            $mail->Subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $program. '  ' . $school_name;
-            $mail->Body    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
+            $mail->isHTML(true);
+            $uc_program = strtoupper($program); 
+            $mail->Subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program. '  ' . $school_name;
+            $mail->Body    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
             $mail->send();
     
         } catch (Exception $e) {

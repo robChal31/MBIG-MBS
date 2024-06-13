@@ -34,7 +34,7 @@
                         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
                         LEFT JOIN pk p on p.benefit_id = db.id_draft
                         LEFT JOIN schools as sc on sc.id = db.school_name
-                        WHERE db.confirmed = 1
+                        WHERE db.verified = 1
                         AND dbl.id_template IN ($selected_type);
                         ";
 
@@ -44,19 +44,7 @@
     }
 ?>
 
-<style>
-  table.dataTable tbody td {
-      vertical-align: middle !important;
-      font-size: .7rem;
-  }
-
-  table.dataTable thead th {
-      vertical-align: middle !important;
-      font-size: .7rem;
-  }
-</style>
-
-    <div class="container-fluid p-4">
+    <div class="container-fluid p-1">
         <div class="col-12">                 
             <div class="table-responsive">
                 <div class="table-responsive">
@@ -68,14 +56,15 @@
                                 <th scope="col">Benefit</th>
                                 <th scope="col">Sub Benefit</th>
                                 <th scope="col" style="width: 15%">Description</th>
-                                <th scope="col">Implementation</th>
+                                <th scope="col" style="width: 10%">Implementation</th>
                                 <th scope="col">Year 1</th>
                                 <th scope="col">Total Usage Year 1</th>
                                 <th scope="col">Year 2</th>
                                 <th scope="col">Total Usage Year 2</th>
                                 <th scope="col">Year 3</th>
                                 <th scope="col">Total Usage Year 3</th>
-                                <th scope="col">Action</th>
+                                <th scope="col">Confirmed</th>
+                                <th scope="col" style="width: 20%;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,18 +80,25 @@
                                         <td><?= $benefit['subbenefit'] ?></td>
                                         <td><?= $benefit['description'] ?></td>
                                         <td><?= $benefit['pelaksanaan'] ?></td>
-                                        <td><?= $benefit['qty'] ?></td>
-                                        <td><?= $benefit['tot_usage1'] ?? 0?></td>
-                                        <td><?= $benefit['qty2'] ?></td>
-                                        <td><?= $benefit['tot_usage2'] ?? 0?></td>
-                                        <td><?= $benefit['qty3'] ?></td>
-                                        <td><?= $benefit['tot_usage3'] ?? 0?></td>
+                                        <td class="text-center"><?= $benefit['qty'] ?></td>
+                                        <td class="text-center"><?= $benefit['tot_usage1'] ?? 0?></td>
+                                        <td class="text-center"><?= $benefit['qty2'] ?></td>
+                                        <td class="text-center"><?= $benefit['tot_usage2'] ?? 0?></td>
+                                        <td class="text-center"><?= $benefit['qty3'] ?></td>
+                                        <td class="text-center"><?= $benefit['tot_usage3'] ?? 0?></td>
+                                        <td class="text-center">
+                                            <?php if($benefit['confirmed'] == 1) : ?>
+                                                <span><i class='fa fa-check'></i></span>
+                                            <?php endif; ?>
+                                        </td>
                                         <td scope='col'>
                                             <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
                                             
-                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
-                                            
-                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+                                            <?php if($benefit['confirmed'] == 1) : ?>
+                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
+
+                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+                                            <?php endif; ?>
                                         </td>
                                     </tr>
                             <?php } ?>

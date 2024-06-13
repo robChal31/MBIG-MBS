@@ -32,16 +32,19 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
         $fileUrl1 = $fileUrl[0];
         $fileUrl2 = $fileUrl[1];
-        $fileUrl3 = 'draft-benefit/' . $fileUrl[2];
+        $fileUrl3 = $fileUrl[2] ? ('draft-benefit/' . $fileUrl[2]) : null;
 
-        if (file_exists($fileUrl1)) {
+        if(file_exists($fileUrl1)) {
             $mail->addAttachment($fileUrl1);
         }
-        if (file_exists($fileUrl2)) {
+        if(file_exists($fileUrl2)) {
             $mail->addAttachment($fileUrl2);
         }
-        if (file_exists($fileUrl3)) {
-            $mail->addAttachment($fileUrl3);
+
+        if($fileUrl3) {
+            if(file_exists($fileUrl3)) {
+                $mail->addAttachment($fileUrl3);
+            }
         }
 
         $mail->addAddress($email, $name);

@@ -77,7 +77,6 @@ if ($result->num_rows > 0) {
             }
         };
 
-        console.log('quantity : ', quantity)
         $('#quantity').on('input', function() {
             var value = $(this).val();
             var isValid = /^\d+$/.test(value) && parseInt(value) > 0;

@@ -223,6 +223,23 @@
         $(document).ready(function() {
             $('.toast').toast('show');
             $('[data-bs-toggle="tooltip"]').tooltip();
+
+            $('#collapsibleNav').on('shown.bs.collapse', function () {
+                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            });
+
+            $('#collapsibleNav').on('hidden.bs.collapse', function () {
+                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            });
+
+            // Auto collapse the nav if the current URL matches any of the links inside it
+            var currentPath = window.location.pathname;
+            $('#collapsibleNav a').each(function () {
+                if (this.href.includes(currentPath)) {
+                    $('#collapsibleNav').collapse('show');
+                }
+            });
+
             function yesnoCheck(that) {
               if (that.value == "Others") {
                   document.getElementById("titleOther").style.display = "block";
@@ -363,7 +380,6 @@
             document.getElementById('updateTitleAdopt').setAttribute('onclick','updateTitleAdopt('+rowid+')');
         })
 
-
         var exampleModal6 = document.getElementById('exampleModal6')
         exampleModal6.addEventListener('show.bs.modal', function (event) {
           const apiUrl = 'https://hadiryuk.id/api/event';
@@ -483,7 +499,6 @@
             document.getElementById('requestVoucher').setAttribute('onclick','requestVoucher('+rowid+')');
         })
 
-
         function deleteData(benefittype,rowid){
             $.ajax({
                 url: 'new-benefit-delete.php',
@@ -523,7 +538,6 @@
                 }
             });
         }
-
 
         function updateKeteranganData(rowid){
             var keterangan = document.getElementById('keteranganInput').value
@@ -589,10 +603,7 @@
             });
         }
         
-        function requestVoucher(rowid)
-        {
-
-
+        function requestVoucher(rowid){
           const phpUrl = 'request-voucher.php';
 
           // Data to be sent in the POST request
@@ -620,6 +631,7 @@
           });
           
         }
+        
     </script>
     <!-- Template Javascript -->
     <script src="js/main.js"></script>

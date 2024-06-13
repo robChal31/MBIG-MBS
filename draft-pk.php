@@ -13,7 +13,7 @@
                     <div class="bg-white rounded h-100 p-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">Draft Benefit</h6>
-                            <a href="new-benefit-ec-input.php">
+                            <a href="create_draft_pk.php">
                                 <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
                             </a>
                         </div>
@@ -50,13 +50,13 @@
 
                                         $program_names = $program_names ? ("'" . implode("', '", $program_names) . "'") : false;
 
-                                        $query_filter_pk = $program_names ? " AND a.program NOT IN ($program_names)" : '';
+                                        $query_filter_pk = $program_names ? " AND a.program IN ($program_names)" : '';
 
                                         $order_by = ' ORDER BY a.date ASC';
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
-                                                left join user b on a.id_user = b.id_user
+                                                LEFT JOIN user b on a.id_user = b.id_user
                                                 WHERE a.deleted_at is null
                                                 $query_filter_pk"; 
                                         if($_SESSION['role'] == 'ec'){
@@ -68,17 +68,15 @@
                                         setlocale(LC_MONETARY,"id_ID");
                                         if (mysqli_num_rows($result) > 0) {
                                             while($row = mysqli_fetch_assoc($result)) {
-                                                $stat = ($row['status'] == 0 && $row['fileUrl']) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
-                                                $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
+                                                $stat = ($row['status'] == 0) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
                                                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
-                                                $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
                                                 $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
                                                 $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70;
                                     ?>
                                                 <tr>
                                                     <td><?= $row['generalname'] ?></td>
                                                     <td><?= $row['school_name2'] ?></td>
-                                                    <td><?= ucfirst($row['segment']) ?></td>
+                                                    <td><?= $row['segment'] ?></td>
                                                     <td><?= $row['program'] ?></td>
                                                     <td><?= $row['date'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
@@ -87,15 +85,12 @@
                                                         <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>
                                                     </td>
                                                     <td scope="col">
-                                                        <?php if($row['fileUrl']) { ?>
-                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip me-1"></i></a>
-                                                        <?php } ?>
                                                         <?php 
-                                                            if((($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl']) || ($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0 && !$row['fileUrl'])) && (!$row['deleted_at'])){ ?>
-                                                                <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?=$row['id_draft']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
+                                                            if((($row['status'] == 0 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0)) && (!$row['deleted_at'])){ ?>
+                                                                <a href="create_draft_pk.php?id_draft=<?= $row['id_draft'] ?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                         <?php } ?>
 
-                                                        <?php if(($is_ec_the_creator && $row['status'] == 0 && !$row['fileUrl'])){ ?>
+                                                        <?php if(($is_ec_the_creator || $_SESSION['role'] == 'admin') && $row['status'] == 2){ ?>
                                                             <a href='#' data-id="<?= $row['id_draft'] ?>" class='delete-btn text-danger me-1' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
                                                         <?php } ?>
                                                     </td>

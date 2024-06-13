@@ -1,93 +1,76 @@
-<?php include 'header.php'; ?>
 <?php
-$current_row = 1;
-if($_GET['edit'] == 'edit'){ 
-  $id_draft = $_GET['id_draft'];
-  $sql      = "SELECT db.*, sc.name as school_name2
-              FROM draft_benefit as db 
-              LEFT JOIN schools as sc on sc.id = db.school_name
-              where id_draft = $id_draft";
-  $result   = mysqli_query($conn,$sql);
-  
-  if(mysqli_num_rows($result) < 1){
-    header('Location: draft-benefit.php');
-    exit;
-  } else if(mysqli_num_rows($result) == 1){
+  ob_start();
+  session_start();
+  include 'db_con.php';
 
-    while ($data = $result->fetch_assoc()){
-      $program                  = $data['program'];
-      $sumalok                  = $data['alokasi'];
-      $total_benefit            = $data['total_benefit'];
-      $school_name              = $data['school_name2'];
-      $selisih_benefit          = $data['selisih_benefit'];
+  $current_row = 1;
+  if($_GET['edit'] == 'edit'){ 
+    $id_draft = $_GET['id_draft'];
+    $sql      = "SELECT db.*, sc.name as school_name2
+                FROM draft_benefit as db 
+                LEFT JOIN schools as sc on sc.id = db.school_name
+                where id_draft = $id_draft";
+    $result   = mysqli_query($conn,$sql);
+    
+    if(mysqli_num_rows($result) < 1){
+      header('Location: draft-benefit.php');
+      exit;
+    } else if(mysqli_num_rows($result) == 1){
 
-      $_SESSION['program']      = $program;
-      $_SESSION['sumalok']      = $sumalok;
-      $_SESSION['id_draft']     = $id_draft;
-      $_SESSION['school_name']  = $school_name;
-      $_SESSION['segment']      = $data['segment'];
+      while ($data = $result->fetch_assoc()){
+        $program                  = $data['program'];
+        $sumalok                  = $data['alokasi'];
+        $total_benefit            = $data['total_benefit'];
+        $school_name              = $data['school_name2'];
+        $selisih_benefit          = $data['selisih_benefit'];
 
+        $_SESSION['program']      = $program;
+        $_SESSION['sumalok']      = $sumalok;
+        $_SESSION['id_draft']     = $id_draft;
+        $_SESSION['school_name']  = $school_name;
+        $_SESSION['segment']      = $data['segment'];
+
+      }
+
+      //get draft benefit list count
+      $sql          = "SELECT b.*, a.* FROM draft_benefit_list a 
+                        LEFT JOIN (
+                          SELECT *
+                          FROM draft_template_benefit
+                          WHERE avail IS NOT NULL
+                          GROUP BY benefit_name, subbenefit
+                        ) b on a.subbenefit = b.subbenefit and a.benefit_name = b.benefit_name  
+                        WHERE a.id_draft = '$id_draft'";
+      $result       = mysqli_query($conn,$sql);
+      $current_row  = mysqli_num_rows($result);
     }
 
-    //get draft benefit list count
-    $sql          = "SELECT b.*, a.* FROM draft_benefit_list a 
-                      LEFT JOIN draft_template_benefit AS b on a.id_template = b.id_template_benefit 
-                      WHERE a.id_draft = '$id_draft'";
-    $result       = mysqli_query($conn,$sql);
-    $current_row  = mysqli_num_rows($result);
+  }else{
+    $program  = $_SESSION['program'];
+    $id_draft = $_SESSION['id_draft'];
+    $sumalok  = $_SESSION['sumalok'];
   }
 
-}else{
-  $program  = $_SESSION['program'];
-  $id_draft = $_SESSION['id_draft'];
-  $sumalok  = $_SESSION['sumalok'];
-}
+  $query_status = "select db.status  
+                    from draft_benefit db 
+                    inner join draft_approval da on da.id_draft = db.id_draft 
+                    where (da.status = 0 or da.status = 1)
+                    and db.id_draft = $id_draft
+                  ";
+  $result_status = mysqli_query($conn, $query_status);
+  $data_status = mysqli_fetch_assoc($result_status);
 
-$query_status = "select db.status  
-                  from draft_benefit db 
-                  inner join draft_approval da on da.id_draft = db.id_draft 
-                  where (da.status = 0 or da.status = 1)
-                  and db.id_draft = $id_draft
-                ";
-$result_status = mysqli_query($conn, $query_status);
-$data_status = mysqli_fetch_assoc($result_status);
-
-if($data_status['status'] != 2 && $data_status['status'] != null){
-  $msg = $data_status['status'] == 1 ? 'Draft telah Di Approve' : ($data_status['status'] == 0 ? 'Draft sedang dalam proses approval' : '');
-  $_SESSION['toast_status'] = 'Unauthorized Access';
-  $_SESSION['toast_msg'] = $msg;
-  header('Location: ./draft-benefit.php');
-  exit();
-}
+  if($data_status['status'] != 2 && $data_status['status'] != null){
+    $msg = $data_status['status'] == 1 ? 'Draft telah Di Approve' : ($data_status['status'] == 0 ? 'Draft sedang dalam proses approval' : '');
+    $_SESSION['toast_status'] = 'Unauthorized Access';
+    $_SESSION['toast_msg'] = $msg;
+    header('Location: ./draft-benefit.php');
+    exit();
+  }
 
 
-$program = strtolower($program);
+  $program = strtolower($program);
 ?>
-
-<style>
-  select {
-    max-width: 400px; /* Adjust the value to your desired maximum width */
-    word-wrap: break-word;
-  }
-
-  textarea {
-    width: 100%;
-  }
-  .benefit-desc:hover {
-    width: 65%!important;
-  }
-  .benefit-ket {
-    display: none;
-  }
-  table.dataTable tbody td {
-      padding: 2px !important;
-      vertical-align: middle !important;
-      text-align: center !important;
-  }
-  
-
-</style>
-
 
     <!-- Content Start -->
     <div class="content">

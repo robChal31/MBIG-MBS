@@ -2,12 +2,12 @@
 <style>
   table.dataTable tbody td {
       vertical-align: middle !important;
-      font-size: .75rem;
+      font-size: .65rem;
   }
 
   table.dataTable thead th {
       vertical-align: middle !important;
-      font-size: .75rem;
+      font-size: .65rem;
   }
 </style>
 <?php
@@ -37,14 +37,14 @@
                 <div class="row justify-content-center align-items-end">
                     <div class="col-6">
                         <label for="type">Benefit Type</label>
-                        <select class="form-select select2" name="type[]" aria-label="Default select example" multiple>
+                        <select class="form-select form-select-sm select2" name="type[]" aria-label="Default select example" multiple>
                             <?php foreach($types as $type) : ?>
                                 <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
                     <div class="col-6">
-                        <button class="btn btn-primary" id="filter-btn"><i class="fa fa-filter"></i> Filter</button>
+                        <button class="btn btn-primary btn-sm" id="filter-btn"><i class="fa fa-filter"></i> Filter</button>
                     </div>
                 </div>
             </div>

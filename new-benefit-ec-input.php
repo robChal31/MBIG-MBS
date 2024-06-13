@@ -92,13 +92,19 @@
                           <td>Program</td>
                           <td>:</td>
                           <td>
-                            <select name="program" class="form-select form-select-sm">
-                              <option value="cbls1">CBLS 1</option>
-                              <option value="cbls3">CBLS 3</option>
-                              <option value="prestasi" >Prestasi</option>
-                              <option value="bsp" >BSP</option>
-                              <option value="pk3">PK3</option>
-                              <option value="Project Hidayatullah">Project Hidayatullah</option>
+                            <select name="program" class="form-select form-select-sm" required>
+                              <?php
+                                  $programs = [];
+                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0";
+
+                                  $exec_program = mysqli_query($conn, $query_program);
+                                  if (mysqli_num_rows($exec_program) > 0) {
+                                      $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
+                                  }
+
+                                  foreach($programs as $prog) : ?>
+                                    <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
+                            <?php endforeach; ?>
                             </select>
                           </td>
                         </tr>

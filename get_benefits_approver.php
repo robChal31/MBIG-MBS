@@ -54,10 +54,12 @@ if ($result->num_rows > 0) {
             <?php } ?>
         </tbody>
       </table>
-    </div>
- 
-  
-<?php } $conn->close();?>
+    </div>  
+<?php } else { ?>
+  <div class="alert alert-info">Approval History Is Empty</div>
+<?php } ?>
+
+<?php $conn->close();?>
 
 
     
