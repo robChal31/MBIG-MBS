@@ -15,7 +15,7 @@
         <div class="col-12">
             
             <div class="bg-white rounded h-100 p-4">
-                <h6 class="mb-4">Partnership Agreement List</h6>                      
+                <h6 class="mb-4">Agreement List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
                         <thead>

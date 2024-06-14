@@ -25,7 +25,7 @@
       padding : 5px !important;
       vertical-align: middle !important;
       text-align: center !important;
-      font-size: .9rem !important;
+      font-size: .7rem !important;
     }
 
     table.dataTable tbody td.benefit-desc{
@@ -33,49 +33,44 @@
     }
 
     table.dataTable thead th {
-        font-size: .9rem !important;
+        font-size: .7rem !important;
     }
+
+    .select2-container {
+        z-index: 2050 !important;
+    }
+
+    .modal {
+        z-index: 1050;
+    }
+
+    .modal-backdrop {
+        z-index: 1040;
+    }
+
 </style>
 
 <?php include 'header.php'; ?>
 
 <?php
-  $id_draft = $_GET['id_draft'];
-  $email        = '';
-  $ecname       = '';
-  $id_ec        = '';
-  $school_name  = '';
-  $segment      = '';
-  $level        = '';
-  $wilayah      = '';
-  $program      = '';
 
-  if($id_draft) {
-    $sql = "SELECT *
-              FROM draft_benefit as db
-            LEFT JOIN user as ec on ec.id_user = db.id_ec   
-            WHERE db.id_draft = $id_draft";
+  if($_SESSION['role'] != "admin"){
+    $_SESSION['toast_status'] = 'Error';
+    $_SESSION['toast_msg'] = 'Unauthorized Access';
+    header('Location: ./draft-pk.php');
+    exit();
+  }
 
-    $result = mysqli_query($conn,$sql);
-
-    while ($dra = $result->fetch_assoc()){
-      $email    = $dra['username'];
-      $ecname   = $dra['generalname'];
-      $id_ec   = $dra['id_ec'];
-      $school_name   = $dra['school_name'];
-      $segment   = $dra['segment'];
-      $level    = $dra['level'];
-      $wilayah = $dra['wilayah'];
-      $program = $dra['program'];
   
-      if(($id_ec != $_SESSION['id_user'] && $_SESSION['role'] != 'admin') || $dra['status'] != 0) {
-        $_SESSION['toast_status'] = 'Error';
-        $_SESSION['toast_msg'] = 'Unauthorized Access';
-        header('Location: ./draft-pk.php');
-        exit();
-      }
-    }
-  }  
+  $templates = [];
+  $draft_templates_q = "SELECT * 
+                        FROM draft_template_benefit AS dtb
+                        LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit";
+  $draft_exec = mysqli_query($conn, $draft_templates_q);
+  if (mysqli_num_rows($draft_exec) > 0) {
+    $templates = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
+  }
+    
 ?>
   <!-- Content Start -->
   <div class="content">
@@ -85,299 +80,104 @@
           <div class="row">
               <div class="col-12">
                   <div class="bg-white rounded h-100 p-4">
-                    <h6 class="mb-4">Create Draft Benefit PK</h6>
-                    <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
-                        
-                      <table class="table table-striped">
-                        <tr>
-                          <td style="width: 15%">Inputter</td>
-                          <td style="width:5px">:</td>
-                          <td><?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"></td>
-                          <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?> "> 
-                        </tr>
-
-                        <tr>
-                          <td>Nama Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width: 100%;">
-                            </select>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Segment Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="segment" class="form-select form-select-sm select2" required style="width: 100%;">
-                              <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
-                              <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?>>National Plus</option>
-                              <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
-                            </select>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Jenjang Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="level" class="form-select form-select-sm select2" required style="width: 100%;">
-                              <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
-                              <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
-                              <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
-                              <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
-                              <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
-                              <option value="other" id='level_manual_input' <?= $level ? (!in_array($level, ['tk', 'sd', 'smp', 'sma', 'yayasan']) ? 'selected' : '') : '' ?>>Lainnya (isi sendiri)</option>
-                            </select>
-                            <div class="my-1" id='other_level' style="display: none;">
-                              <input type="text" name="level2" value="" placeholder="Jenjang..." class="form-control form-control-sm">
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Wilayah Sekolah</td>
-                          <td>:</td>
-                          <td><input type="text" name="wilayah" placeholder="Wilayah" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                        </tr>
-                        <tr>
-                          <td>Program</td>
-                          <td>:</td>
-                          <td>
-                            <select name="program" class="form-select form-select-sm select2" required id="program" required style="width: 100%;">
-                              <option value="">-- Select Program --</option>
-                              <?php
-                                  $programs = [];
-                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";
-
-                                  $exec_program = mysqli_query($conn, $query_program);
-                                  if (mysqli_num_rows($exec_program) > 0) {
-                                      $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
-                                  }
-
-                                  foreach($programs as $prog) : ?>
-                                    <option value="<?= $prog['name'] ?>" <?= strtolower($prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $prog['name'] ?></option>
-                            <?php endforeach; ?>
-                            </select>
-                          </td>
-                        </tr>
+                    <h6 class="mb-4">Benefit Templates</h6>
+                    <div class="table-responsive">
+                      <table class="table" id="table_id">
+                          <thead>
+                              <tr>
+                                  <th>Id</th>
+                                  <th scope="col">Benefit</th>
+                                  <th scope="col">Subbenefit</th>
+                                  <th scope="col">Benefit Name</th>
+                                  <th scope="col" style="width: 15%;">Description</th>
+                                  <th scope="col" style="width: 15%;">Implementation</th>
+                                  <th scope="col">Avail Code</th>
+                                  <th scope="col">Business Unit</th>
+                                  <th scope="col">Qty Year 1</th>
+                                  <th scope="col">Qty Year 2</th>
+                                  <th scope="col">Qty Year 3</th>
+                                  <th scope="col">Value</th>
+                                  <th scope="col">Action</th>
+                              </tr>
+                          </thead>
+                          <tbody>
+                             <?php foreach($templates as $template) { ?>
+                                <tr>
+                                    <td><?= $template['id_template_benefit'] ?></td>
+                                    <td><?= $template['benefit'] ?></td>
+                                    <td><?= $template['subbenefit'] ?></td>
+                                    <td><?= $template['benefit_name'] ?></td>
+                                    <td><?= $template['description'] ?></td>
+                                    <td><?= $template['pelaksanaan'] ?></td>
+                                    <td><?= $template['avail'] ?></td>
+                                    <td><?= $template['unit_bisnis'] ?></td>
+                                    <td><?= $template['qty1'] ?></td>
+                                    <td><?= $template['qty2'] ?></td>
+                                    <td><?= $template['qty3'] ?></td>
+                                    <td><?= number_format($template['valueMoney'], '0', ',', '.') ?></td>
+                                    <td>
+                                      <span data-id="<?= $template['id_template_benefit'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#templateModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                    </td>
+                            <?php } ?>
+                          </tbody>
                       </table>
-
-                      <div class="mt-4" id="benefit_container"></div>
-
-                    </form>
+                    </div>
                   </div>
               </div>
           </div>
       </div>
       <!-- Form End -->
 
+      <div class="modal fade" id="templateModal" tabindex="-1" role="dialog" aria-labelledby="templateModalLabel" aria-hidden="true" data-backdrop="static">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="templateModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="templateModalBody">
+                ...
+            </div>
+            </div>
+        </div>
+      </div>
+
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
-
-    function removeNonDigits(numberString) {
-        let nonDigitRegex = /\D/g;
-
-        let result = numberString.replace(nonDigitRegex, '');
-
-        return result;
-    }
-
-    function formatNumber(number) {
-      let parts = number.toString().split('.');
-      let integerPart = parts[0];
-
-      let formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      if (parts.length > 1) {
-          let decimalPart = parts[1];
-          return formattedIntegerPart + ',' + decimalPart;
-      } else {
-          return formattedIntegerPart;
-      }
-    }
-
-    function getBenefitData(element){
-        var row = $(element).closest('tr');
-        var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
-        var manval = row.find('input[name="manval[]"]')
-
-        $.ajax({
-        url: 'get_benefit_datas.php',
-        type: 'POST',
-        data: {
-            benefitId: benefitId,
-            program : '<?= $program ?>'
-        },
-        success: function(data) {
-            row.find('input[name="benefit[]"]').val(data[0].benefit);
-            row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
-            row.find('span[name="benefit"]').html(data[0].benefit);
-            row.find('span[name="subbenefit"]').html(data[0].subbenefit);
-            row.find('textarea[name="description[]"]').html(data[0].description);
-            row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
-            row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
-            row.find('input[name="pelaksanaan[]"]').val(data[0].pelaksanaan);
-            row.find('input[name="valuedefault[]"]').val(data[0].valueMoney);
-            row.find('input[name="valben[]"]').val(formatNumber(data[0].valueMoney));
-            var program = '<?= $program ?>';
-            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name==="input manual" || data[0].benefit_name==="Dana Pengembangan" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah"){
-
-              row.find('input[name="valben[]"]').prop("readonly", false);
-            }else{
-              row.find('input[name="valben[]"]').prop("readonly", true);
-            }
-            updateDisabledField(element);
-        }
-      });
-
-    }
-
-    function fillTheValue(id) {
-      var total = 0;
-      var moni = 0;
-      $('.tah' + id).each(function() {
-        var row   = $(this).closest('tr');
-        var value = parseFloat($(this).val());
-        var hiddenValue = row.find('input[name="valuedefault[]"]').val();
-        hiddenValue = hiddenValue <= 0 ? row.find('input[name="valben[]"]').val() : hiddenValue;
-   
-        if (!isNaN(value)) {
-          total += value;
-          moni += hiddenValue * value;
-        }
-      });
-      $('#qtyth' + id).text(total);
-      $('#valth' + id).text("Rp "+ moni.toLocaleString("id-ID"));
-
-      let total_alokasi = $('input[name="sumalok"]').val();
-      let selisih = total_alokasi - moni;
-
-      $('#total_benefit' + id).val(moni);
-
-      $('#selisih_benefit' + id).val(selisih);
-      $('#selisihbenefit' + id).html("Rp " + selisih.toLocaleString("id-ID"));
-
-      return selisih;
-    }
-
-    function accumulateValues() {
-      let total_alokasi = $('input[name="sumalok"]').val();
-      let program = $('input[name="program"]').val();
-
-      let year1 = fillTheValue(1)
-
-      let checkIfStillMinus = $('#selisih_benefit1').val();
-      checkIfStillMinus = checkIfStillMinus < 0 ? true : false;
-
-      if(program == 'prestasi') {
-        let year2 = fillTheValue(2);
-        let year3 = fillTheValue(3);
-        checkIfStillMinus = (checkIfStillMinus || year2 < 0 || year3 < 0) ? true : false;
-      }
-
-      if (checkIfStillMinus){
-        $('#submt').prop('disabled', true);
-      }else{
-        $('#submt').prop('disabled', false);
-      }
-
-    }
-
-    function updateDisabledField(element) {
-      var row = $(element).closest('tr');
-      var disabledField = row.find('input[name="calcValue[]"]');
-      var member1 = row.find('input[name="member[]"]').val();
-      var member2 = row.find('input[name="member2[]"]').val();
-      var member3 = row.find('input[name="member3[]"]').val();
-
-      var disabledField2 = row.find('input[name="valben[]"]');
-      var defaultvalue = row.find('input[name="valuedefault[]"]').val();
-
-      var total = parseInt(member1)+parseInt(member2)+parseInt(member3);
-      if(defaultvalue != 0){
-        disabledField.val(formatNumber(total*defaultvalue));
-      }else{
-        disabledField.val(formatNumber(total*disabledField2.val()));
-      }
-      accumulateValues();
-    }
 
     $(document).ready(function(){
 
       $('.select2').select2();
 
-      $("select[name='level']").on('change', function() {
-        let value = $(this).val();
-        if(value == 'other') {
-            $('#other_level').show();
-            $('input[name="level2"]').prop('required', true);
-          } else {
-            $('#other_level').hide();
-            $('input[name="level2"]').prop('required', false);
-        }
-      });
+      var templateModal = document.getElementById('templateModal');
+      templateModal.addEventListener('show.bs.modal', function (event) {
+          var rowid = event.relatedTarget.getAttribute('data-id')
+          let action = event.relatedTarget.getAttribute('data-action');
 
-      let level = '<?= $level ?>';
-      let levels = ['tk', 'sd', 'smp', 'sma', 'yayasan'];
-
-      if(level) {
-        if(levels.indexOf(level) === -1) {
-          $('#other_level').show();
-          $('input[name="level2"]').prop('required', true);
-          $('input[name="level2"]').val('<?= $level ?>');
-        }
-      }
-
-      $.ajax({
-        url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>', 
-        type: 'GET', 
-        dataType: 'json', 
-        success: function(response) {
-            let options = '';
-            let schoolId = '<?= $school_name ?>';
-            response.map((data) => {
-                options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`
-            }) 
-
-            $('#select_school').html(options);
-            $('#select_school').select2();
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            $('#select_school').html('Error: ' + textStatus);
-        }
-      });
-
-      let idDraft = '<?= $id_draft ?>';
-      let program = '<?= $program ?>';
-
-      if(idDraft) {
-        $.ajax({
-          url: './get_benefits_pk.php?id_draft=<?= $id_draft ?>&program='+program, 
-          type: 'GET', 
-          // dataType: 'json', 
-          success: function(response) {
-              $('#benefit_container').html(response);
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-              console.log(textStatus);
-          }
-        });
-      }
-
-      $("#program").change(function (e) {
-        let selectedProgram = $(this).val();
-        let id_draft = '<?= $id_draft ?>';
-
-        $.ajax({
-          url: './get_benefits_pk.php?id_draft=<?= $id_draft ?>&program='+selectedProgram, 
-          type: 'GET', 
-          // dataType: 'json', 
-          success: function(response) {
-              $('#benefit_container').html(response);
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-              console.log(textStatus);
-          }
-        });
+          var modalTitle = templateModal.querySelector('.modal-title')
+          modalTitle.textContent = action == 'create' ?  "Input Template" : "Edit Template";
+         
+          $.ajax({
+              url: 'input-template.php',
+              type: 'POST',
+              data: {
+                id_template: rowid,
+              },
+              success: function(data) {
+                  $('#templateModalBody').html(data);
+                  $('.select2').select2({
+                    dropdownParent: $('#templateModal')
+                  });
+              }
+          });
       })
 
+    });
+
+    $(document).on('click', '.close', function() {
+        $('#templateModal').modal('hide');
     });
 
 </script>

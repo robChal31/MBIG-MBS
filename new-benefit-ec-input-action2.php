@@ -201,12 +201,7 @@
                     a.status, a.benefit_name, a.subbenefit, a.description, a.keterangan, a.qty, a.qty2, a.qty3, 
                     a.manualValue, a.pelaksanaan, b.valueMoney, a.calcValue 
                 FROM `draft_benefit_list` a 
-                LEFT JOIN (
-                    SELECT *
-                    FROM draft_template_benefit
-                    WHERE avail IS NOT NULL
-                    GROUP BY benefit_name, subbenefit
-                ) b on a.subbenefit = b.subbenefit and a.benefit_name = b.benefit_name 
+                LEFT JOIN draft_template_benefit AS b on a.id_template = b.id_template_benefit
                 where a.id_draft = $id_draft";
         $result = $conn->query($sql);
         $j = 1;

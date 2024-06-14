@@ -27,7 +27,7 @@ $last_path_with_query;
             <a href="draft-benefit.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-benefit.php' ? "active" : '' ?>"><i class="fas fa-ruler"></i>Draft Benefit</a>
             <a href="draft-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-pk.php' ? "active" : '' ?>"><i class="fas fa-file-contract"></i>Draft PK</a>
             <a href="draft-approval-list.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-approval-list.php' ? "active" : '' ?>"><i class="fas fa-fingerprint"></i>Draft Approval List</a>
-            <a href="list-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'list-pk.php' ? "active" : '' ?>" style="font-size: .7rem"><i class="fas fa-handshake"></i> Partnership Agreement List</a>
+            <a href="list-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'list-pk.php' ? "active" : '' ?>"><i class="fas fa-handshake"></i> Agreement List</a>
             <a href="approved_list.php" class="nav-item nav-link <?= $last_path_with_query == 'approved_list.php' ? "active" : '' ?>"><i class="fas fa-signature"></i>Approved Benefit</a>
            
 
@@ -35,8 +35,8 @@ $last_path_with_query;
                 <a href="benefits.php" class="nav-item nav-link <?= $last_path_with_query == 'benefits.php' ? "active" : '' ?>"><i class="fa fa-gift"></i>Benefits</a>
             <?php endif; ?>
 
-            <?php if($_SESSION['role'] == 'admin'): ?>
-                <!-- <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">
+            <?php if($_SESSION['role']): ?>
+                <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">
                     <div><i class="fas fa-database"></i> Master Data</div>
                     <i class="fas fa-chevron-down chevron-icon"></i>
                 </a>
@@ -46,7 +46,7 @@ $last_path_with_query;
                             <a class="nav-link <?= $last_path_with_query == 'benefit_templates.php' ? "active" : '' ?>" href="benefit_templates.php"><i class="fas fa-file-alt"></i> Benefit Templates</a>
                         </li>
                     </ul>
-                </div> -->
+                </div>
 
                 <a href="masters.php" class="nav-item nav-link <?= $last_path_with_query == 'masters.php' ? "active" : '' ?>"><i class="fas fa-school"></i>Master School</a>
                 <a href="customer_data.php" class="nav-item nav-link <?= $last_path_with_query == 'customer_data.php' ? "active" : '' ?>"><i class="fas fa-users"></i>Customer Data</a>

@@ -138,6 +138,37 @@
                           <td><input type="text" name="wilayah" placeholder="Wilayah" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
                         </tr>
                         <tr>
+                          <td>Nama Lengkap PIC</td>
+                          <td>:</td>
+                          <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        </tr>
+                        <tr>
+                          <td>Jabatan PIC</td>
+                          <td>:</td>
+                          <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        </tr>
+                        <tr>
+                          <td>No. Telepon PIC</td>
+                          <td>:</td>
+                          <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        </tr>
+                        <tr>
+                          <td>E-mail PIC</td>
+                          <td>:</td>
+                          <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        </tr>
+                        <tr>
+                          <td>Jenis PK</td>
+                          <td>:</td>
+                          <td>
+                            <select name="jenis_pk" class="form-select form-select-sm select2" required id="jenis_pk" required style="width: 100%;">
+                              <option value="">-- Select Jenis PK --</option>
+                              <option value="1">PK Baru</option>
+                              <option value="2">Amandemen</option>
+                            </select>
+                          </td>
+                        </tr>
+                        <tr>
                           <td>Program</td>
                           <td>:</td>
                           <td>

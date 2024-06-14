@@ -46,8 +46,7 @@ if($_GET['id_draft']){
 
   $filter_program_q = $program_code ? "WHERE avail like '%$program_code%' " : '';
 
-  $query_template = "SELECT * FROM `draft_template_benefit` $filter_program_q order by benefit, subbenefit, benefit_name asc";
-  
+  $query_template = "SELECT * FROM `draft_template_benefit` $filter_program_q order by id_template_benefit ASC";
   $result_template = mysqli_query($conn, $query_template);
   $data_templates = [];
   while ($row = mysqli_fetch_assoc($result_template)) {
@@ -63,7 +62,8 @@ $program = strtolower($program);
           <?php
             if($id_draft || $program) { ?>
               <h6 class="mb-5">Benefits</h6>
-              <div class="d-flex justify-content-end">
+
+              <!-- <div class="d-flex justify-content-end">
                 <div>
                   <span style="font-size: .75rem; display: inline-block;">click + for adding row</span>
                   <div class="d-flex justify-content-end">
@@ -73,7 +73,8 @@ $program = strtolower($program);
                   </div>
                   
                 </div>
-              </div>
+              </div> -->
+
               <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
               <div class="row">
                 <input type="hidden" value="<?= $program ?>" name="program">
@@ -248,6 +249,10 @@ $program = strtolower($program);
         dropdown.html(data);
       }
     });
+
+    $('#input_form_benefit').submit(function(e) {
+      $('#submt').prop('disabled', true);
+    })
   }
 
 </script>
