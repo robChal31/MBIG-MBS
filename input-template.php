@@ -4,7 +4,7 @@ session_start();
 include 'db_con.php';
 
 $id_template = $_POST['id_template'];
-echo $id_template;
+
 $template = [];
 $draft_template_q = "SELECT * 
                       FROM draft_template_benefit AS dtb
@@ -37,7 +37,7 @@ if (mysqli_num_rows($program_exec) > 0) {
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
-        <form action="save-pk.php" method="POST" enctype="multipart/form-data" id="form_pk">
+        <form action="save-template.php" method="POST" enctype="multipart/form-data" id="form_template">
             <div class="row">
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Benefit</label>
@@ -54,7 +54,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Avail Code</label>
-                    <select name="avail" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" required multiple>
+                    <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" required multiple>
                         <?php foreach($programs as $prog) { ?>
                             <option value="<?= $prog['code'] ?>" <?= strpos($template['avail'], $prog['code']) !== false ? 'selected' : '' ?>><?= $prog['name'] ?></option>
                         <?php } ; ?>
@@ -66,7 +66,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Implementation</label>
-                    <textarea name="description" class="form-control" id=""><?= $template['pelaksanaan'] ?></textarea>
+                    <textarea name="pelaksanaan" class="form-control" id=""><?= $template['pelaksanaan'] ?></textarea>
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 1</label>
@@ -81,7 +81,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                     <input type="text" name="qty3" class="form-control form-control-sm only_number" value="<?= $template['qty3'] ?>" placeholder="quantity..." required>
                 </div>
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">business Unit</label>
+                    <label class="form-label" style="font-size: .85rem;">Business Unit</label>
                     <select name="unit_bisnis" id="unit_bisnis" class="form-control form-control-sm" required>
                         <?php foreach($business_units as $bu) { ?>
                             <option value="<?= $bu['code'] ?>" <?= $bu['code'] == $template['code'] ? 'selected' : '' ?>><?= $bu['name'] ?></option>
@@ -99,7 +99,7 @@ if (mysqli_num_rows($program_exec) > 0) {
 
             <div class="d-flex justify-content-end">
                 <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
-                <button class="btn btn-primary btn-sm" id="submit_pk">Save</button>
+                <button class="btn btn-primary btn-sm" id="submit_template">Save</button>
             </div>
            
         </form>
@@ -109,20 +109,21 @@ if (mysqli_num_rows($program_exec) > 0) {
     $(document).ready(function() {
         $('.select2').select2();
 
-        $('#form_pk').on('submit', function(event) {
+        $('#form_template').on('submit', function(event) {
             event.preventDefault();
             var formData = new FormData(this);
             $.ajax({
-                url: './save-pk.php', 
+                url: './save-template.php', 
                 method: 'POST',
                 data: formData,
                 cache:false,
                 contentType: false,
                 processData: false,
                 beforeSend: function() {
-                    $('#submit_pk').prop('disabled', true);
+                    $('#submit_template').prop('disabled', true);
                 },
                 success: function(response) {
+                    console.log(JSON.parse(response.message));
                     if(response.status == 'success') {
                         Swal.fire({
                             title: "Saved!",
@@ -139,7 +140,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                             icon: "error"
                         });
                     }
-                    $('#submit_pk').prop('disabled', false);
+                    $('#submit_template').prop('disabled', false);
                 },
                 error: function(xhr, status, error) {
                     console.error('Error:', error);
@@ -148,7 +149,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                         text: error,
                         icon: "error"
                     });
-                    $('#submit_pk').prop('disabled', false);
+                    $('#submit_template').prop('disabled', false);
                 }
             });
         });

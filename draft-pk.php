@@ -89,7 +89,7 @@
                                                             <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip me-1"></i></a>
                                                         <?php } ?>
                                                         <?php 
-                                                            if((($row['status'] == 0 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')) || ($_SESSION['role'] == 'admin' && $row['status'] == 0)) && (!$row['deleted_at'])){ ?>
+                                                            if($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')){ ?>
                                                                 <a href="create_draft_pk.php?id_draft=<?= $row['id_draft'] ?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                         <?php } ?>
 
