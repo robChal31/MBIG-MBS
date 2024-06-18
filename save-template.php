@@ -17,56 +17,90 @@ if (!isset($_SESSION['username'])){
 
 $config = require 'config.php';
 
-function file_pk_error_session(){
+function error_json($msg){
     echo json_encode([
         'status' => 'error',
-        'message' => 'Gagal menambahkan PK, pastikan inputan, dan format file benar!'
+        'message' => $msg
     ]);
     exit();
 }
 
-$id_template = $_POST['id_template'];
-$benefit = $_POST['benefit'];
-$subbenefit = $_POST['subbenefit'];
-$benefit_name = $_POST['benefit_name'];
-$avail = $_POST['avail'];
-$description = $_POST['description'];
-$pelaksanaan = $_POST['pelaksanaan'];
-$qty1 = $_POST['qty1'];
-$qty2 = $_POST['qty2'];
-$qty3 = $_POST['qty3'];
-$unit_bisnis = $_POST['unit_bisnis'];
-$value = $_POST['value'];
+function sanitize_input($conn, $input) {
+    return mysqli_real_escape_string($conn, str_replace(["&#13;", "&#10;"], ["\r", "\n"], $input));
+}
 
-echo json_encode([
-    'status' => 'error',
-    'message' => json_encode($_POST)
-]);
+$id_template = sanitize_input($conn, $_POST['id_template']);
+$benefit = sanitize_input($conn, $_POST['benefit']);
+$subbenefit = sanitize_input($conn, $_POST['subbenefit']);
+$benefit_name = sanitize_input($conn, $_POST['benefit_name']);
+$avail = $_POST['avail'];
+$description = sanitize_input($conn, $_POST['description']);
+$pelaksanaan = sanitize_input($conn, $_POST['pelaksanaan']);
+$qty1 = sanitize_input($conn, $_POST['qty1']);
+$qty2 = sanitize_input($conn, $_POST['qty2']);
+$qty3 = sanitize_input($conn, $_POST['qty3']);
+$unit_bisnis = sanitize_input($conn, $_POST['unit_bisnis']);
+$value = sanitize_input($conn, $_POST['value']);
+$value = str_replace(".", "", $value);
+
+$avail = implode(" ", $avail);
+
+$query_unit_bisnis = "SELECT * FROM business_units WHERE code = '$unit_bisnis'";
+$query_unit_bisnis_exec = $conn->query($query_unit_bisnis);
+if ($query_unit_bisnis_exec === false) {
+    error_json('Query failed: ' . $conn->error);
+}
+
+if ($query_unit_bisnis_exec->num_rows > 0) {
+    $row_unit_bisnis = $query_unit_bisnis_exec->fetch_assoc();
+    $unit_name = $row_unit_bisnis['name'];
+    $unit_code = $row_unit_bisnis['name'];
+} else {
+    error_json('Unit Bisnis not found: ' . $unit_bisnis);
+}
 
 try {
-    $tenplate_exist_query = "SELECT * FROM draft_template_benefit WHERE id_template_benefit = $id_template";
-    $is_tenplate_exist_exec = $conn->query($tenplate_exist_query);
-    $is_tenplate_exist = $is_tenplate_exist_exec->num_rows > 0;
-
-    if($is_tenplate_exist) {
-        $sql = "UPDATE draft_template_benefit 
-                    SET no_pk = '$no_pk', start_at = '$start_date', expired_at = '$end_date', sa_id = $id_sa, 
-                    $update_file_query updated_at = current_timestamp() 
-                WHERE benefit_id = $id_draft";
-    }else {
-        $sql = "INSERT INTO pk (id_template_benefit, benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney) 
-                    VALUES ($id_template, '$no_pk', '$start_date', '$end_date', $id_sa, '$target_file_pk', '$target_file_benefit', current_timestamp(), NULL)";
+    $template_exist_query = "SELECT * FROM draft_template_benefit WHERE id_template_benefit = '$id_template'";
+    $is_template_exist_exec = $conn->query($template_exist_query);
+    if ($is_template_exist_exec === false) {
+        error_json('Query failed: ' . $conn->error);
     }
-    mysqli_query($conn, $sql);
-  
+    $is_template_exist = $is_template_exist_exec->num_rows > 0;
+
+    if ($is_template_exist) {
+        $sql = "UPDATE draft_template_benefit 
+                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value'
+                WHERE id_template_benefit = '$id_template'";
+
+        if (!$conn->query($sql)) {
+            error_json('Query failed: ' . $conn->error);
+        }
+
+        $query_benefit_role = "UPDATE benefit_role SET benefit = '$benefit', sub_benefit = '$subbenefit', benefit_name = '$benefit_name', unit_bisnis = '$unit_name', code = '$unit_code' WHERE id_template = '$id_template'";
+        if (!$conn->query($query_benefit_role)) {
+            error_json('Query failed: ' . $conn->error);
+        }
+    } else {
+        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney) VALUES (
+            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value')";
+
+        if (!$conn->query($sql)) {
+            error_json('Query failed: ' . $conn->error);
+        }
+        $id_template = $conn->insert_id;
+
+        $query_benefit_role = "INSERT INTO benefit_role (id_template, benefit, sub_benefit, benefit_name, unit_bisnis, code) VALUES ('$id_template', '$benefit', '$subbenefit', '$benefit_name', '$unit_name', '$unit_code')";
+        if (!$conn->query($query_benefit_role)) {
+            error_json('Query failed: ' . $conn->error);
+        }
+    }
+
     echo json_encode([
-        'status' => 'error',
-        'message' => 'Gagal menambahkan PK, nomor PK sudah ada!'
+        'status' => 'success',
+        'message' => 'Template saved successfully'
     ]);
 
-    file_pk_error_session();
-    
 } catch (\Throwable $th) {
-    file_pk_error_session();
+    error_json($th->getMessage());
 }
 ?>

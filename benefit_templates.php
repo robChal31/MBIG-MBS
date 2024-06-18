@@ -80,7 +80,14 @@
           <div class="row">
               <div class="col-12">
                   <div class="bg-white rounded h-100 p-4">
-                    <h6 class="mb-4">Benefit Templates</h6>
+                    <div class="d-flex justify-content-between">
+                      <div class="">
+                        <h6 class="mb-4">Benefit Templates</h6>
+                      </div>
+                      <div class="">
+                        <button type="button" class="btn btn-primary btn-sm" data-action="create" data-bs-toggle="modal" data-bs-target="#templateModal" id="add_template">Add Template</button>
+                      </div>
+                    </div>
                     <div class="table-responsive">
                       <table class="table" id="table_id">
                           <thead>
@@ -158,6 +165,29 @@
 
           var modalTitle = templateModal.querySelector('.modal-title')
           modalTitle.textContent = action == 'create' ?  "Input Template" : "Edit Template";
+         
+          $.ajax({
+              url: 'input-template.php',
+              type: 'POST',
+              data: {
+                id_template: rowid,
+              },
+              success: function(data) {
+                  $('#templateModalBody').html(data);
+                  $('.select2').select2({
+                    dropdownParent: $('#templateModal')
+                  });
+              }
+          });
+      })
+
+      var addTemplateModal = document.getElementById('add_template');
+      addTemplateModal.addEventListener('show.bs.modal', function (event) {
+          var rowid = 0;
+          let action = event.relatedTarget.getAttribute('data-action');
+
+          var modalTitle = addTemplateModal.querySelector('.modal-title')
+          modalTitle.textContent = action == 'create' ?  "Create Template" : "Edit Template";
          
           $.ajax({
               url: 'input-template.php',

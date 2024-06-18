@@ -40,7 +40,7 @@ if (mysqli_num_rows($program_exec) > 0) {
         <form action="save-template.php" method="POST" enctype="multipart/form-data" id="form_template">
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Benefit</label>
+                    <label class="form-label" style="font-size: .85rem;">Benefit <?= $template['benefit'] ?></label>
                     <input type="text" name="benefit" class="form-control form-control-sm" value="<?= $template['benefit'] ?>" placeholder="benefit..." required>
                 </div>
                 <div class="col-6 mb-3">
@@ -54,7 +54,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Avail Code</label>
-                    <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" required multiple>
+                    <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple>
                         <?php foreach($programs as $prog) { ?>
                             <option value="<?= $prog['code'] ?>" <?= strpos($template['avail'], $prog['code']) !== false ? 'selected' : '' ?>><?= $prog['name'] ?></option>
                         <?php } ; ?>
@@ -123,7 +123,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                     $('#submit_template').prop('disabled', true);
                 },
                 success: function(response) {
-                    console.log(JSON.parse(response.message));
+                    console.log((response));
                     if(response.status == 'success') {
                         Swal.fire({
                             title: "Saved!",

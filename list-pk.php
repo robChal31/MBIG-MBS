@@ -28,6 +28,7 @@
                                 <th scope="col">Active From</th>
                                 <th scope="col">Expired At</th>
                                 <th scope="col">Jenis Program</th>
+                                <th scope="col">Jenis PK</th>
                                 <th scope="col">Created At</th>
                                 <th scope="col" style="width: 13%">Status</th>
                                 <th scope="col">Action</th>
@@ -74,6 +75,7 @@
                                             <td><?= $row['start_at'] ?></td>
                                             <td><?= $row['expired_at'] ?></td>
                                             <td><?= $row['program'] ?></td>
+                                            <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
                                             <td>
                                                 <?= $row['created_at'] ?>
                                             </td>

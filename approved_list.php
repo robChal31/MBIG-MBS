@@ -26,6 +26,7 @@
                                 <th scope="col">Segment</th>
                                 <th scope="col">Tanggal Pembuatan</th>
                                 <th scope="col">Jenis Program</th>
+                                <th scope="col">Jenis PK</th>
                                 <th scope="col" style="width: 13%">Status</th>
                                 <th scope="col">Action</th>
                             </tr>
@@ -70,6 +71,7 @@
                                             <td><?= ucfirst($row['segment']) ?></td>
                                             <td><?= $row['date'] ?></td>
                                             <td><?= $row['program'] ?></td>
+                                            <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
                                            
                                             <td>
                                                 <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
