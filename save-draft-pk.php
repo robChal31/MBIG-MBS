@@ -178,6 +178,9 @@
             mysqli_query($conn,$sql);
             $id_draft = mysqli_insert_id($conn);
 
+            mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
+            mysqli_query($conn, "DELETE FROM draft_approval WHERE id_draft = '$id_draft';");
+
             $pic_sql = "INSERT INTO `school_pic` (`id`, `id_draft`, `name`, `jabatan`, `no_tlp`, `email`) VALUES (NULL, '$id_draft', '$pic_name', '$jabatan', '$no_tlp', '$email_pic');";
             mysqli_query($conn, $pic_sql);
         }
