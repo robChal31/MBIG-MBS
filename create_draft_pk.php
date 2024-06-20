@@ -93,7 +93,7 @@
                           <td style="width: 15%">Inputter</td>
                           <td style="width:5px">:</td>
                           <td><?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"></td>
-                          <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?> "> 
+                          <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?>"> 
                         </tr>
 
                         <tr>

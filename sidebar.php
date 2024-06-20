@@ -33,9 +33,7 @@ $last_path_with_query;
 
             <?php if($_SESSION['role'] != 'ec'): ?>
                 <a href="benefits.php" class="nav-item nav-link <?= $last_path_with_query == 'benefits.php' ? "active" : '' ?>"><i class="fa fa-gift"></i>Benefits</a>
-            <?php endif; ?>
 
-            <?php if($_SESSION['role']): ?>
                 <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">
                     <div><i class="fas fa-database"></i> Master Data</div>
                     <i class="fas fa-chevron-down chevron-icon"></i>
@@ -43,8 +41,15 @@ $last_path_with_query;
                 <div class="collapse" id="collapsibleNav">
                     <ul class="list-unstyled ms-3">
                         <li>
+                            <a class="nav-link <?= $last_path_with_query == 'books.php' ? "active" : '' ?>" href="books.php"><i class="fas fa-book"></i> Books</a>
+                        </li>
+                        <li>
+                            <a class="nav-link <?= $last_path_with_query == 'programs.php' ? "active" : '' ?>" href="programs.php"><i class="fas fa-graduation-cap"></i> Programs</a>
+                        </li>
+                        <li>
                             <a class="nav-link <?= $last_path_with_query == 'benefit_templates.php' ? "active" : '' ?>" href="benefit_templates.php"><i class="fas fa-file-alt"></i> Benefit Templates</a>
                         </li>
+                        
                     </ul>
                 </div>
 
@@ -54,6 +59,10 @@ $last_path_with_query;
                 <a href="cbls-prestasi.php" class="nav-item nav-link <?= $last_path_with_query == 'cbls-prestasi.php' ? "active" : '' ?>"><i class="fas fa-trophy"></i>Nilai CBLS dan Prestasi</a>
                 <a href="new-masterb.php" class="nav-item nav-link <?= $last_path_with_query == 'new-masterb.php' ? "active" : '' ?>"><i class="fa fa-th me-2"></i>Master Benefit</a>
                 <a href="omset-data-input.php" class="nav-item nav-link <?= $last_path_with_query == 'omset-data-input.php' ? "active" : '' ?>"><i class="fas fa-coins"></i>School Omset</a>
+            <?php endif; ?>
+
+            <?php if($_SESSION['role']): ?>
+                
                 
 
                 <!-- <a href="benefit-inhouse.php" class="nav-item nav-link <?= $last_path_with_query == 'benefit-inhouse.php' ? "active" : '' ?>"><i class="fa fa-th me-2"></i>Inhouse</a>

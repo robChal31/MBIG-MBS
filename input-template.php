@@ -40,7 +40,7 @@ if (mysqli_num_rows($program_exec) > 0) {
         <form action="save-template.php" method="POST" enctype="multipart/form-data" id="form_template">
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Benefit <?= $template['benefit'] ?></label>
+                    <label class="form-label" style="font-size: .85rem;">Benefit</label>
                     <input type="text" name="benefit" class="form-control form-control-sm" value="<?= $template['benefit'] ?>" placeholder="benefit..." required>
                 </div>
                 <div class="col-6 mb-3">

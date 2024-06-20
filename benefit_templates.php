@@ -164,7 +164,7 @@
           let action = event.relatedTarget.getAttribute('data-action');
 
           var modalTitle = templateModal.querySelector('.modal-title')
-          modalTitle.textContent = action == 'create' ?  "Input Template" : "Edit Template";
+          modalTitle.textContent = action == 'create' ?  "Create Template" : "Edit Template";
          
           $.ajax({
               url: 'input-template.php',

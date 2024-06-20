@@ -131,10 +131,12 @@ $program = strtolower($program);
                             </td>
 
                             <td>
-                                <button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
+                                <?php if($data_template['id_template_benefit'] == 111 || $data_template['id_template_benefit'] == 112) { ?>
+                                  <button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
+                                <?php } ?>
                             </td>
                         </tr>
-                    <?php endforeach ; ?>
+                    <?php $row++; endforeach ; ?>
                   </tbody>
                 </table>   
               </div>

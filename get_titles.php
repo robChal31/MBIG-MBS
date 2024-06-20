@@ -8,14 +8,14 @@
         die("Connection failed: " . $conn->connect_error);
       }
                                                                                     
-      $sql = "SELECT * FROM calc_title order by title_name asc";
+      $sql = "SELECT * FROM books order by name asc";
       $result = $conn->query($sql);
       
       $options = "";
       if ($result->num_rows > 0) {
 
         while ($row = $result->fetch_assoc()) {
-          $option = $row['title_name'];
+          $option = $row['name'];
           $options .= "<option value='$option'>$option</option>";
         }
       }
