@@ -15,7 +15,7 @@ $draft_exec = mysqli_query($conn, $draft_program_q);
 if (mysqli_num_rows($draft_exec) > 0) {
   $programs = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
 }
-$program = $programs[0] ? $programs[0] : [];
+$program = $programs[0] ?? [];
 
 ?>
     <div class="p-2">
@@ -24,14 +24,14 @@ $program = $programs[0] ? $programs[0] : [];
             <div class="row">
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Program Name</label>
-                    <input type="text" name="name" class="form-control form-control-sm" value="<?= $program['name'] ?>" placeholder="program name..." required>
+                    <input type="text" name="name" class="form-control form-control-sm" value="<?= $program['name'] ?? '' ?>" placeholder="program name..." required>
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Program Code</label>
-                    <input type="text" name="code" class="form-control form-control-sm" value="<?= $program['code'] ?>" placeholder="code..." required>
+                    <input type="text" name="code" class="form-control form-control-sm" value="<?= $program['code'] ?? '' ?>" placeholder="code..." required>
                 </div>
                 
-                <input type="hidden" name="id_program" value="<?= $id_program ?>">
+                <input type="hidden" name="id_program" value="<?= $id_program == 0 ? '' : $id_program ?>">
             </div>
 
             <div class="d-flex justify-content-end">
