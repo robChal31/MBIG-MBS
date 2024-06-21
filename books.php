@@ -1,15 +1,3 @@
-<?php 
-// $query = "SELECT TOP 5 * FROM KoBar";
-
-//   $ch = curl_init();		
-//   curl_setopt($ch, CURLOPT_URL, "http://27.123.223.191:1010/datasnap/rest/TServerMethods1/ExecSQL/".$query);
-//   curl_setopt($ch, CURLOPT_USERPWD, "Mentaribooks:Stock@pps2022");
-//   curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-//   curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-//   $output = curl_exec($ch);
-//   $result = json_decode($output);
-//   echo "<pre>" . json_encode($result, JSON_PRETTY_PRINT) . "</pre>";die;
-//   ?>
 <style>
     select {
         max-width: 400px;
