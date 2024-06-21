@@ -8,7 +8,7 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 
-$id_book = $_POST['id_book'];
+$id_book = $_POST['id_book'] ? $_POST['id_book'] : 0;
 
 $books = [];
 $draft_book_q = "SELECT * FROM books WHERE id = $id_book";

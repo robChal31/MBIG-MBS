@@ -7,7 +7,7 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 
-$id_program = $_POST['id_program'];
+$id_program = $_POST['id_program'] ? $_POST['id_program'] : 0;
 
 $programs = [];
 $draft_program_q = "SELECT * FROM programs WHERE id = $id_program";
