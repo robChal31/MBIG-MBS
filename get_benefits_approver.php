@@ -9,7 +9,7 @@ if($conn->connect_error) {
 
 $id_draft = $_POST['id_draft'];                                                                      
 $sql = "SELECT 
-            a.id_draft_approval, a.id_draft, a.status, a.token, a.approved_at, b.status as draft_status, b.verified,
+            a.id_draft_approval, a.id_draft, a.status, a.token, a.approved_at, b.status as draft_status, b.verified, b.program,
             a.notes, c.generalname as ec_name, d.generalname as leadername, a.id_user_approver as approver, b.confirmed
         FROM `draft_approval` a 
         INNER JOIN draft_benefit b on a.id_draft = b.id_draft 
@@ -17,6 +17,17 @@ $sql = "SELECT
         LEFT JOIN user d on d.id_user = a.id_user_approver 
         where a.id_draft = $id_draft";
 $result = $conn->query($sql);
+
+$programs = [];
+$query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";
+$program_names = false;
+$exec_program = mysqli_query($conn, $query_program);
+if (mysqli_num_rows($exec_program) > 0) {
+    $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);
+    $program_names = array_map(function($item) {
+        return strtoupper($item['name']);
+    }, $programs);
+}
 
 if ($result->num_rows > 0) { 
 ?>
@@ -40,13 +51,16 @@ if ($result->num_rows > 0) {
                 if($row['approver'] == 5) {
                   $status_msg = $row['confirmed'] == 1 && $status_msg == 'Approved' ? 'Confirmed' : ($row['confirmed'] == 0 ? 'Waiting Confirmation' : $status_msg);    
                 }
+
+                $is_pk = in_array($row['program'], $program_names);
+                $is_pk = $row['approver'] == 16 && $is_pk ? "<span class='text-white' style='font-size: .65rem; font-weight: 300'> (Pengajuan sudah di SA)</span>" : '';
             ?>
                 <tr>
                   <td><?= $row['leadername'] ?></td>
                   <td><?= $row['approved_at'] ?? '-' ?></td>
                   <td>
                     <span class="py-1 px-2 text-white rounded bg-<?= $row['status'] == 0 ? 'warning' : ($row['status'] == 1 ? 'success' : 'danger') ?>">
-                      <?= $status_msg ?>
+                      <?= $status_msg . $is_pk?>
                     </span>
                   </td>
                   <td><?= $row['notes'] ?? '-' ?></td>

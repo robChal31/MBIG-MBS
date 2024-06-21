@@ -52,7 +52,8 @@
                                         LEFT JOIN (
                                             SELECT 
                                                 id_draft,
-                                                MAX(date) AS max_date
+                                                MAX(date) AS max_date,
+                                                id_user_approver
                                             FROM `draft_approval`
                                             GROUP BY id_draft
                                         ) latest_approval ON a.id_draft = latest_approval.id_draft ";
@@ -61,7 +62,7 @@
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q b.deleted_at IS NULL AND a.date = latest_approval.max_date OR latest_approval.max_date IS null ORDER BY id_draft";
+                                $sql .= "$sql_q b.deleted_at IS NULL AND (a.date = latest_approval.max_date OR latest_approval.max_date IS NULL) AND b.status <> 1 ORDER BY id_draft";
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");

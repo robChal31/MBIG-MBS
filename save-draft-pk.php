@@ -67,6 +67,9 @@
         }
     }
 
+    $user_role      = $_SESSION['role'];
+    $draft_status   = $user_role == 'admin' ? 1 : 0;
+
     $id_draft       = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
 
     $id_user        = $_POST['id_user'];
@@ -155,7 +158,7 @@
                         selisih_benefit = '0',
                         fileUrl = '',
                         updated_at = current_timestamp(),
-                        status = '0',
+                        status = '$draft_status',
                         alokasi = '0'
                         jenis_pk = '$jenis_pk'
                     WHERE id_draft = $id_draft";
@@ -174,7 +177,7 @@
 
             mysqli_query($conn, $update_sql);
         }else {
-            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `jenis_pk`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$uc_program', current_timestamp(), '0', '0', '$wilayah', '$level', '$jenis_pk');";
+            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `jenis_pk`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$uc_program', current_timestamp(), '$draft_status', '0', '$wilayah', '$level', '$jenis_pk');";
             mysqli_query($conn,$sql);
             $id_draft = mysqli_insert_id($conn);
 
@@ -190,8 +193,8 @@
             mysqli_query($conn,$sql);
         }
 
-        $tokenLeader = generateRandomString(16);
 
+        $tokenLeader = generateRandomString(16);
         
         $sql = "SELECT 
                     ec.username, ec.generalname, ec.sa_email, lead.generalname as lead_name, 
@@ -310,50 +313,53 @@
         mysqli_query($conn,$sql);
 
         //here border
-        $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '$lead_id', '0');";
-        mysqli_query($conn,$sql);
-
-        $school_name2 = strtoupper($school_name2);
-
-        //for ec mail
-        $subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program. '  ' . $school_name2;
-        $message    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name2 . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
-
-        $cc = [];
-
-        sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
-
-        //for leader mail
-        $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
-        $message    = "<style>
-                            * {
-                                font-family: Helvetica, sans-serif;
-                            }
-                            .container {
-                                width: 80%;
-                                margin: auto;
-                            }
-                        </style>
+        if($user_role != 'admin') {
+            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '$lead_id', '0');";
+            mysqli_query($conn,$sql);
     
-                        <div class='container'>
-                            <p>
-                                $ec_name! Telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
-                            </p>
-                            <p>Ayo, cepat-cepat dicek agar bisa segera diajukan ke Top Leader! Sukses untuk kita bersama! 👍😊</p>
-                            <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
-                            <p style='margin: 20px 0px;'>
-                                <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
-                                    Redirect me!
-                                </a>
-                            </p>
-                            <div style='border-bottom: 1px solid #ddd;'></div>
-                            <p>Jika tombol tidak berfungsi dengan benar, silakan salin tautan berikut dan tambahkan ke peramban Anda </p>
-                            <p style='color: #0096c7'>https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader</p>
-                            <div style='text-align: center; margin-top: 35px;'>
-                                <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
-                            </div>
-                        </div>";
-        sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            $school_name2 = strtoupper($school_name2);
+    
+            //for ec mail
+            $subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program. '  ' . $school_name2;
+            $message    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name2 . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
+    
+            $cc = [];
+    
+            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+    
+            //for leader mail
+            $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
+            $message    = "<style>
+                                * {
+                                    font-family: Helvetica, sans-serif;
+                                }
+                                .container {
+                                    width: 80%;
+                                    margin: auto;
+                                }
+                            </style>
+        
+                            <div class='container'>
+                                <p>
+                                    $ec_name! Telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
+                                </p>
+                                <p>Ayo, cepat-cepat dicek agar bisa segera diajukan ke Top Leader! Sukses untuk kita bersama! 👍😊</p>
+                                <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
+                                <p style='margin: 20px 0px;'>
+                                    <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
+                                        Redirect me!
+                                    </a>
+                                </p>
+                                <div style='border-bottom: 1px solid #ddd;'></div>
+                                <p>Jika tombol tidak berfungsi dengan benar, silakan salin tautan berikut dan tambahkan ke peramban Anda </p>
+                                <p style='color: #0096c7'>https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader</p>
+                                <div style='text-align: center; margin-top: 35px;'>
+                                    <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
+                                </div>
+                            </div>";
+            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+        }
+        
         
         $_SESSION['toast_status'] = 'Success';
         $_SESSION['toast_msg'] = 'Berhasil Menyimpan Draft Benefit';

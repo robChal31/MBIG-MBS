@@ -75,7 +75,15 @@
         exit();
       }
     }
-  }  
+  }
+  
+  $ecs = [];
+  $ecs_q = "SELECT * FROM user WHERE role = 'ec' ORDER BY generalname";
+  $ec_exec = mysqli_query($conn, $ecs_q);
+  if (mysqli_num_rows($ec_exec) > 0) {
+    $ecs = mysqli_fetch_all($ec_exec, MYSQLI_ASSOC);    
+  }
+
 ?>
   <!-- Content Start -->
   <div class="content">
@@ -92,8 +100,20 @@
                         <tr>
                           <td style="width: 15%">Inputter</td>
                           <td style="width:5px">:</td>
-                          <td><?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"></td>
-                          <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?>"> 
+                          <td>
+                            <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?>"> 
+                            <?php
+                              if($_SESSION['role'] != 'admin') { ?>
+                                <?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
+                            <?php } else {?>
+                              <select name="id_user" class="form-select form-select-sm select2" required style="width: 100%;">
+                                <?php foreach($ecs as $ec) { ?>
+                                  <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>><?= $ec['generalname'] ?></option>
+                                <?php } ?>
+                              </select>
+                            <?php } ?>
+                          </td>
+                          
                         </tr>
 
                         <tr>

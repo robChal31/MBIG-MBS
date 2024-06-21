@@ -44,7 +44,7 @@
                                         if (mysqli_num_rows($exec_program) > 0) {
                                             $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);
                                             $program_names = array_map(function($item) {
-                                                return $item['name'];
+                                                return strtoupper($item['name']);
                                             }, $programs);
                                         }
 

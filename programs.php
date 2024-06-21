@@ -89,7 +89,7 @@
                       <table class="table" id="table_id">
                           <thead>
                               <tr>
-                                  <th>Id</th>
+                                  <th style="width: 5%;">Id</th>
                                   <th scope="col">Code</th>
                                   <th scope="col">Name</th>
                                   <th scope="col">Created at</th>
