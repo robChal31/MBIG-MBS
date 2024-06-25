@@ -33,6 +33,23 @@
                 </div>
 
                 <div class="bg-white rounded h-100 p-4 my-4">
+                    <?php 
+                        if($_SESSION['role'] == 'admin') { ?>
+                            <div class="row my-2 py-2 justify-content-center">
+                                <div class="col-md-12 col-12">
+                                    <canvas id="ec-reject-chart"></canvas>
+                                </div>
+                            </div>  
+                    <?php }else { ?>
+                            <div class="row my-2 py-2">
+                                <div class="col-md-6 col-6">
+                                    <canvas id="ec-reject-chart"></canvas>
+                                </div>
+                            </div>  
+                    <?php } ?>
+                </div>
+
+                <div class="bg-white rounded h-100 p-4 my-4">
                     <div class="row my-2 py-2 justify-content-center">
                         <div class="col-md-12 col-12">
                             <canvas id="ec-chart"></canvas>
@@ -41,25 +58,6 @@
                 </div>
             </div>
         </div>
-        <!-- Sale & Revenue End -->
-
-        <!-- Modal -->
-        <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="approvalModalLabel">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body" id="approvalModalBody">
-                    ...
-                </div>
-                </div>
-            </div>
-        </div>
-
 
        <?php include 'footer.php';?>
 
@@ -73,17 +71,20 @@
             let levelLabel      = <?= json_encode($level_label) ?>;
             let periodeData     = <?= json_encode($periode_total) ?>;
             let periodeLabel    = <?= json_encode($periode_label) ?>;
-            let yearlyData     = <?= json_encode($yearly_total) ?>;
-            let yearlyLabel    = <?= json_encode($yearly_label) ?>;
-            let ecData     = <?= json_encode($ec_total) ?>;
-            let ecLabel    = <?= json_encode($ec_label) ?>;
+            let yearlyData      = <?= json_encode($yearly_total) ?>;
+            let yearlyLabel     = <?= json_encode($yearly_label) ?>;
+            let ecData          = <?= json_encode($ec_total) ?>;
+            let ecLabel         = <?= json_encode($ec_label) ?>;
+            let ecDataReject    = <?= json_encode($ec_total_reject) ?>;
+            let ecLabelReject   = <?= json_encode($ec_reject_label) ?>;
 
-            var programCtx  = document.getElementById('program-chart').getContext('2d');
-            var segmentCtx  = document.getElementById('segment-chart').getContext('2d');
-            var levelCtx    = document.getElementById('level-chart').getContext('2d');
-            var periodeCtx  = document.getElementById('periode-chart').getContext('2d');
-            var yearlyCtx  = document.getElementById('yearly-chart').getContext('2d');
-            var ecCtx  = document.getElementById('ec-chart').getContext('2d');
+            var programCtx      = document.getElementById('program-chart').getContext('2d');
+            var segmentCtx      = document.getElementById('segment-chart').getContext('2d');
+            var levelCtx        = document.getElementById('level-chart').getContext('2d');
+            var periodeCtx      = document.getElementById('periode-chart').getContext('2d');
+            var yearlyCtx       = document.getElementById('yearly-chart').getContext('2d');
+            var ecCtx           = document.getElementById('ec-chart').getContext('2d');
+            var ecRejectCtx     = document.getElementById('ec-reject-chart').getContext('2d');
 
             var programChart = new Chart(programCtx, {
                 type: 'pie',
@@ -294,4 +295,40 @@
                     }
                 }
             });
+
+            var ecRejectChart = new Chart(ecRejectCtx, {
+                type: 'bar',
+                data: {
+                    labels: ecLabelReject,
+                    datasets: [{
+                        label: 'Total',
+                        data: ecDataReject,
+                        backgroundColor: ['#ff6000', '#c32f27', '#745ae8', '#00a896', '#99582a', '#f78764', '#168aad', '#3a0ca3', '#ff8b10', '#001c55'],
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false,
+                            labels: {
+                                color: 'rgb(255, 99, 132)'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'Draft Benefit Rejected',
+                            color: '#282828',
+                            font: {
+                                size: 18
+                            }
+                        },
+                    },
+                    scales: {
+                        y: {
+                           display: true
+                        }
+                    }
+                }
+            });
+
         </script>
