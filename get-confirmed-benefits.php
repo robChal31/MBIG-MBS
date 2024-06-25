@@ -64,7 +64,7 @@
                                 <th scope="col">Year 3</th>
                                 <th scope="col">Total Usage Year 3</th>
                                 <th scope="col">Confirmed</th>
-                                <th scope="col" style="width: 20%;">Action</th>
+                                <th scope="col">Action</th>
                             </tr>
                         </thead>
                         <tbody>
