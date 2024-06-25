@@ -128,12 +128,12 @@
         }
     }
 
-    $query_filter_reject = $role == 'admin' ? '' : "WHERE arh.id_user = '$id_user'";
+    $query_filter_reject = $role == 'admin' ? 'WHERE ' : "WHERE arh.id_user = '$id_user' AND";
     $query_rejected  = "SELECT COUNT(arh.id_draft) as total, user.generalname as ec
                             FROM user as user 
                             LEFT JOIN approval_reject_history AS arh on arh.id_user = user.id_user
                             $query_filter_reject
-                            WHERE user.role = 'ec'
+                            user.role = 'ec'
                         GROUP BY user.id_user"; 
 
     $result    = mysqli_query($conn, $query_rejected);
