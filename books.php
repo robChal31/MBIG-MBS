@@ -60,7 +60,7 @@
   }
   
   $books = [];
-  $books_q = "SELECT * FROM books AS book";
+  $books_q = "SELECT * FROM books AS book WHERE book.is_active = 1";
   $books_exec = mysqli_query($conn, $books_q);
   if (mysqli_num_rows($books_exec) > 0) {
     $books = mysqli_fetch_all($books_exec, MYSQLI_ASSOC);    
@@ -103,6 +103,10 @@
                                     <td><?= $book['updated_at'] ?></td>
                                     <td class="text-center">
                                       <span data-id="<?= $book['id'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#bookModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                      
+                                      <?php if($_SESSION['role'] == "admin") { ?>
+                                        <span data-id="<?= $book['id'] ?>" class='del-book btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
+                                      <?php } ?>
                                     </td>
                             <?php } ?>
                           </tbody>
@@ -183,6 +187,50 @@
           });
       })
 
+    });
+
+    $('.del-book').on('click', function() {
+      var id = $(this).data('id');
+      console.log(id)
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: 'delete-book.php',
+            type: 'POST',
+            data: {
+              id: id
+            },
+            success: function(res) {
+              let data = JSON.parse(res);
+              console.log((data));
+              if(data.status == 'success') {
+                Swal.fire({
+                  title: "Deleted!",
+                  text: data.message,
+                  icon: "success"
+                });
+                setTimeout(function() {
+                  location.reload();
+                }, 1000);
+              }else {
+                Swal.fire({
+                  title: "Failed!",
+                  text: data.message,
+                  icon: "error"
+                });
+              }
+            } 
+          });
+        }
+      });
     });
 
     $(document).on('click', '.close', function() {

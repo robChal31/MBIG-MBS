@@ -62,7 +62,7 @@
 
   
   $programs = [];
-  $programs_q = "SELECT * FROM programs AS program";
+  $programs_q = "SELECT * FROM programs AS program WHERE program.is_active = 1";
   $programs_exec = mysqli_query($conn, $programs_q);
   if (mysqli_num_rows($programs_exec) > 0) {
     $programs = mysqli_fetch_all($programs_exec, MYSQLI_ASSOC);    
@@ -92,23 +92,29 @@
                                   <th style="width: 5%;">Id</th>
                                   <th scope="col">Code</th>
                                   <th scope="col">Name</th>
+                                  <th scope="col">Is PK</th>
                                   <th scope="col">Created at</th>
                                   <th scope="col">Updated at</th>
                                   <th scope="col">Action</th>
                               </tr>
                           </thead>
                           <tbody>
-                             <?php foreach($programs as $program) { ?>
+                             <?php $no = 1; foreach($programs as $program) { ?>
                                 <tr>
-                                    <td class="text-center"><?= $program['id'] ?></td>
+                                    <td class="text-center"><?= $no ?></td>
                                     <td class="text-start"><?= $program['code'] ?></td>
                                     <td class="text-start"><?= $program['name'] ?></td>
+                                    <td class="text-start"><?= $program['is_pk'] ? "<span><i class='fa fa-check'></i></span>" : '' ?></td>
                                     <td class="text-start"><?= $program['created_at'] ?></td>
                                     <td class="text-start"><?= $program['updated_at'] ?></td>
                                     <td class="text-center">
                                       <span data-id="<?= $program['id'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#programModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+
+                                      <?php if($_SESSION['role'] == "admin") { ?>
+                                        <span data-id="<?= $program['id'] ?>" class='del-prog btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
+                                      <?php } ?>
                                     </td>
-                            <?php } ?>
+                            <?php $no++; } ?>
                           </tbody>
                       </table>
                     </div>
@@ -187,6 +193,50 @@
           });
       })
 
+    });
+
+    $('.del-prog').on('click', function() {
+      var id = $(this).data('id');
+      console.log(id)
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: 'delete-program.php',
+            type: 'POST',
+            data: {
+              id_program: id
+            },
+            success: function(res) {
+              let data = JSON.parse(res);
+              console.log((data));
+              if(data.status == 'success') {
+                Swal.fire({
+                  title: "Deleted!",
+                  text: data.message,
+                  icon: "success"
+                });
+                setTimeout(function() {
+                  location.reload();
+                }, 1000);
+              }else {
+                Swal.fire({
+                  title: "Failed!",
+                  text: data.message,
+                  icon: "error"
+                });
+              }
+            } 
+          });
+        }
+      });
     });
 
     $(document).on('click', '.close', function() {

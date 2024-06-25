@@ -104,7 +104,7 @@
 
                                   foreach($programs as $prog) : ?>
                                     <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
-                            <?php endforeach; ?>
+                              <?php endforeach; ?>
                             </select>
                           </td>
                         </tr>

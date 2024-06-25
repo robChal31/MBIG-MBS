@@ -16,7 +16,7 @@ if (mysqli_num_rows($draft_exec) > 0) {
   $programs = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
 }
 $program = $programs[0] ?? [];
-
+$is_pk = $program['is_pk'] ?? 2;
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
@@ -29,6 +29,14 @@ $program = $programs[0] ?? [];
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Program Code</label>
                     <input type="text" name="code" class="form-control form-control-sm" value="<?= $program['code'] ?? '' ?>" placeholder="code..." required>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Is PK</label>
+                    <select name="is_pk" id="is_pk" class="form-control form-control-sm" required>
+                        <option value="1" <?= $is_pk == 1 ? 'selected' : '' ?>>Yes</option>
+                        <option value="0" <?= $is_pk == 0 ? 'selected' : '' ?>>No</option>
+                    </select>
                 </div>
                 
                 <input type="hidden" name="id_program" value="<?= $id_program == 0 ? '' : $id_program ?>">

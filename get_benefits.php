@@ -21,11 +21,11 @@
         $program_code = $prog['code'];
     }
 
-    $filter_program_q = $program_code ? "WHERE avail like '%$program_code%' " : false;
+    $filter_program_q = $program_code ? "AND avail like '%$program_code%' " : false;
     $options = "";
 
     if($filter_program_q) {
-      $sql = "SELECT * FROM `draft_template_benefit` $filter_program_q order by benefit, subbenefit, benefit_name asc";
+      $sql = "SELECT * FROM `draft_template_benefit` WHERE is_active = 1 $filter_program_q order by benefit, subbenefit, benefit_name asc";
       // $sql = 'SELECT * FROM `draft_template_benefit` order by benefit,subbenefit,benefit_name asc';
       $result = $conn->query($sql);
       
@@ -36,10 +36,14 @@
           $option = $row['benefit_name'];
           $options .= "<option value='".$row['id_template_benefit']."'>".$row['benefit']." - ".$row['subbenefit']." - ".$option."</option>";
         }
-      }
-      $conn->close();
+        $conn->close();
     
-      echo $options;
+        echo $options;
+      }else {
+        $conn->close();
+        echo "<option value=''>No Benefit Found</option>";
+      }
+     
     }else {
       $conn->close();
     

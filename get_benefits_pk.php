@@ -44,9 +44,9 @@ if($_GET['id_draft']){
       $program_code = $prog['code'];
   }
 
-  $filter_program_q = $program_code ? "WHERE avail like '%$program_code%' " : '';
+  $filter_program_q = $program_code ? "AND avail like '%$program_code%' " : '';
 
-  $query_template = "SELECT * FROM `draft_template_benefit` $filter_program_q order by id_template_benefit ASC";
+  $query_template = "SELECT * FROM `draft_template_benefit` WHERE is_active = 1 $filter_program_q order by id_template_benefit ASC";
   $result_template = mysqli_query($conn, $query_template);
   $data_templates = [];
   while ($row = mysqli_fetch_assoc($result_template)) {

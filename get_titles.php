@@ -8,7 +8,7 @@
         die("Connection failed: " . $conn->connect_error);
       }
                                                                                     
-      $sql = "SELECT * FROM books order by name asc";
+      $sql = "SELECT * FROM books WHERE is_active = 1 order by name asc";
       $result = $conn->query($sql);
       
       $options = "";

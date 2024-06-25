@@ -65,7 +65,8 @@
   $templates = [];
   $draft_templates_q = "SELECT * 
                         FROM draft_template_benefit AS dtb
-                        LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit";
+                        LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit
+                        WHERE dtb.is_active = 1";
   $draft_exec = mysqli_query($conn, $draft_templates_q);
   if (mysqli_num_rows($draft_exec) > 0) {
     $templates = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
@@ -124,6 +125,10 @@
                                     <td><?= number_format($template['valueMoney'], '0', ',', '.') ?></td>
                                     <td>
                                       <span data-id="<?= $template['id_template_benefit'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#templateModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+
+                                      <?php if($_SESSION['role'] == "admin") { ?>
+                                        <span data-id="<?= $template['id_template_benefit'] ?>" class='del-template btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
+                                      <?php } ?>
                                     </td>
                             <?php } ?>
                           </tbody>
@@ -204,6 +209,50 @@
           });
       })
 
+    });
+
+    $('.del-template').on('click', function() {
+      var id = $(this).data('id');
+      console.log(id)
+      Swal.fire({
+        title: 'Are you sure?',
+        text: "You won't be able to revert this!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, delete it!'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          $.ajax({
+            url: 'delete-template-benefit.php',
+            type: 'POST',
+            data: {
+              id_template_benefit: id
+            },
+            success: function(res) {
+              let data = JSON.parse(res);
+              console.log((data));
+              if(data.status == 'success') {
+                Swal.fire({
+                  title: "Deleted!",
+                  text: data.message,
+                  icon: "success"
+                });
+                setTimeout(function() {
+                  location.reload();
+                }, 1000);
+              }else {
+                Swal.fire({
+                  title: "Failed!",
+                  text: data.message,
+                  icon: "error"
+                });
+              }
+            } 
+          });
+        }
+      });
     });
 
     $(document).on('click', '.close', function() {

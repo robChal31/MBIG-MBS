@@ -32,6 +32,7 @@ function sanitize_input($conn, $input) {
 $id_program = sanitize_input($conn, $_POST['id_program']);
 $name = sanitize_input($conn, $_POST['name']);
 $code = sanitize_input($conn, $_POST['code']);
+$is_pk = $_POST['is_pk'];
 
 
 try {
@@ -62,7 +63,7 @@ try {
         }
 
         $sql = "UPDATE programs 
-                    SET name = '$name', code = '$code', updated_at = NOW()
+                    SET name = '$name', code = '$code', is_pk = '$is_pk', updated_at = NOW()
                 WHERE id = '$id_program'";
 
         if (!$conn->query($sql)) {
@@ -97,8 +98,8 @@ try {
         if ($is_program_code_exist_exec->num_rows > 0) {
             error_json('Program code already exists.');
         }
-        $sql = "INSERT INTO programs (name, code, created_at) VALUES (
-            '$name', '$code', NOW())";
+        $sql = "INSERT INTO programs (name, code, is_pk, created_at) VALUES (
+            '$name', '$code', '$is_pk', NOW())";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

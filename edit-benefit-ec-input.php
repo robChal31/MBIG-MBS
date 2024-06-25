@@ -60,14 +60,14 @@ if(mysqli_num_rows($exec_query) < 1){
   exit;
 }
 
-$query_list_book = "SELECT * FROM calc_title order by title_name asc";
+$query_list_book = "SELECT * FROM books WHERE is_active = 1 order by name asc";
 $exec_list_book = $conn->query($query_list_book);
 
 $options = [];
 if ($exec_list_book->num_rows > 0) {
 
   while ($row = $exec_list_book->fetch_assoc()) {
-    array_push($options, $row['title_name']);
+    array_push($options, $row['name']);
   }
 }
 
@@ -153,12 +153,19 @@ if ($exec_list_book->num_rows > 0) {
                         <td>Program</td>
                         <td>:</td>
                         <td>
-                          <select name="program" class="form-select form-select-sm">
-                            <option value="cbls1" <?= $program == 'cbls1' ? 'selected' : '' ?>>CBLS 1</option>
-                            <option value="cbls3" <?= $program == 'cbls3' ? 'selected' : '' ?>>CBLS 3</option>
-                            <option value="prestasi" <?= $program == 'prestasi' ? 'selected' : '' ?>>Prestasi</option>
-                            <option value="bsp" <?= $program == 'bsp' ? 'selected' : '' ?>>BSP</option>
-                            <option value="pk3" <?= $program == 'pk3' ? 'selected' : '' ?>>PK3</option>
+                          <select name="program" class="form-select form-select-sm" required>
+                            <?php
+                                $programs = [];
+                                $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0";
+
+                                $exec_program = mysqli_query($conn, $query_program);
+                                if (mysqli_num_rows($exec_program) > 0) {
+                                    $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
+                                }
+
+                                foreach($programs as $prog) : ?>
+                                  <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
+                            <?php endforeach; ?>
                           </select>
                         </td>
                       </tr>
