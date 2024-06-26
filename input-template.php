@@ -65,11 +65,11 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Description</label>
-                    <textarea name="description" class="form-control" id=""><?= $template['description'] ?? ''  ?></textarea>
+                    <textarea name="description" class="form-control" id="" style="height: 150px;"><?= $template['description'] ?? ''  ?></textarea>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Implementation</label>
-                    <textarea name="pelaksanaan" class="form-control" id=""><?= $template['pelaksanaan'] ?? ''  ?></textarea>
+                    <textarea name="pelaksanaan" class="form-control" id="" style="height: 100px;"><?= $template['pelaksanaan'] ?? ''  ?></textarea>
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 1</label>
