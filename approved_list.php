@@ -94,7 +94,7 @@
 
                                                 <?php if($id_user == 70 && $row['verified'] == 0) { ?>
                                                     <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
-                                                    
+
                                                     <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-1 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
                                                 <?php } ?>
 
@@ -126,7 +126,7 @@
                 </button>
             </div>
             <div class="modal-body" id="approvalModalBody">
-                ...
+                Lodaing...
             </div>
             </div>
         </div>
@@ -142,7 +142,7 @@
                 </button>
             </div>
             <div class="modal-body" id="pkModalBody">
-                ...
+                Lodaing...
             </div>
             </div>
         </div>
@@ -158,7 +158,7 @@
                 </button>
             </div>
             <div class="modal-body" id="pkModalBody">
-                ...
+                Lodaing...
             </div>
             </div>
         </div>

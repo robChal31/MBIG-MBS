@@ -73,16 +73,23 @@ $program = strtolower($program);
   textarea {
     width: 100%;
   }
+
   .benefit-desc:hover {
     width: 65%!important;
   }
+
   .benefit-ket {
     display: none;
   }
+
   table.dataTable tbody td {
       padding: 2px !important;
       vertical-align: middle !important;
       text-align: center !important;
+  }
+
+  .txt-area {
+    height: 150px;
   }
   
 
@@ -153,7 +160,7 @@ $program = strtolower($program);
                                     <input type='hidden' name='benefit_name[]' value=''>
                                   </td>
                                   <td class="benefit-desc">
-                                    <textarea id="description" name="description[]"></textarea>
+                                    <textarea id="description" name="description[]" class="form-control form-control-sm txt-area"></textarea>
                                   </td>
                                   <td>
                                     <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="" value="" readonly onchange="updateDisabledField(this)">
@@ -202,7 +209,7 @@ $program = strtolower($program);
                                     <input type='hidden' name='benefit_name[]' value='<?= $data['benefit_name'] ?>'>
                                   </td>
                                   <td class="benefit-desc">
-                                    <textarea id="description" name="description[]"><?= $data['description'] ?></textarea>
+                                    <textarea id="description" name="description[]" class="form-control form-control-sm txt-area"><?= $data['description'] ?></textarea>
                                   </td>
                                   <?php 
                                     if($data['valueMoney'] == 0){
@@ -455,7 +462,7 @@ $program = strtolower($program);
     $('#add_row').click(function(){
       if(x < maxRows){
         x++;
-        var newRow = '<tr id="row'+x+'"><td><span>Benefit</span><input type="hidden" name="benefit[]" value=""><input type="hidden" name="id_templates[]" value=""></td><td><span>Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="benefit-desc"><textarea id="description" name="description[]" cols="16"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><td><input type="text" class="form-control form-control-sm" id="pelaksanaan" name="pelaksanaan[]" value=""></td><td class="benefit-ket"><input type="text" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"></td><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)"></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "disabled";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "disabled";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
+        var newRow = '<tr id="row'+x+'"><td><span>Benefit</span><input type="hidden" name="benefit[]" value=""><input type="hidden" name="id_templates[]" value=""></td><td><span>Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="benefit-desc"><textarea id="description" name="description[]" cols="16" class="form-control form-control-sm txt-area"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><td><input type="text" class="form-control form-control-sm" id="pelaksanaan" name="pelaksanaan[]" value=""></td><td class="benefit-ket"><input type="text" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"></td><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)"></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "disabled";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "disabled";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
         $('#input_form').append(newRow); 
          populateDropdown('row'+x);
       }
