@@ -88,8 +88,8 @@ $program = strtolower($program);
       text-align: center !important;
   }
 
-  .txt-area {
-    height: 150px;
+  .txt-area:hover {
+    height: 200px;
   }
   
 
