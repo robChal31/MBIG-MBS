@@ -29,16 +29,16 @@ function sanitize_input($conn, $input) {
     return mysqli_real_escape_string($conn, str_replace(["&#13;", "&#10;"], ["\r", "\n"], $input));
 }
 
-$id_template = sanitize_input($conn, $_POST['id_template']);
-$benefit = sanitize_input($conn, $_POST['benefit']);
-$subbenefit = sanitize_input($conn, $_POST['subbenefit']);
-$benefit_name = sanitize_input($conn, $_POST['benefit_name']);
-$avail = $_POST['avail'];
-$description = sanitize_input($conn, $_POST['description']);
-$pelaksanaan = sanitize_input($conn, $_POST['pelaksanaan']);
-$qty1 = sanitize_input($conn, $_POST['qty1']);
-$qty2 = sanitize_input($conn, $_POST['qty2']);
-$qty3 = sanitize_input($conn, $_POST['qty3']);
+$id_template    = sanitize_input($conn, $_POST['id_template']);
+$benefit        = sanitize_input($conn, $_POST['benefit']);
+$subbenefit     = sanitize_input($conn, $_POST['subbenefit']);
+$benefit_name   = sanitize_input($conn, $_POST['benefit_name']);
+$avail          = $_POST['avail'];
+$description    = sanitize_input($conn, $_POST['description']);
+$pelaksanaan    = sanitize_input($conn, $_POST['pelaksanaan']);
+$qty1           = $_POST['qty1'] ?? 0;
+$qty2           = $_POST['qty2'] ?? 0;
+$qty3           = $_POST['qty3'] ?? 0;
 $unit_bisnis = sanitize_input($conn, $_POST['unit_bisnis']);
 $value = sanitize_input($conn, $_POST['value']);
 $value = str_replace(".", "", $value);
