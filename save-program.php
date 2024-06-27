@@ -3,7 +3,6 @@ ob_start();
 session_start();
 include 'db_con.php';
 require 'vendor/autoload.php';
-use PHPMailer\PHPMailer\PHPMailer;
 
 header('Content-Type: application/json');
 
@@ -53,6 +52,7 @@ try {
     if ($is_program_exist) {
         $program_row = $is_program_exist_exec->fetch_assoc();
         $old_code = $program_row['code'];
+        $old_name = $program_row['name'];
 
         if ($is_program_code_exist_exec->num_rows > 0) {
             $program_code_row = $is_program_code_exist_exec->fetch_assoc();
@@ -93,6 +93,15 @@ try {
                 error_json('Update failed for ID ' . $id . ': ' . $conn->error);
             }
         }
+
+        $name_up = strtoupper($name);
+        $sql = "UPDATE draft_benefit SET program = '$name_up' WHERE program = '$old_name' ";
+
+        // Execute the query
+        if (!$conn->query($sql)) {
+            error_json('Query failed on update draft benefit: ' . $conn->error);
+        }
+
     } else {
         
         if ($is_program_code_exist_exec->num_rows > 0) {
