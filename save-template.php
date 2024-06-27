@@ -55,7 +55,7 @@ if ($query_unit_bisnis_exec === false) {
 if ($query_unit_bisnis_exec->num_rows > 0) {
     $row_unit_bisnis = $query_unit_bisnis_exec->fetch_assoc();
     $unit_name = $row_unit_bisnis['name'];
-    $unit_code = $row_unit_bisnis['name'];
+    $unit_code = $row_unit_bisnis['code'];
 } else {
     error_json('Unit Bisnis not found: ' . $unit_bisnis);
 }
