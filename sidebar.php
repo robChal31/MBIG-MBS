@@ -16,8 +16,8 @@ $last_path_with_query;
 ?>
 
 
-<div class="sidebar pe-4 pb-3">
-    <nav class="navbar bg-white">
+<div class="sidebar pe-4 pb-3" style="background-color: #FAFAFA;">
+    <nav class="navbar" style="background-color: #FAFAFA;">
         <a href="main.php" class="navbar-brand mx-4 mt-md-0 pt-md-0 pt-4 mt-4 mb-2">
             <h3 class="text-primary mt-2 pt-2"><img src='img/logombs3.jfif' style="width: 80%; object-fit: contain;"></h3>
         </a>

@@ -94,7 +94,7 @@ if (mysqli_num_rows($program_exec) > 0) {
 
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Value</label>
-                    <input type="text" name="value" class="form-control form-control-sm only_number" value="<?= $template['valueMoney'] ?? '' ?>" placeholder="value..." required>
+                    <input type="text" name="value" class="form-control form-control-sm only_number" value="<?= $template['valueMoney'] ?? '' ?>" placeholder="value...">
                 </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">

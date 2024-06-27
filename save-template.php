@@ -39,9 +39,9 @@ $pelaksanaan    = sanitize_input($conn, $_POST['pelaksanaan']);
 $qty1           = $_POST['qty1'] ?? 0;
 $qty2           = $_POST['qty2'] ?? 0;
 $qty3           = $_POST['qty3'] ?? 0;
-$unit_bisnis = sanitize_input($conn, $_POST['unit_bisnis']);
-$value = sanitize_input($conn, $_POST['value']);
-$value = str_replace(".", "", $value);
+$unit_bisnis    = sanitize_input($conn, $_POST['unit_bisnis']);
+$value          = $_POST['value'] ?? 0;
+$value          = str_replace(".", "", $value);
 
 $avail = implode(" ", $avail);
 
