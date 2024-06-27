@@ -19,7 +19,7 @@
         </div> -->
         <div class="col-12">
             
-            <div class="bg-white rounded h-100 p-4">
+            <div class="bg-whites rounded h-100 p-4">
                 <h6 class="mb-4">Draft Benefit Approval List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
@@ -112,7 +112,7 @@
                 </button>
             </div>
             <div class="modal-body" id="approvalModalBody">
-                ...
+                Loading...
             </div>
             </div>
         </div>

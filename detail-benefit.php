@@ -55,7 +55,7 @@ if ($result->num_rows > 0) {
     <div class="container-fluid p-4">
         <div class="col-12">
             
-            <div class="bg-white rounded h-100 p-4 mb-4">
+            <div class="bg-whites rounded h-100 p-4 mb-4">
                 <div class="p-2 mb-2">
                     <h6>Detail Partnership Agreement</h6>                    
                     <div class="row">
@@ -134,7 +134,7 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
 
-            <div class="bg-white rounded h-100 p-4 mb-4">
+            <div class="bg-whites rounded h-100 p-4 mb-4">
                 <div class="p-2 mb-2">
                     <h6>List of Books Ordered</h6>                    
                     <div class="table-responsive">
@@ -182,7 +182,7 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
 
-            <div class="bg-white rounded h-100 p-4">
+            <div class="bg-whites rounded h-100 p-4">
                 <div class="p-2 mb-2">
                     <h6>List of Benefit</h6>                    
                     <div class="table-responsive">
@@ -247,7 +247,7 @@ if ($result->num_rows > 0) {
                     </button>
                 </div>
                 <div class="modal-body" id="pkModalBody">
-                    ...
+                    Loading...
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary close" data-dismiss="modal">Close</button>

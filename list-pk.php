@@ -14,7 +14,7 @@
     <div class="container-fluid p-4">
         <div class="col-12">
             
-            <div class="bg-white rounded h-100 p-4">
+            <div class="bg-whites rounded h-100 p-4">
                 <h6 class="mb-4">Agreement List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
@@ -80,7 +80,7 @@
                                                 <?= $row['created_at'] ?>
                                             </td>
                                             <td>
-                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
+                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.55rem'><?= $status_msg  ?></span>
                                             </td>
                                             <td scope='col'>
                                                
@@ -110,7 +110,7 @@
                 </button>
             </div>
             <div class="modal-body" id="approvalModalBody">
-                ...
+                Loading...
             </div>
             </div>
         </div>
@@ -126,7 +126,7 @@
                     </button>
                 </div>
                 <div class="modal-body" id="pkModalBody">
-                    ...
+                    Loading...
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary close" data-dismiss="modal">Close</button>

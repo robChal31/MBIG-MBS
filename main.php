@@ -6,7 +6,7 @@
         <div class="container-fluid p-4">
             <div class="col-12">
                 <h4>Dashboard</h4> 
-                <div class="bg-white rounded h-100 p-4 my-4">
+                <div class="bg-whites rounded h-100 p-4 my-4">
                     <div class="row my-2 py-4 justify-content-center">
                         <div class="col-md-6 col-12">
                             <canvas id="periode-chart"></canvas>
@@ -17,7 +17,7 @@
                     </div>
                 </div>
 
-                <div class="bg-white rounded h-100 p-4 my-4">
+                <div class="bg-whites rounded h-100 p-4 my-4">
                     <div class="row my-2 py-2 justify-content-center">
                         <div class="col-md-3 col-12">
                             <canvas id="program-chart"></canvas>
@@ -32,7 +32,7 @@
                     
                 </div>
 
-                <div class="bg-white rounded h-100 p-4 my-4">
+                <div class="bg-whites rounded h-100 p-4 my-4">
                     <?php 
                         if($_SESSION['role'] == 'admin') { ?>
                             <div class="row my-2 py-2 justify-content-center">
@@ -49,7 +49,7 @@
                     <?php } ?>
                 </div>
 
-                <div class="bg-white rounded h-100 p-4 my-4">
+                <div class="bg-whites rounded h-100 p-4 my-4">
                     <div class="row my-2 py-2 justify-content-center">
                         <div class="col-md-12 col-12">
                             <canvas id="ec-chart"></canvas>

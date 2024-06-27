@@ -14,7 +14,7 @@
     <div class="container-fluid p-4">
         <div class="col-12">
             
-            <div class="bg-white rounded h-100 p-4">
+            <div class="bg-whites rounded h-100 p-4">
                 <h6 class="mb-4">Partnership Agreement List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
@@ -104,7 +104,7 @@
                 </button>
             </div>
             <div class="modal-body" id="approvalModalBody">
-                ...
+                Loading...
             </div>
             </div>
         </div>
@@ -120,7 +120,7 @@
                     </button>
                 </div>
                 <div class="modal-body" id="pkModalBody">
-                    ...
+                    Loading...
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary close" data-dismiss="modal">Close</button>

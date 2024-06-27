@@ -83,7 +83,11 @@ if (mysqli_num_rows($program_exec) > 0) {
                     <label class="form-label" style="font-size: .85rem;">Qty Year 3</label>
                     <input type="text" name="qty3" class="form-control form-control-sm only_number" value="<?= $template['qty3'] ?? '' ?>" placeholder="quantity...">
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-4 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Value</label>
+                    <input type="text" name="value" class="form-control form-control-sm only_number" value="<?= $template['valueMoney'] ?? '' ?>" placeholder="value...">
+                </div>
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Business Unit</label>
                     <select name="unit_bisnis" id="unit_bisnis" class="form-control form-control-sm" required>
                         <?php foreach($business_units as $bu) { ?>
@@ -91,10 +95,12 @@ if (mysqli_num_rows($program_exec) > 0) {
                         <?php } ; ?>
                     </select>
                 </div>
-
-                <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Value</label>
-                    <input type="text" name="value" class="form-control form-control-sm only_number" value="<?= $template['valueMoney'] ?? '' ?>" placeholder="value...">
+                <div class="col-4 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Optional</label>
+                    <select name="optional" id="optional" class="form-control form-control-sm" required>
+                       <option value="0" <?= ($template['optional'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
+                       <option value="1" <?= ($template['optional'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
+                    </select>
                 </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">

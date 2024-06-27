@@ -8,7 +8,7 @@
             <div class="container-fluid p-4">
                 <div class="row">
                     <div class="col-12">
-                        <div class="bg-white rounded h-100 p-4">
+                        <div class="bg-whites rounded h-100 p-4">
                             <div class="d-flex justify-content-between align-items-center">
                                 <h6 class="mb-4"><?=ucwords($type)?> Benefit</h6>
                                 <a href="new-benefit-input.php?type=<?=$type;?>">

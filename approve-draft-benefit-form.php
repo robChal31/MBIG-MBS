@@ -111,7 +111,7 @@
                    </div>
                 <?php else: ?>
                     <div class="col-md-7 col-12">
-                        <div class="bg-white rounded h-100 p-4">
+                        <div class="bg-whites rounded h-100 p-4">
                             <h6 class="mb-4"><?= $id_user == 70 ? 'Verify' : 'Approve' ?> Draft Benefit</h6>    
                             <form action="save-draft-approval.php" method="POST" id="form">
                                 <input type="hidden" name="token" value="<?= $token ?>">

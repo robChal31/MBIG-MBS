@@ -112,6 +112,10 @@
             vertical-align: middle !important;
             font-size: .7rem;
         }
+
+        .bg-whites {
+            background-color: #F7F6F9;
+        }
     </style>
 </head>
 

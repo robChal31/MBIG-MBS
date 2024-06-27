@@ -59,14 +59,14 @@
     $result = mysqli_query($conn,$sql);
 
     while ($dra = $result->fetch_assoc()){
-      $email    = $dra['username'];
-      $ecname   = $dra['generalname'];
-      $id_ec   = $dra['id_ec'];
-      $school_name   = $dra['school_name'];
-      $segment   = $dra['segment'];
-      $level    = $dra['level'];
-      $wilayah = $dra['wilayah'];
-      $program = $dra['program'];
+      $email        = $dra['username'];
+      $ecname       = $dra['generalname'];
+      $id_ec        = $dra['id_ec'];
+      $school_name  = $dra['school_name'];
+      $segment      = $dra['segment'];
+      $level        = $dra['level'];
+      $wilayah      = $dra['wilayah'];
+      $program      = $dra['program'];
   
       if(($id_ec != $_SESSION['id_user'] && $_SESSION['role'] != 'admin') || $dra['status'] != 0) {
         $_SESSION['toast_status'] = 'Error';
@@ -92,7 +92,7 @@
       <div class="container-fluid p-4">
           <div class="row">
               <div class="col-12">
-                  <div class="bg-white rounded h-100 p-4">
+                  <div class="bg-whites rounded h-100 p-4">
                     <h6 class="mb-4">Create Draft Benefit PK</h6>
                     <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
                         
@@ -222,133 +222,6 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
-
-    function removeNonDigits(numberString) {
-        let nonDigitRegex = /\D/g;
-
-        let result = numberString.replace(nonDigitRegex, '');
-
-        return result;
-    }
-
-    function formatNumber(number) {
-      let parts = number.toString().split('.');
-      let integerPart = parts[0];
-
-      let formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      if (parts.length > 1) {
-          let decimalPart = parts[1];
-          return formattedIntegerPart + ',' + decimalPart;
-      } else {
-          return formattedIntegerPart;
-      }
-    }
-
-    function getBenefitData(element){
-        var row = $(element).closest('tr');
-        var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
-        var manval = row.find('input[name="manval[]"]')
-
-        $.ajax({
-        url: 'get_benefit_datas.php',
-        type: 'POST',
-        data: {
-            benefitId: benefitId,
-            program : '<?= $program ?>'
-        },
-        success: function(data) {
-            row.find('input[name="benefit[]"]').val(data[0].benefit);
-            row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
-            row.find('span[name="benefit"]').html(data[0].benefit);
-            row.find('span[name="subbenefit"]').html(data[0].subbenefit);
-            row.find('textarea[name="description[]"]').html(data[0].description);
-            row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
-            row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
-            row.find('input[name="pelaksanaan[]"]').val(data[0].pelaksanaan);
-            row.find('input[name="valuedefault[]"]').val(data[0].valueMoney);
-            row.find('input[name="valben[]"]').val(formatNumber(data[0].valueMoney));
-            var program = '<?= $program ?>';
-            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name==="input manual" || data[0].benefit_name==="Dana Pengembangan" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah"){
-
-              row.find('input[name="valben[]"]').prop("readonly", false);
-            }else{
-              row.find('input[name="valben[]"]').prop("readonly", true);
-            }
-            updateDisabledField(element);
-        }
-      });
-
-    }
-
-    function fillTheValue(id) {
-      var total = 0;
-      var moni = 0;
-      $('.tah' + id).each(function() {
-        var row   = $(this).closest('tr');
-        var value = parseFloat($(this).val());
-        var hiddenValue = row.find('input[name="valuedefault[]"]').val();
-        hiddenValue = hiddenValue <= 0 ? row.find('input[name="valben[]"]').val() : hiddenValue;
-   
-        if (!isNaN(value)) {
-          total += value;
-          moni += hiddenValue * value;
-        }
-      });
-      $('#qtyth' + id).text(total);
-      $('#valth' + id).text("Rp "+ moni.toLocaleString("id-ID"));
-
-      let total_alokasi = $('input[name="sumalok"]').val();
-      let selisih = total_alokasi - moni;
-
-      $('#total_benefit' + id).val(moni);
-
-      $('#selisih_benefit' + id).val(selisih);
-      $('#selisihbenefit' + id).html("Rp " + selisih.toLocaleString("id-ID"));
-
-      return selisih;
-    }
-
-    function accumulateValues() {
-      let total_alokasi = $('input[name="sumalok"]').val();
-      let program = $('input[name="program"]').val();
-
-      let year1 = fillTheValue(1)
-
-      let checkIfStillMinus = $('#selisih_benefit1').val();
-      checkIfStillMinus = checkIfStillMinus < 0 ? true : false;
-
-      if(program == 'prestasi') {
-        let year2 = fillTheValue(2);
-        let year3 = fillTheValue(3);
-        checkIfStillMinus = (checkIfStillMinus || year2 < 0 || year3 < 0) ? true : false;
-      }
-
-      if (checkIfStillMinus){
-        $('#submt').prop('disabled', true);
-      }else{
-        $('#submt').prop('disabled', false);
-      }
-
-    }
-
-    function updateDisabledField(element) {
-      var row = $(element).closest('tr');
-      var disabledField = row.find('input[name="calcValue[]"]');
-      var member1 = row.find('input[name="member[]"]').val();
-      var member2 = row.find('input[name="member2[]"]').val();
-      var member3 = row.find('input[name="member3[]"]').val();
-
-      var disabledField2 = row.find('input[name="valben[]"]');
-      var defaultvalue = row.find('input[name="valuedefault[]"]').val();
-
-      var total = parseInt(member1)+parseInt(member2)+parseInt(member3);
-      if(defaultvalue != 0){
-        disabledField.val(formatNumber(total*defaultvalue));
-      }else{
-        disabledField.val(formatNumber(total*disabledField2.val()));
-      }
-      accumulateValues();
-    }
 
     $(document).ready(function(){
 

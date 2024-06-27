@@ -25,7 +25,7 @@
       padding : 5px !important;
       vertical-align: middle !important;
       text-align: center !important;
-      font-size: .7rem !important;
+      font-size: .65rem !important;
     }
 
     table.dataTable tbody td.benefit-desc{
@@ -80,7 +80,7 @@
       <div class="container-fluid p-4">
           <div class="row">
               <div class="col-12">
-                  <div class="bg-white rounded h-100 p-4">
+                  <div class="bg-whites rounded h-100 p-4">
                     <div class="d-flex justify-content-between">
                       <div class="">
                         <h6 class="mb-4">Benefit Templates</h6>
@@ -105,6 +105,7 @@
                                   <th scope="col">Qty Year 2</th>
                                   <th scope="col">Qty Year 3</th>
                                   <th scope="col">Value</th>
+                                  <th scope="col">Optional</th>
                                   <th scope="col">Action</th>
                               </tr>
                           </thead>
@@ -123,6 +124,11 @@
                                     <td><?= $template['qty2'] ?></td>
                                     <td><?= $template['qty3'] ?></td>
                                     <td><?= number_format($template['valueMoney'], '0', ',', '.') ?></td>
+                                    <td class="text-center">
+                                            <?php if($template['optional'] == 1) : ?>
+                                                <span><i class='fa fa-check'></i></span>
+                                            <?php endif; ?>
+                                        </td>
                                     <td>
                                       <span data-id="<?= $template['id_template_benefit'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#templateModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
 
@@ -150,7 +156,7 @@
                 </button>
             </div>
             <div class="modal-body" id="templateModalBody">
-                ...
+                Loading...
             </div>
             </div>
         </div>

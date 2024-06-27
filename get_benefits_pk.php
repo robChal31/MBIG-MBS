@@ -131,7 +131,7 @@ $program = strtolower($program);
                             </td>
 
                             <td>
-                                <?php if($data_template['id_template_benefit'] == 111 || $data_template['id_template_benefit'] == 112) { ?>
+                                <?php if($data_template['optional'] == 1) { ?>
                                   <button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
                                 <?php } ?>
                             </td>
