@@ -24,7 +24,7 @@
     table.dataTable tbody td {
       padding : 5px !important;
       vertical-align: middle !important;
-      text-align: center !important;
+      /* text-align: center !important; */
       font-size: .65rem !important;
     }
 
@@ -100,13 +100,13 @@
                                   <th scope="col" style="width: 15%;">Description</th>
                                   <th scope="col" style="width: 15%;">Implementation</th>
                                   <th scope="col">Avail Code</th>
-                                  <th scope="col">Business Unit</th>
+                                  <th style="width: 10%;" scope="col">Business Unit</th>
                                   <th scope="col">Qty Year 1</th>
                                   <th scope="col">Qty Year 2</th>
                                   <th scope="col">Qty Year 3</th>
                                   <th scope="col">Value</th>
-                                  <th scope="col">Optional</th>
-                                  <th scope="col">Action</th>
+                                  <!-- <th scope="col">Optional</th> -->
+                                  <th scope="col" style="width: 8%;">Action</th>
                               </tr>
                           </thead>
                           <tbody>
@@ -124,11 +124,11 @@
                                     <td><?= $template['qty2'] ?></td>
                                     <td><?= $template['qty3'] ?></td>
                                     <td><?= number_format($template['valueMoney'], '0', ',', '.') ?></td>
-                                    <td class="text-center">
-                                            <?php if($template['optional'] == 1) : ?>
-                                                <span><i class='fa fa-check'></i></span>
-                                            <?php endif; ?>
-                                        </td>
+                                    <!-- <td class="text-center">
+                                        <?php if($template['optional'] == 1) : ?>
+                                            <span><i class='fa fa-check'></i></span>
+                                        <?php endif; ?>
+                                    </td> -->
                                     <td>
                                       <span data-id="<?= $template['id_template_benefit'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#templateModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
 

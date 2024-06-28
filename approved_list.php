@@ -78,13 +78,13 @@
                                             </td>
                                             <td scope='col'>
 
-                                                <?php if($row['status'] == 1 && $role == 'sa' && $row['pk_id'] == null) { ?>
+                                                <?php if($row['status'] == 1 && $role == 'sa' && $row['pk_id'] == null && $row['verified'] == 0) { ?>
                                                     <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
                                                 <?php }else if($row['status'] == 1 && $row['pk_id']) { ?>
-                                                    <?php if($role == 'sa') { ?>
+                                                    <?php if($role == 'sa' && $row['verified'] == 0) { ?>
                                                         <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
                                                     <?php }else { ?>
-                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fas fa-eye'></i></span>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='view' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fas fa-eye'></i></span>
                                                     <?php } ?>
                                                 <?php } ?>
 
@@ -201,6 +201,7 @@
             type: 'POST',
             data: {
                 id_draft: rowid,
+                action: action
             },
             success: function(data) {
                 $('#pkModalBody').html(data);

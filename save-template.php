@@ -43,6 +43,8 @@ $unit_bisnis    = sanitize_input($conn, $_POST['unit_bisnis']);
 $value          = $_POST['value'] ?? 0;
 $value          = str_replace(".", "", $value);
 $optional       = $_POST['optional'] ?? 0;
+$subject        = $_POST['subject'] ?? NULL;
+$redeemable     = $_POST['redeemable'] ?? 0;
 
 $avail = implode(" ", $avail);
 
@@ -70,7 +72,7 @@ try {
 
     if ($is_template_exist) {
         $sql = "UPDATE draft_template_benefit 
-                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional'
+                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable'
                 WHERE id_template_benefit = '$id_template'";
 
         if (!$conn->query($sql)) {
@@ -82,8 +84,8 @@ try {
             error_json('Query failed: ' . $conn->error);
         }
     } else {
-        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional) VALUES (
-            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional')";
+        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable) VALUES (
+            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable')";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

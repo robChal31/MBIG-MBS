@@ -2,13 +2,25 @@
 <style>
   table.dataTable tbody td {
       vertical-align: middle !important;
-      font-size: .65rem;
+      font-size: .6rem;
   }
 
   table.dataTable thead th {
       vertical-align: middle !important;
       font-size: .65rem;
   }
+
+  .select2-container {
+        z-index: 2050 !important;
+    }
+
+    .modal {
+        z-index: 1050;
+    }
+
+    .modal-backdrop {
+        z-index: 1040;
+    }
 </style>
 <?php
     $role = $_SESSION['role'];
@@ -29,6 +41,7 @@
 
 <div class="content">
     <?php include 'navbar.php'; ?>
+
     <div class="container-fluid p-4">
         <div class="col-12">
 
@@ -58,21 +71,6 @@
     <!-- Sale & Revenue End -->
 
     <!-- Modal -->
-    <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="approvalModalLabel">Modal title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body" id="approvalModalBody">
-                Loading...
-            </div>
-            </div>
-        </div>
-    </div>
 
     <div class="modal fade" id="pkModal" tabindex="-1" role="dialog" aria-labelledby="pkModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -131,23 +129,6 @@
     </div>
 <?php include 'footer.php';?>
 <script>
-
-    var approvalModal = document.getElementById('approvalModal');
-    approvalModal.addEventListener('show.bs.modal', function (event) {
-        var rowid = event.relatedTarget.getAttribute('data-id')
-        var modalTitle = approvalModal.querySelector('.modal-title')
-        modalTitle.textContent = 'Approval History ' + rowid;
-        $.ajax({
-            url: 'get_benefits_approver.php',
-            type: 'POST',
-            data: {
-                id_draft: rowid,
-            },
-            success: function(data) {
-                $('#approvalModalBody').html(data)
-            }
-        });
-    })
 
     $('#pkModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')

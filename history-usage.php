@@ -6,9 +6,10 @@ include 'db_con.php';
 $id_benefit_llist = $_POST['id_benefit_list'];  
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT 
-            *, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created
+            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created, dtb.redeemable, bu.used_at
         FROM benefit_usages AS bu
         LEFT JOIN draft_benefit_list AS dbl ON dbl.id_benefit_list = bu.id_benefit_list
+        LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
         WHERE bu.id_benefit_list = $id_benefit_llist
         ORDER BY bu.used_at";
 $result = $conn->query($sql);

@@ -3,7 +3,8 @@
 session_start();
 include 'db_con.php';
 
-$id_draft = $_POST['id_draft'];  
+$id_draft = $_POST['id_draft'];
+$action = $_POST['action'];
 $role = $_SESSION['role'];                                                                 
 $sql = "SELECT 
             b.*, 
@@ -124,7 +125,7 @@ if ($result->num_rows > 0) {
                 <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
             </div>
             <?php
-                if($role == 'sa') {?>
+                if($role == 'sa' && $action != 'view') {?>
                     <div class="d-flex justify-content-end">
                         <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
                         <button class="btn btn-primary btn-sm" id="submit_pk">Save</button>

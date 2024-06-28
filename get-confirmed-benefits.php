@@ -51,10 +51,11 @@
                     <table class="table" id="table_id">
                         <thead>
                             <tr>
-                                <th>No PK</th>
+                                <th style="width: 4%">No PK</th>
+                                <th>Jenis Program</th>
                                 <th>School</th>
                                 <th scope="col">Benefit</th>
-                                <th scope="col">Sub Benefit</th>
+                                <th style="width: 4%" scope="col">Sub Benefit</th>
                                 <th scope="col" style="width: 15%">Description</th>
                                 <th scope="col" style="width: 10%">Implementation</th>
                                 <th scope="col">Year 1</th>
@@ -63,8 +64,8 @@
                                 <th scope="col">Total Usage Year 2</th>
                                 <th scope="col">Year 3</th>
                                 <th scope="col">Total Usage Year 3</th>
-                                <th scope="col">Confirmed</th>
-                                <th scope="col">Action</th>
+                                <th style="width: 4%" scope="col">Confirmed</th>
+                                <th scope="col" style="width: 10%;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -75,6 +76,7 @@
                             ?>
                                     <tr>
                                         <td><?= $benefit['no_pk'] ?></td>
+                                        <td><?= strtoupper($benefit['program']) ?></td>
                                         <td><?= $benefit['school_name2'] ?></td>
                                         <td><?= $benefit['benefit'] ?></td>
                                         <td><?= $benefit['subbenefit'] ?></td>

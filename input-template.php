@@ -102,6 +102,26 @@ if (mysqli_num_rows($program_exec) > 0) {
                        <option value="1" <?= ($template['optional'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
                     </select>
                 </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Subject</label>
+                    <select name="subject" id="subject" class="form-control form-control-sm" required>
+                        <option value="" disabled selected>--Select Subject--</option>
+                        <option value="English" <?= ($template['subject'] ?? '') == 'English' ? 'selected' : '' ?>>English</option>
+                        <option value="Maths" <?= ($template['subject'] ?? '') == 'Maths' ? 'selected' : '' ?>>Maths</option>
+                        <option value="Science" <?= ($template['subject'] ?? '') == 'Science' ? 'selected' : '' ?>>Science</option>
+                        <option value="Mandarin" <?= ($template['subject'] ?? '') == 'Mandarin' ? 'selected' : '' ?>>Mandarin</option>
+                        <option value="Bahasa Indonesia" <?= ($template['subject'] ?? '') == 'Bahasa Indonesia' ? 'selected' : '' ?>>Bahasa Indonesia</option>
+                        <option value="Penguatan Karakter" <?= ($template['subject'] ?? '') == 'Penguatan Karakter' ? 'selected' : '' ?>>Penguatan Karakter</option>
+                        <option value="IGCSE" <?= ($template['subject'] ?? '') == 'IGCSE' ? 'selected' : '' ?>>IGCSE</option>
+                    </select>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Redeemable</label>
+                    <select name="redeemable" id="redeemable" class="form-control form-control-sm" required>
+                        <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
+                        <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
+                    </select>
+                </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">
             </div>
@@ -130,9 +150,18 @@ if (mysqli_num_rows($program_exec) > 0) {
                 processData: false,
                 beforeSend: function() {
                     $('#submit_template').prop('disabled', true);
+                    Swal.fire({
+                        title: 'Loading...',
+                        html: 'Please wait while we save your data.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
                 },
                 success: function(response) {
                     console.log((response));
+                    Swal.close();
                     if(response.status == 'success') {
                         Swal.fire({
                             title: "Saved!",
@@ -153,6 +182,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 },
                 error: function(xhr, status, error) {
                     console.error('Error:', error);
+                    Swal.close();
                     Swal.fire({
                         title: "Failed!",
                         text: error,
