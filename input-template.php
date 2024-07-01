@@ -104,7 +104,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Subject</label>
-                    <select name="subject" id="subject" class="form-control form-control-sm" required>
+                    <select name="subject" id="subject" class="form-control form-control-sm">
                         <option value="" disabled selected>--Select Subject--</option>
                         <option value="English" <?= ($template['subject'] ?? '') == 'English' ? 'selected' : '' ?>>English</option>
                         <option value="Maths" <?= ($template['subject'] ?? '') == 'Maths' ? 'selected' : '' ?>>Maths</option>
@@ -117,7 +117,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Redeemable</label>
-                    <select name="redeemable" id="redeemable" class="form-control form-control-sm" required>
+                    <select name="redeemable" id="redeemable" class="form-control form-control-sm">
                         <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
                         <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
                     </select>
