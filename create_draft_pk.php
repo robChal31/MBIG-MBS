@@ -101,12 +101,13 @@
                           <td style="width: 15%">Inputter</td>
                           <td style="width:5px">:</td>
                           <td>
-                            <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?>"> 
+                            <input type='hidden' name='id_user' value="<?= $_SESSION['id_user'] ?>"> 
                             <?php
                               if($_SESSION['role'] != 'admin') { ?>
-                                <?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
+                                <?= $_SESSION['username']?>
+                                <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
                             <?php } else {?>
-                              <select name="id_user" class="form-select form-select-sm select2" required style="width: 100%;">
+                              <select name="inputEC" class="form-select form-select-sm select2" required style="width: 100%;">
                                 <?php foreach($ecs as $ec) { ?>
                                   <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>><?= $ec['generalname'] ?></option>
                                 <?php } ?>
