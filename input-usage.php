@@ -56,7 +56,11 @@ if ($result->num_rows > 0) {
                         <div class="col-md-6 col-12 mb-3">
                             <label class="form-label">Diskon</label>
                             <input type="number" name="diskon" id="diskon" class="form-control form-control-sm" value="" required>
-                        </div>               
+                        </div>              
+                        <div class="col-md-6 col-12 mb-3">
+                            <label class="form-label">Ticket ID</label>
+                            <input type="text" name="id_ticket" id="id_ticket" class="form-control form-control-sm" value="" readonly required>
+                        </div>              
                 <?php } ?>
                
 
@@ -144,23 +148,33 @@ if ($result->num_rows > 0) {
                 },
                 success: function(response) {
                     Swal.close();
-                    Swal.fire({
-                        title: "Saved!",
-                        text: response.message,
-                        icon: "success"
-                    });
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
+                    if(response.status) {
+                        Swal.fire({
+                            title: "Saved!",
+                            text: response.message,
+                            icon: "success"
+                        });
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }else {
+                        Swal.fire({
+                            title: "Failed!",
+                            text: response.message,
+                            icon: "error"
+                        })
+                    }
+                    $('#submit_usage').prop('disabled', false);
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', error);
                     Swal.close();
                     Swal.fire({
                         title: "Failed!",
                         text: error,
                         icon: "error"
                     });
+                    $('#submit_usage').prop('disabled', false);
+                    $('#usageModal').modal('hide');
                 }
             });
         });
@@ -178,9 +192,8 @@ if ($result->num_rows > 0) {
                     $('#submit_usage').prop('disabled', true);
                 },
                 success: function(response) {
-                    console.log((response));
                     if(response.length > 0) {
-                        let options = '';
+                        let options = '<option value="">--Select event--</option>';
                         response.map((el,idx) => {
                             options += '<option value="' + el.id_event + '">' + el.title + '</option>';
                         })
@@ -203,7 +216,6 @@ if ($result->num_rows > 0) {
                     
                 },
                 error: function(xhr, status, error) {
-                    console.error('Error:', error);
                     Swal.fire({
                         title: "Failed to get event list.",
                         text: error + '. \nPlease try again later or contact the developer.',
@@ -216,6 +228,40 @@ if ($result->num_rows > 0) {
                     }, 3000);
                 }
             });
+
+            $('#event').on('change', function() {
+                if($(this).val()) {
+                    $.ajax({
+                        url: 'https://hadiryuk.id/api/ticket/' + $(this).val(), 
+                        method: 'GET',
+                        cache:false,
+                        contentType: false,
+                        processData: false,
+                        success: function(response) {
+                            if(response.length > 0) {
+                                $('#id_ticket').val(response[0].id_ticket) 
+                            }else {
+                                Swal.fire({
+                                    title: "Failed to get ticket, please try again!",
+                                    text: response.message,
+                                    icon: "error"
+                                });
+                                
+                            }
+                            
+                        },
+                        error: function(xhr, status, error) {
+                            Swal.fire({
+                                title: "Failed to get ticket",
+                                text: error + '. \nPlease try again later or contact the developer.',
+                                icon: "error"
+                            });
+                        }
+                    });
+                }else {
+                    $('#id_ticket').val('')
+                }
+            })
         }
 
     });

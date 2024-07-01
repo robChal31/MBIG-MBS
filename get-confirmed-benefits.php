@@ -44,71 +44,72 @@
     }
 ?>
 
-    <div class="container-fluid p-1">
-        <div class="col-12">                 
+    <div class="container-fluid p-1">               
+        <div class="table-responsive">
             <div class="table-responsive">
-                <div class="table-responsive">
-                    <table class="table" id="table_id">
-                        <thead>
-                            <tr>
-                                <th style="width: 4%">No PK</th>
-                                <th>Jenis Program</th>
-                                <th>School</th>
-                                <th scope="col">Benefit</th>
-                                <th style="width: 4%" scope="col">Sub Benefit</th>
-                                <th scope="col" style="width: 15%">Description</th>
-                                <th scope="col" style="width: 10%">Implementation</th>
-                                <th scope="col">Year 1</th>
-                                <th scope="col">Total Usage Year 1</th>
-                                <th scope="col">Year 2</th>
-                                <th scope="col">Total Usage Year 2</th>
-                                <th scope="col">Year 3</th>
-                                <th scope="col">Total Usage Year 3</th>
-                                <th style="width: 4%" scope="col">Confirmed</th>
-                                <th scope="col" style="width: 10%;">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                                foreach($benefits as $benefit) {
-                                    $status_class = $benefit['verified'] == 1 ? 'bg-success' :  'bg-primary';
-                                    $status_msg = ($benefit['verified'] == 1 ? 'Verified' : 'Waiting Verification');
-                            ?>
-                                    <tr>
-                                        <td><?= $benefit['no_pk'] ?></td>
-                                        <td><?= strtoupper($benefit['program']) ?></td>
-                                        <td><?= $benefit['school_name2'] ?></td>
-                                        <td><?= $benefit['benefit'] ?></td>
-                                        <td><?= $benefit['subbenefit'] ?></td>
-                                        <td><?= $benefit['description'] ?></td>
-                                        <td><?= $benefit['pelaksanaan'] ?></td>
-                                        <td class="text-center"><?= $benefit['qty'] ?></td>
-                                        <td class="text-center"><?= $benefit['tot_usage1'] ?? 0?></td>
-                                        <td class="text-center"><?= $benefit['qty2'] ?></td>
-                                        <td class="text-center"><?= $benefit['tot_usage2'] ?? 0?></td>
-                                        <td class="text-center"><?= $benefit['qty3'] ?></td>
-                                        <td class="text-center"><?= $benefit['tot_usage3'] ?? 0?></td>
-                                        <td class="text-center">
-                                            <?php if($benefit['confirmed'] == 1) : ?>
-                                                <span><i class='fa fa-check'></i></span>
-                                            <?php endif; ?>
-                                        </td>
-                                        <td scope='col'>
-                                            <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
-                                            
-                                            <?php if($benefit['confirmed'] == 1) : ?>
-                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
+                <table class="table" id="table_id">
+                    <thead>
+                        <tr>
+                            <th style="width: 4%">No PK</th>
+                            <th>Jenis Program</th>
+                            <th>School</th>
+                            <th scope="col">Benefit</th>
+                            <th style="width: 4%" scope="col">Sub Benefit</th>
+                            <th scope="col" style="width: 30%">Description</th>
+                            <th scope="col" style="width: 15%">Implementation</th>
+                            <th scope="col">Active From</th>
+                            <th scope="col">Expired At</th>
+                            <th scope="col">Year 1</th>
+                            <th scope="col">Total Usage Year 1</th>
+                            <th scope="col">Year 2</th>
+                            <th scope="col">Total Usage Year 2</th>
+                            <th scope="col">Year 3</th>
+                            <th scope="col">Total Usage Year 3</th>
+                            <!-- <th style="width: 4%" scope="col">Confirmed</th> -->
+                            <th scope="col" style="width: 10%;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                            foreach($benefits as $benefit) {
+                                $status_class = $benefit['verified'] == 1 ? 'bg-success' :  'bg-primary';
+                                $status_msg = ($benefit['verified'] == 1 ? 'Verified' : 'Waiting Verification');
+                        ?>
+                                <tr>
+                                    <td><?= $benefit['no_pk'] ?></td>
+                                    <td><?= strtoupper($benefit['program']) ?></td>
+                                    <td><?= $benefit['school_name2'] ?></td>
+                                    <td><?= $benefit['benefit'] ?></td>
+                                    <td><?= $benefit['subbenefit'] ?></td>
+                                    <td><?= $benefit['description'] ?></td>
+                                    <td><?= $benefit['pelaksanaan'] ?></td>
+                                    <td><?= $benefit['start_at'] ?></td>
+                                    <td><?= $benefit['expired_at'] ?></td>
+                                    <td class="text-center"><?= $benefit['qty'] ?></td>
+                                    <td class="text-center"><?= $benefit['tot_usage1'] ?? 0?></td>
+                                    <td class="text-center"><?= $benefit['qty2'] ?></td>
+                                    <td class="text-center"><?= $benefit['tot_usage2'] ?? 0?></td>
+                                    <td class="text-center"><?= $benefit['qty3'] ?></td>
+                                    <td class="text-center"><?= $benefit['tot_usage3'] ?? 0?></td>
+                                    <!-- <td class="text-center">
+                                        <?php if($benefit['confirmed'] == 1) : ?>
+                                            <span><i class='fa fa-check'></i></span>
+                                        <?php endif; ?>
+                                    </td> -->
+                                    <td scope='col'>
+                                        <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
+                                        
+                                        <?php if($benefit['confirmed'] == 1) : ?>
+                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
 
-                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
-                                            <?php endif; ?>
-                                        </td>
-                                    </tr>
-                            <?php } ?>
-                        </tbody>
-                    </table>
-                </div>
+                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                        <?php } ?>
+                    </tbody>
+                </table>
             </div>
-        
         </div>
     </div>
  
@@ -118,7 +119,7 @@
         dom: 'Bfrtip',
         pageLength: 20,
         order: [
-            [0, 'desc'] 
+            // [0, 'desc'] 
         ],
         buttons: [
             { 

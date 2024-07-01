@@ -6,7 +6,7 @@ include 'db_con.php';
 $id_benefit_llist = $_POST['id_benefit_list'];  
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT 
-            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created, dtb.redeemable, bu.used_at
+            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created, dtb.redeemable, bu.used_at, bu.redeem_code
         FROM benefit_usages AS bu
         LEFT JOIN draft_benefit_list AS dbl ON dbl.id_benefit_list = bu.id_benefit_list
         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
@@ -24,6 +24,11 @@ if ($result->num_rows > 0) {
                     <tr>
                         <th scope="col">Used At</th>
                         <th scope="col">Description</th>
+                        <?php
+                            if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
+                            <th>Code</th>
+                                
+                        <?php } ?>
                         <th scope="col">Year 1</th>
                         <th scope="col">Remaining Year 1</th>
                         <th scope="col">Year 2</th>
@@ -46,6 +51,7 @@ if ($result->num_rows > 0) {
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
                                 <td><?= $usage['descr'] ?></td>
+                                <td><?= $usage['redeem_code'] ?></td>
                                 <td class="text-center"><?= $usage['usage1'] ?></td>
                                 <td class="text-center"><?= $usage['qty'] - $acc_qty1 ?></td>
                                 <td class="text-center"><?= $usage['usage2'] ?></td>

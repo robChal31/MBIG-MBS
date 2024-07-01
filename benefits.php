@@ -1,16 +1,16 @@
 <?php include 'header.php'; ?>
 <style>
-  table.dataTable tbody td {
-      vertical-align: middle !important;
-      font-size: .6rem;
-  }
+    table.dataTable tbody td {
+        vertical-align: middle !important;
+        font-size: .6rem;
+    }
 
-  table.dataTable thead th {
-      vertical-align: middle !important;
-      font-size: .65rem;
-  }
+    table.dataTable thead th {
+        vertical-align: middle !important;
+        font-size: .65rem;
+    }
 
-  .select2-container {
+    #event .select2-container {
         z-index: 2050 !important;
     }
 
