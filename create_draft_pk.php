@@ -105,7 +105,7 @@
                             <?php
                               if($_SESSION['role'] != 'admin') { ?>
                                 <?= $_SESSION['username']?>
-                                <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
+                                <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
                             <?php } else {?>
                               <select name="inputEC" class="form-select form-select-sm select2" required style="width: 100%;">
                                 <?php foreach($ecs as $ec) { ?>

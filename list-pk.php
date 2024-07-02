@@ -45,7 +45,7 @@
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
-                                        LEFT JOIN user c on c.id_user = b.id_user 
+                                        LEFT JOIN user c on c.id_user = b.id_ec 
                                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
                                 if($_SESSION['role'] == 'ec'){
                                     $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or b.id_ec = $id_user) ";

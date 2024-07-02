@@ -56,11 +56,11 @@
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
-                                                left join user b on a.id_user = b.id_user
+                                                left join user b on a.id_ec = b.id_user
                                                 WHERE a.deleted_at is null
                                                 $query_filter_pk"; 
                                         if($_SESSION['role'] == 'ec'){
-                                            $sql.=" AND (a.id_user=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."')";
+                                            $sql.=" AND (a.id_ec=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."')";
                                         }
                                         $sql .= $order_by;
                                         

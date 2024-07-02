@@ -64,7 +64,7 @@
                         da.notes, da.status
                     FROM draft_approval da 
                     LEFT JOIN draft_benefit a  on a.id_draft = da.id_draft 
-                    LEFT JOIN user b on a.id_user = b.id_user 
+                    LEFT JOIN user b on a.id_ec = b.id_user 
                     LEFT JOIN user c on c.id_user = da.id_user_approver 
                     WHERE da.id_draft = $id_draft
                     AND da.token = '$token'";

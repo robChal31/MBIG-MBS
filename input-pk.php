@@ -14,7 +14,7 @@ $sql = "SELECT
             pk.*, pk.id as id_pk
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
-        LEFT JOIN user as c on c.id_user = b.id_user
+        LEFT JOIN user as c on c.id_user = b.id_ec
         LEFT JOIN pk on pk.benefit_id = b.id_draft
         LEFT JOIN (
             SELECT 

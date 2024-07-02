@@ -56,7 +56,7 @@
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
-                                                LEFT JOIN user b on a.id_user = b.id_user
+                                                LEFT JOIN user b on a.id_ec = b.id_user
                                                 WHERE a.deleted_at is null
                                                 $query_filter_pk"; 
                                         if($_SESSION['role'] == 'ec'){

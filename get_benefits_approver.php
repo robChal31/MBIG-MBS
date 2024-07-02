@@ -13,7 +13,7 @@ $sql = "SELECT
             a.notes, c.generalname as ec_name, d.generalname as leadername, a.id_user_approver as approver, b.confirmed
         FROM `draft_approval` a 
         INNER JOIN draft_benefit b on a.id_draft = b.id_draft 
-        LEFT JOIN user c on c.id_user = b.id_user 
+        LEFT JOIN user c on c.id_user = b.id_ec 
         LEFT JOIN user d on d.id_user = a.id_user_approver 
         where a.id_draft = $id_draft";
 $result = $conn->query($sql);

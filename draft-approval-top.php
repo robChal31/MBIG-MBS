@@ -23,7 +23,7 @@
     mysqli_query($conn, $sql);
     $leadid =  null;
     if(mysqli_affected_rows($conn) == 1){
-        $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
+        $sql = "select * from draft_benefit a left join user b on a.id_ec = b.id_user where id_draft = $id_draft";
         $result = mysqli_query($conn,$sql);
 
         while ($dra = $result->fetch_assoc()){

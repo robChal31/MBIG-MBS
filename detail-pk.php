@@ -8,7 +8,7 @@ $sql = "SELECT
             IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
-        LEFT JOIN user as c on c.id_user = b.id_user
+        LEFT JOIN user as c on c.id_user = b.id_ec
         LEFT JOIN pk on pk.benefit_id = b.id_draft
         LEFT JOIN dash_sa on dash_sa.id_sa = pk.sa_id
         LEFT JOIN (

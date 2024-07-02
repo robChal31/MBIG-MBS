@@ -47,7 +47,7 @@
                                         FROM `draft_approval` a 
                                         INNER JOIN draft_benefit b on a.id_draft = b.id_draft
                                         LEFT JOIN schools as sc on sc.id = b.school_name 
-                                        LEFT JOIN user c on c.id_user = b.id_user 
+                                        LEFT JOIN user c on c.id_user = b.id_ec 
                                         LEFT JOIN user d on d.id_user = a.id_user_approver 
                                         LEFT JOIN (
                                             SELECT 
