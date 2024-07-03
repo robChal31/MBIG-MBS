@@ -66,9 +66,18 @@ $is_pk = $program['is_pk'] ?? 2;
                 processData: false,
                 beforeSend: function() {
                     $('#submit_program').prop('disabled', true);
+                    Swal.fire({
+                        title: 'Loading...',
+                        html: 'Please wait while we save your data.',
+                        allowOutsideClick: false,
+                        didOpen: () => {
+                            Swal.showLoading()
+                        }
+                    });
                 },
                 success: function(response) {
                     console.log((response));
+                    Swal.close()
                     if(response.status == 'success') {
                         Swal.fire({
                             title: "Saved!",
@@ -89,6 +98,7 @@ $is_pk = $program['is_pk'] ?? 2;
                 },
                 error: function(xhr, status, error) {
                     console.error('Error:', error);
+                    Swal.close();
                     Swal.fire({
                         title: "Failed!",
                         text: error,

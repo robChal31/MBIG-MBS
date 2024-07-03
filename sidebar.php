@@ -16,8 +16,8 @@ $last_path_with_query;
 ?>
 
 
-<div class="sidebar pe-4 pb-3" style="background-color: #F7F6F9;">
-    <nav class="navbar" style="background-color: #F7F6F9;">
+<div class="sidebar pe-4 pb-3 bg-whites">
+    <nav class="navbar bg-whites">
         <a href="main.php" class="navbar-brand mx-4 mt-md-0 pt-md-0 pt-4 mt-4 mb-2">
             <h3 class="text-primary mt-2 pt-2"><img src='img/lgmbs2.png' style="width: 70%; object-fit: contain;"></h3>
         </a>
@@ -28,10 +28,9 @@ $last_path_with_query;
             <a href="draft-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-pk.php' ? "active" : '' ?>"><i class="fas fa-file-contract"></i>Draft PK</a>
             <a href="draft-approval-list.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-approval-list.php' ? "active" : '' ?>"><i class="fas fa-fingerprint"></i>Draft Approval List</a>
             <a href="list-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'list-pk.php' ? "active" : '' ?>"><i class="fas fa-handshake"></i> Agreement List</a>
-            <a href="approved_list.php" class="nav-item nav-link <?= $last_path_with_query == 'approved_list.php' ? "active" : '' ?>"><i class="fas fa-signature"></i>Approved Benefit</a>
            
-
             <?php if($_SESSION['role'] != 'ec'): ?>
+                <a href="approved_list.php" class="nav-item nav-link <?= $last_path_with_query == 'approved_list.php' ? "active" : '' ?>"><i class="fas fa-signature"></i>Approved Benefit</a>
                 <a href="benefits.php" class="nav-item nav-link <?= $last_path_with_query == 'benefits.php' ? "active" : '' ?>"><i class="fa fa-gift"></i>Benefits</a>
 
                 <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">

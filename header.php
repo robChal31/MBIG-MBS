@@ -1,8 +1,8 @@
 <?php
-   ob_start();
-   session_start();
-   include 'db_con.php';
-   if (!isset($_SESSION['username'])){ 
+    ob_start();
+    session_start();
+    include 'db_con.php';
+    if (!isset($_SESSION['username'])){ 
         header("Location: ./index.php");
         exit();
     }
@@ -114,7 +114,7 @@
         }
 
         .bg-whites {
-            background-color: #F7F6F9;
+            background-color: #FCFCFF;
         }
     </style>
 </head>

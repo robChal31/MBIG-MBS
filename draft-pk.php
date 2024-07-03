@@ -29,7 +29,7 @@
                                         <th scope="col">Program</th>
                                         <th scope="col">Created at</th>
                                         <th scope="col">Updated at</th>
-                                        <th scope="col">Deleted at</th>
+                                        <!-- <th scope="col">Deleted at</th> -->
                                         <th scope="col" style="width: 13%">Status</th>
                                         <th scope="col">Action</th>
                                     </tr>
@@ -80,7 +80,7 @@
                                                     <td><?= $row['program'] ?></td>
                                                     <td><?= $row['date'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
-                                                    <td><?= $row['deleted_at'] ?></td>
+                                                    <!-- <td><?= $row['deleted_at'] ?></td> -->
                                                     <td>
                                                         <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>
                                                     </td>
@@ -170,9 +170,20 @@
                     data: {
                         id_draft: idDraft
                     },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Loading...',
+                            html: 'Please wait while we save your data.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            }
+                        });
+                    },
                     success: function(data) {
                         let resData = JSON.parse(data)
                         console.log(resData)
+                        Swal.close();
                         if(resData.status == 'Success') {
                             Swal.fire({
                                 title: "Deleted!",
@@ -192,7 +203,8 @@
                         // location.reload();
                     },
                     error: function(data) {
-                        console.log(data)
+                        console.log(data);
+                        Swal.close()
                         let resData = JSON.parse(data)
                         Swal.fire({
                             title: "Error!",

@@ -129,21 +129,42 @@
     }
 
     $query_filter_reject = $role == 'admin' ? 'WHERE ' : "WHERE arh.id_user = '$id_user' AND";
-    $query_rejected  = "SELECT COUNT(arh.id_draft) as total, user.generalname as ec
-                            FROM user as user 
-                            LEFT JOIN approval_reject_history AS arh on arh.id_user = user.id_user
-                            $query_filter_reject
-                            user.role = 'ec'
-                        GROUP BY user.id_user"; 
-
+    $query_rejected  = "SELECT COUNT(arh.id_draft) as total, user.generalname as ec,
+                        (
+                            select COUNT(db.id_draft) as total_draft
+                            from draft_benefit as db 
+                            where db.id_ec = 139
+                        ) as total_draft
+                        FROM user as user 
+                        LEFT JOIN approval_reject_history AS arh on arh.id_user = user.id_user
+                        $query_filter_reject user.role = 'ec'
+                        GROUP BY user.id_user; ";
     $result    = mysqli_query($conn, $query_rejected);
     $ec_reject_label  = array();
     $ec_total_reject  = array();
+    $ec_total_draft  = array();
     setlocale(LC_MONETARY,"id_ID");
     if (mysqli_num_rows($result) > 0) {
         while($row = mysqli_fetch_assoc($result)) {
             $ec_reject_label[] = $row['ec'];
             $ec_total_reject[] = floatval($row['total']);
+            $ec_total_draft[] = floatval($row['total_draft']);
+        }
+    }
+
+    $query_schools  = "SELECT 
+                            COUNT(b.id_draft) as total, IFNULL(sc.name, b.school_name) as school_name2
+                        FROM draft_benefit b
+                        LEFT JOIN schools sc on sc.id = b.school_name
+                        GROUP BY school_name2";
+    $result         = mysqli_query($conn, $query_schools);
+    $school_labels  = array();
+    $school_data    = array();
+    setlocale(LC_MONETARY,"id_ID");
+    if (mysqli_num_rows($result) > 0) {
+        while($row = mysqli_fetch_assoc($result)) {
+            $school_labels[] = $row['school_name2'];
+            $school_data[] = floatval($row['total']);
         }
     }
 

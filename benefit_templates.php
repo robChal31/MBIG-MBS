@@ -236,9 +236,20 @@
             data: {
               id_template_benefit: id
             },
+            beforeSend: function() {
+              Swal.fire({
+                  title: 'Loading...',
+                  html: 'Please wait while we save your data.',
+                  allowOutsideClick: false,
+                  didOpen: () => {
+                      Swal.showLoading()
+                  }
+              });
+            },
             success: function(res) {
               let data = JSON.parse(res);
               console.log((data));
+              Swal.close()
               if(data.status == 'success') {
                 Swal.fire({
                   title: "Deleted!",

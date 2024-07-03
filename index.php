@@ -1,6 +1,10 @@
 <?php
-   ob_start();
-   session_start();
+    ob_start();
+    session_start();
+    if (isset($_SESSION['username'])){ 
+        header("Location: ./main.php");
+        exit();
+    }
 ?>
 <!DOCTYPE html>
 <html lang="en">

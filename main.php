@@ -29,7 +29,14 @@
                             <canvas id="level-chart"></canvas>
                         </div>
                     </div>
-                    
+                </div>
+
+                <div class="bg-whites rounded h-100 p-4 my-4">
+                    <div class="row my-2 py-2 justify-content-center">
+                        <div class="col-md-12 col-12">
+                            <canvas id="school-chart"></canvas>
+                        </div>
+                    </div>  
                 </div>
 
                 <div class="bg-whites rounded h-100 p-4 my-4">
@@ -76,7 +83,10 @@
             let ecData          = <?= json_encode($ec_total) ?>;
             let ecLabel         = <?= json_encode($ec_label) ?>;
             let ecDataReject    = <?= json_encode($ec_total_reject) ?>;
+            let ecDraftReject   = <?= json_encode($ec_total_draft) ?>;
             let ecLabelReject   = <?= json_encode($ec_reject_label) ?>;
+            let schoolsData     = <?= json_encode($school_data) ?>;
+            let schoolsLabel    = <?= json_encode($school_labels) ?>;
 
             var programCtx      = document.getElementById('program-chart').getContext('2d');
             var segmentCtx      = document.getElementById('segment-chart').getContext('2d');
@@ -85,6 +95,7 @@
             var yearlyCtx       = document.getElementById('yearly-chart').getContext('2d');
             var ecCtx           = document.getElementById('ec-chart').getContext('2d');
             var ecRejectCtx     = document.getElementById('ec-reject-chart').getContext('2d');
+            var schoolChartCtx     = document.getElementById('school-chart').getContext('2d');
 
             var programChart = new Chart(programCtx, {
                 type: 'pie',
@@ -282,6 +293,41 @@
                         title: {
                             display: true,
                             text: 'Draft Benefit Leaderboard',
+                            color: '#282828',
+                            font: {
+                                size: 18
+                            }
+                        },
+                    },
+                    scales: {
+                        y: {
+                           display: true
+                        }
+                    }
+                }
+            });
+
+            var schoolChart = new Chart(schoolChartCtx, {
+                type: 'bar',
+                data: {
+                    labels: schoolsLabel,
+                    datasets: [{
+                        label: 'Total',
+                        data: schoolsData,
+                        backgroundColor: ['#ff6000', '#c32f27', '#745ae8', '#00a896', '#99582a', '#f78764', '#168aad', '#3a0ca3', '#ff8b10', '#001c55'],
+                    }]
+                },
+                options: {
+                    plugins: {
+                        legend: {
+                            display: false,
+                            labels: {
+                                color: 'rgb(255, 99, 132)'
+                            }
+                        },
+                        title: {
+                            display: true,
+                            text: 'School Partner',
                             color: '#282828',
                             font: {
                                 size: 18

@@ -464,7 +464,7 @@ $program = strtolower($program);
         x++;
         var newRow = '<tr id="row'+x+'"><td><span>Benefit</span><input type="hidden" name="benefit[]" value=""><input type="hidden" name="id_templates[]" value=""></td><td><span>Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="benefit-desc"><textarea id="description" name="description[]" cols="16" class="form-control form-control-sm txt-area"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><td><input type="text" class="form-control form-control-sm" id="pelaksanaan" name="pelaksanaan[]" value=""></td><td class="benefit-ket"><input type="text" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"></td><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)"></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "disabled";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "disabled";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
         $('#input_form').append(newRow); 
-         populateDropdown('row'+x);
+        populateDropdown('row'+x);
       }
     });
 
@@ -500,11 +500,18 @@ $program = strtolower($program);
 
     // Populate dropdown options
     function populateDropdown(rowId) {
+      var selectedTemplate = $('select[name="benefit_id[]"]').map(function() {
+          return $(this).val();
+      }).get();
+
+      selectedTemplate = selectedTemplate.filter(el => el)
+      console.log(selectedTemplate)
       $.ajax({
         url: 'get_benefits.php',
         type: 'POST',
         data: {
             program: '<?= $program ?>',
+            selectedTemplate: selectedTemplate
         },
         success: function(data) {
           var dropdown = $('#' + rowId + ' select');
@@ -517,5 +524,58 @@ $program = strtolower($program);
     $('#submt').prop('disabled', true);
     initializeUpdateDisabledFields();
   });
+
+
+  $(document).on('mousedown', 'select[name="benefit_id[]"]', function(event) {
+      // Lakukan sesuatu saat select ditekan mouse
+      var row = $(this).closest('tr');
+      var rowId = row.attr('id');
+
+      let selected = row.find('select[name="benefit_id[]"]').val()
+      
+      var selectedTemplate = $('select[name="benefit_id[]"]').map(function() {
+          return $(this).val();
+      }).get();
+
+      selectedTemplate = selectedTemplate.filter(el => el && el != selected);
+
+      $.ajax({
+        url: 'get_benefits.php',
+        type: 'POST',
+        data: {
+            program: '<?= $program ?>',
+            selectedTemplate: selectedTemplate,
+            selected: selected
+        },
+        success: function(data) {
+          var dropdown = $('#' + rowId + ' select');
+          dropdown.html(data);
+        }
+      });
+  });
+
+
+  function formatAndValidate(input, alokasi) {
+    var cleanedInput = input.replace(/[^0-9]/g, '');
+
+    var number = parseFloat(cleanedInput);
+
+    if (number > alokasi * 0.15) {
+        alert('Nilai tidak boleh lebih dari 15% dari alokasi.');
+        return '';
+    }
+    var formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+
+    return formatted;
+  }
+
+// Event saat nilai input berubah
+$(document).on('input', 'input[name="valben[]"]', function(event) {
+    var value = $(this).val();
+    let alokasi = <?= $sumalok ?? 0 ?>;
+    var formattedValue = formatAndValidate(value, alokasi);
+    $(this).val(formattedValue);
+});
+
 </script>
 <?php include 'footer.php'; ?>

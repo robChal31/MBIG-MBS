@@ -1,6 +1,6 @@
 <!-- Navbar Start -->
 <div class="" style="position: relative;">
-    <nav class="navbar navbar-expand navbar-light sticky-top px-4 py-0" style="background-color: #F7F6F9;">
+    <nav class="navbar navbar-expand navbar-light sticky-top px-4 py-0 bg-whites">
         <a href="#" class="sidebar-toggler flex-shrink-0">
             <i class="fa fa-bars"></i>
         </a>

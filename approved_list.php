@@ -228,9 +228,20 @@
                     data: {
                         id_draft: idDraft
                     },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Loading...',
+                            html: 'Please wait while we save your data.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            }
+                        });
+                    },
                     success: function(data) {
                         let resData = JSON.parse(data)
                         console.log(resData)
+                        Swal.close()
                         if(resData.status == 'Success') {
                             Swal.fire({
                                 title: "Deleted!",
@@ -253,6 +264,7 @@
                     },
                     error: function(data) {
                         console.log(data)
+                        Swal.close();
                         let resData = JSON.parse(data)
                         Swal.fire({
                             title: "Error!",

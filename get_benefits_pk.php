@@ -230,7 +230,7 @@ $program = strtolower($program);
       x--;
     });
 
-    populateDropdown('row' + <?= $current_row ?>);
+    // populateDropdown('row' + <?= $current_row ?>);
   });
 
   function addRow(x) {
@@ -240,11 +240,13 @@ $program = strtolower($program);
   }
 
   function populateDropdown(rowId) {
+    let selectedTemplate = [];
     $.ajax({
       url: 'get_benefits.php',
       type: 'POST',
       data: {
-        program : '<?= $program ?>'
+        program : '<?= $program ?>',
+        selectedTemplate : selectedTemplate
       },
       success: function(data) {
         var dropdown = $('#' + rowId + ' select');
