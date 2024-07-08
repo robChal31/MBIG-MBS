@@ -277,26 +277,26 @@ $program = strtolower($program);
                               <input type="hidden" name="total_benefit3" id="total_benefit3" value="0">
                             </td>
                           </tr> 
-                            <tr>
-                                <td>Total Alokasi Benefit</td>
-                                <td>Rp <?= number_format($sumalok, '0', ',', '.') ?></td>
-                                <td><?=  $program == 'prestasi' ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
-                                <td><?=  $program == 'prestasi' ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
-                            </tr>
-                            <!-- <tr>
-                                <td>Total Benefit</td>
-                                <td colspan="1"><p id="totalbenefit">Rp 0</p><input type="hidden" name="total_benefit" id="total_benefit" value="0"></td>
-                                <td colspan="1"><p id="totalbenefit2">Rp 0</p><input type="hidden" name="total_benefit2" id="total_benefit2" value="0"></td>
-                                <td colspan="1"><p id="totalbenefit3">Rp 0</p><input type="hidden" name="total_benefit3" id="total_benefit3" value="0"></td>
-                            </tr> -->
-                            <tr>
-                                <td>Selisih</td>
-                                <td><p id="selisihbenefit1"></p><input type="hidden" name="selisih_benefit1" id="selisih_benefit1" value="0"></td>
-                                <?php if($program!='cbls1' || $program!='cbls3' || $program!='bsp'):?>
-                                  <td><p id="selisihbenefit2"></p><input type="hidden" name="selisih_benefit2" id="selisih_benefit2" value="0"></td>
-                                  <td><p id="selisihbenefit3"></p><input type="hidden" name="selisih_benefit3" id="selisih_benefit3" value="0"></td>
-                                <?php endif; ?>
-                            </tr>
+                          <tr>
+                              <td>Total Alokasi Benefit</td>
+                              <td>Rp <?= number_format($sumalok, '0', ',', '.') ?></td>
+                              <td><?=  $program == 'prestasi' ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
+                              <td><?=  $program == 'prestasi' ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
+                          </tr>
+                          <!-- <tr>
+                              <td>Total Benefit</td>
+                              <td colspan="1"><p id="totalbenefit">Rp 0</p><input type="hidden" name="total_benefit" id="total_benefit" value="0"></td>
+                              <td colspan="1"><p id="totalbenefit2">Rp 0</p><input type="hidden" name="total_benefit2" id="total_benefit2" value="0"></td>
+                              <td colspan="1"><p id="totalbenefit3">Rp 0</p><input type="hidden" name="total_benefit3" id="total_benefit3" value="0"></td>
+                          </tr> -->
+                          <tr>
+                              <td>Selisih</td>
+                              <td><p id="selisihbenefit1"></p><input type="hidden" name="selisih_benefit1" id="selisih_benefit1" value="0"></td>
+                              <?php if($program!='cbls1' || $program!='cbls3' || $program!='bsp'):?>
+                                <td><p id="selisihbenefit2"></p><input type="hidden" name="selisih_benefit2" id="selisih_benefit2" value="0"></td>
+                                <td><p id="selisihbenefit3"></p><input type="hidden" name="selisih_benefit3" id="selisih_benefit3" value="0"></td>
+                              <?php endif; ?>
+                          </tr>
                         </table>
                         
                         <div class="d-flex justify-content-between mt-4" style="cursor: pointer;">
@@ -381,6 +381,7 @@ $program = strtolower($program);
         var value = parseFloat($(this).val());
         var hiddenValue = row.find('input[name="valuedefault[]"]').val();
         hiddenValue = hiddenValue <= 0 ? row.find('input[name="valben[]"]').val() : hiddenValue;
+        hiddenValue = removeNonDigits(hiddenValue);
    
         if (!isNaN(value)) {
           total += value;
@@ -434,11 +435,13 @@ $program = strtolower($program);
       var disabledField2 = row.find('input[name="valben[]"]');
       var defaultvalue = row.find('input[name="valuedefault[]"]').val();
 
+      let disabledFieldValue = disabledField2.val().replace(/[^0-9]/g, '');
+
       var total = parseInt(member1)+parseInt(member2)+parseInt(member3);
       if(defaultvalue != 0){
         disabledField.val(formatNumber(total*defaultvalue));
       }else{
-        disabledField.val(formatNumber(total*disabledField2.val()));
+        disabledField.val(formatNumber(total*disabledFieldValue));
       }
       accumulateValues();
     }
@@ -505,7 +508,6 @@ $program = strtolower($program);
       }).get();
 
       selectedTemplate = selectedTemplate.filter(el => el)
-      console.log(selectedTemplate)
       $.ajax({
         url: 'get_benefits.php',
         type: 'POST',
@@ -569,13 +571,26 @@ $program = strtolower($program);
     return formatted;
   }
 
-// Event saat nilai input berubah
-$(document).on('input', 'input[name="valben[]"]', function(event) {
-    var value = $(this).val();
-    let alokasi = <?= $sumalok ?? 0 ?>;
-    var formattedValue = formatAndValidate(value, alokasi);
-    $(this).val(formattedValue);
-});
+  // Event saat nilai input berubah
+  $(document).on('input', 'input[name="valben[]"]', function(event) {
+      var row = $(this).closest('tr');
+      var rowId = row.attr('id');
+      let selected = row.find('select[name="benefit_id[]"]').val()
+
+      var value = $(this).val();
+      let alokasi = <?= $sumalok ?? 0 ?>;
+      if(selected == 72) {
+        var formattedValue = formatAndValidate(value, alokasi);
+        $(this).val(formattedValue);
+      }else {
+        var cleanedInput = value.replace(/[^0-9]/g, '');
+        var number = parseFloat(cleanedInput);
+
+        let formated = number.toLocaleString('id-ID', { maximumFractionDigits: 2 })
+        $(this).val(formated);
+      }
+     
+  });
 
 </script>
 <?php include 'footer.php'; ?>
