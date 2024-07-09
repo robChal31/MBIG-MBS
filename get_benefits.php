@@ -28,7 +28,7 @@
 
     try {
       if($filter_program_q) {
-        if(count($selected_template) > 0) {
+        if($selected_template) {
           $sql = "SELECT * FROM `draft_template_benefit` WHERE is_active = 1 $filter_program_q AND id_template_benefit NOT IN (" . implode(',', $selected_template) . ") order by benefit, subbenefit, benefit_name asc";
         }else {
           $sql = "SELECT * FROM `draft_template_benefit` WHERE is_active = 1 $filter_program_q order by benefit, subbenefit, benefit_name asc";
