@@ -198,7 +198,7 @@ if ($result->num_rows > 0) {
                     if(response.length > 0) {
                         let options = '<option value="">--Select event--</option>';
                         response.map((el,idx) => {
-                            options += '<option value="' + el.id_event + '">' + el.title + '</option>';
+                            options += '<option value="' + el.id_event + '">[' + el.location_place + ' - ' + el.date_start +  '] | ' + el.title + '</option>';
                         })
 
                         $('#event').html(options);
