@@ -520,7 +520,9 @@ $program = strtolower($program);
           dropdown.html(data);
         },
         error: function(xhr, status, error) {
-          console.log(error);
+          console.log('error', error);
+          console.log('status', status);
+          console.log('xhr', xhr);
         }
       });
     }
