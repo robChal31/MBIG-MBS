@@ -221,7 +221,7 @@ if ($result->num_rows > 0) {
                                     <th>Year 3</th>
                                     <th>Total Usage Year 3</th>
                                     <th>Value</th>
-                                    <?php if($is_pk) { ?>
+                                    <?php if(!$is_pk) { ?>
                                         <th>Action</th>
                                     <?php } ?>
                                 </tr>
@@ -264,7 +264,7 @@ if ($result->num_rows > 0) {
                                         <td class="text-end"><?= $row['tot_usage3'] ?? 0?></td>
                                         <td><?= number_format($row['calcValue'], '0', ',', '.') ?></td>
 
-                                        <?php if($is_pk) { ?>
+                                        <?php if(!$is_pk) { ?>
                                             <td>
                                                 <?php if($confirmed == 1 && $row['redeemable'] == 1) : ?>
                                                     <span data-id="<?= $row['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
