@@ -32,7 +32,9 @@ $last_path_with_query;
             <?php if($_SESSION['role'] != 'ec'): ?>
                 <a href="approved_list.php" class="nav-item nav-link <?= $last_path_with_query == 'approved_list.php' ? "active" : '' ?>"><i class="fas fa-signature"></i>Approved Benefit</a>
                 <a href="benefits.php" class="nav-item nav-link <?= $last_path_with_query == 'benefits.php' ? "active" : '' ?>"><i class="fa fa-gift"></i>Benefits</a>
+            <?php endif; ?>
 
+            <?php if($_SESSION['role'] == 'admin') { ?>
                 <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">
                     <div><i class="fas fa-database"></i> Master Data</div>
                     <i class="fas fa-chevron-down chevron-icon"></i>
@@ -58,7 +60,7 @@ $last_path_with_query;
                 <a href="cbls-prestasi.php" class="nav-item nav-link <?= $last_path_with_query == 'cbls-prestasi.php' ? "active" : '' ?>"><i class="fas fa-trophy"></i>Nilai CBLS dan Prestasi</a>
                 <a href="new-masterb.php" class="nav-item nav-link <?= $last_path_with_query == 'new-masterb.php' ? "active" : '' ?>"><i class="fa fa-th me-2"></i>Master Benefit</a>
                 <a href="omset-data-input.php" class="nav-item nav-link <?= $last_path_with_query == 'omset-data-input.php' ? "active" : '' ?>"><i class="fas fa-coins"></i>School Omset</a>
-            <?php endif; ?>
+            <?php } ?>
 
             <?php if($_SESSION['role']): ?>
                 

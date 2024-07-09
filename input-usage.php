@@ -50,7 +50,7 @@ if ($result->num_rows > 0) {
                     if($usages['redeemable'] == 1) { ?>
                         <div class="col-md-6 col-12 mb-3">
                             <label class="form-label d-block">Events</label>
-                            <select name="event" id="event" class="form-control form-control-sm select2" style="background-color: white;" required>
+                            <select name="event" id="event" class="form-control form-control-sm select2" style="background-color: white; width: 100%;" required>
                             </select>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
@@ -147,6 +147,7 @@ if ($result->num_rows > 0) {
                     });
                 },
                 success: function(response) {
+                    console.log('response : ', response)
                     Swal.close();
                     if(response.status) {
                         Swal.fire({
@@ -167,6 +168,9 @@ if ($result->num_rows > 0) {
                     $('#submit_usage').prop('disabled', false);
                 },
                 error: function(xhr, status, error) {
+                    console.log('error', error);
+                    console.log('xhr', xhr);
+                    console.log('status', status);
                     Swal.close();
                     Swal.fire({
                         title: "Failed!",
