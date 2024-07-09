@@ -518,6 +518,9 @@ $program = strtolower($program);
         success: function(data) {
           var dropdown = $('#' + rowId + ' select');
           dropdown.html(data);
+        },
+        error: function(xhr, status, error) {
+          console.log(error);
         }
       });
     }
