@@ -127,7 +127,6 @@ if ($result->num_rows > 0) {
 
         $('#form-usage').on('submit', function(event) {
             event.preventDefault();
-            console.log('sini kan')
             var formData = new FormData(this);
             $.ajax({
                 url: './save-usage.php', 
@@ -148,7 +147,6 @@ if ($result->num_rows > 0) {
                     });
                 },
                 success: function(response) {
-                    console.log('response : ', response)
                     Swal.close();
                     if(response.status) {
                         Swal.fire({

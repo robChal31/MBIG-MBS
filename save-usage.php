@@ -43,8 +43,6 @@
                 'quota' => $qty,
                 'diskon' => $discount,
             );
-            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 
             $ch = curl_init($url);
 
