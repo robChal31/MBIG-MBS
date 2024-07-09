@@ -518,6 +518,7 @@ $program = strtolower($program);
             selectedTemplate: selectedTemplate
         },
         success: function(data) {
+          console.log('data :', data);
           var dropdown = $('#' + rowId + ' select');
           dropdown.html(data);
         },
