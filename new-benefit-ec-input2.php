@@ -508,8 +508,6 @@ $program = strtolower($program);
       }).get();
 
       selectedTemplate = selectedTemplate.filter(el => el)
-      console.log('program :', '<?= $program ?>');
-      console.log('selectedTemplate :', selectedTemplate);
       $.ajax({
         url: 'get_benefits.php',
         type: 'POST',
@@ -518,7 +516,6 @@ $program = strtolower($program);
             selectedTemplate: selectedTemplate
         },
         success: function(data) {
-          console.log('data :', data);
           var dropdown = $('#' + rowId + ' select');
           dropdown.html(data);
         },
