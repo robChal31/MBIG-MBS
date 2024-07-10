@@ -246,7 +246,6 @@ if ($result->num_rows > 0) {
                                     if (mysqli_num_rows($result) > 0) {
                                         $no = 1;
                                         while($row = mysqli_fetch_assoc($result)) {
-                                            $after_disc = $row['normalprice'] - $row['normalprice'] * ($row['discount'] / 100);
                                 ?>
                                     <tr>
                                         <td><?= $no ?></td>
@@ -258,9 +257,9 @@ if ($result->num_rows > 0) {
                                         <td class="text-end"><?= number_format($row['manualValue'], '0', ',', '.') ?></td>
                                         <td class="text-end"><?= $row['qty'] ?></td>
                                         <td class="text-end"><?= $row['tot_usage1'] ?? 0?></td>
-                                        <td class="text-end"><?= $row['qty2'] ?></td>
+                                        <td class="text-end"><?= strtolower($program) == 'cbls3'? $row['qty'] : $row['qty2'] ?></td>
                                         <td class="text-end"><?= $row['tot_usage2'] ?? 0?></td>
-                                        <td class="text-end"><?= $row['qty3'] ?></td>
+                                        <td class="text-end"><?= strtolower($program) == 'cbls3'? $row['qty'] : $row['qty3'] ?></td>
                                         <td class="text-end"><?= $row['tot_usage3'] ?? 0?></td>
                                         <td><?= number_format($row['calcValue'], '0', ',', '.') ?></td>
 
@@ -334,6 +333,7 @@ if ($result->num_rows > 0) {
             type: 'POST',
             data: {
                 id_benefit_list : rowid,
+                program : '<?= $program ?>',
             },
             success: function(data) {
                 $('#usageModalBody').html(data);

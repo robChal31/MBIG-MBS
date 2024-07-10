@@ -74,6 +74,10 @@
                             foreach($benefits as $benefit) {
                                 $status_class = $benefit['verified'] == 1 ? 'bg-success' :  'bg-primary';
                                 $status_msg = ($benefit['verified'] == 1 ? 'Verified' : 'Waiting Verification');
+                                if(strtolower($benefit['program']) == 'cbls3') {
+                                    $benefit['qty2'] = $benefit['qty'];
+                                    $benefit['qty3'] = $benefit['qty'];
+                                }
                         ?>
                                 <tr>
                                     <td><?= $benefit['no_pk'] ?></td>

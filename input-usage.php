@@ -3,7 +3,9 @@
 session_start();
 include 'db_con.php';
 
-$id_benefit_llist = $_POST['id_benefit_list'];  
+$id_benefit_list = $_POST['id_benefit_list'];
+$program = $_POST['program'] ?? '';
+
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT
             dbl.*, dtb.redeemable,
@@ -13,13 +15,16 @@ $sql = "SELECT
         FROM draft_benefit_list AS dbl
         LEFT JOIN benefit_usages AS bu ON dbl.id_benefit_list = bu.id_benefit_list
         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
-        WHERE dbl.id_benefit_list = $id_benefit_llist";
+        WHERE dbl.id_benefit_list = $id_benefit_list";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
     $usages = $usages[0];  
-
+    if(strtolower($program) == 'cbls3') {
+        $usages['qty2'] = $usages['qty'];
+        $usages['qty3'] = $usages['qty'];
+    }
 ?>
     <div class="p-2">
         <h6>Benefit Usage</h6>
@@ -64,7 +69,7 @@ if ($result->num_rows > 0) {
                 <?php } ?>
                
 
-                <input type="hidden" name="id_benefit_list" value="<?= $id_benefit_llist ?>">
+                <input type="hidden" name="id_benefit_list" value="<?= $id_benefit_list ?>">
             </div>
 
             <div class="d-flex justify-content-end mt-4">
