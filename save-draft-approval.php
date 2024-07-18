@@ -317,6 +317,57 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     }else if($id_user == 5 && $status == 1) {
         $sql = "UPDATE draft_benefit set confirmed = 1 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
+
+        $sql = "SELECT 
+                    db.*, 
+                    dbl.id_template, 
+                    br.code, 
+                    IFNULL(sc.name, db.school_name) AS school_name2, 
+                    user.*
+                FROM 
+                    draft_benefit db 
+                LEFT JOIN 
+                    draft_benefit_list dbl ON db.id_draft = dbl.id_draft
+                LEFT JOIN 
+                    benefit_role br ON br.id_template = dbl.id_template 
+                LEFT JOIN 
+                    schools AS sc ON sc.id = db.school_name
+                LEFT JOIN 
+                    user AS user ON 
+                        (CASE 
+                            WHEN br.code = 'mkt' THEN user.role = 'admin' 
+                            ELSE user.role = br.code 
+                        END)
+                WHERE 
+                    db.verified = 1
+                    AND db.id_draft = $id_draft
+                GROUP BY 
+                    br.code;
+                ";
+        $result = mysqli_query($conn,$sql);
+        while ($dra = $result->fetch_assoc()){
+            $program        = strtoupper($dra['program']);
+            $school_name    = $dra['school_name2'];
+            $email          = $dra['username'];
+            $name           = $dra['generalname'];
+            $fileUrl        = $dra['fileUrl'];
+            $subject = "Ini Adalah Test Program $program di $school_name Telah Berhasil Dikonfirmasi";
+            $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil dikonfirmasi oleh Head of Sales Admin.</p>
+                        <p> Namun, untuk manfaat PDMTA, Beasiswa S2, Studi Banding dan Assessment, Admin wajib melakukan konfirmasi ulang kepada AR/ACCT terkait dengan ketentuan pembayaran sekolah.</p>
+
+                        <p>Mohon untuk memperbarui data secara berkala di MBS selama perencanaan dan implementasi benefit berlangsung.<p>
+
+                        <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
+            $cc = [];
+            $cc[] = [
+                'email' => 'bany@mentarigroups.com',
+                'name' => 'Bany'
+            ];
+
+            sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
+        }
+
+        
     }
     
     $_SESSION['toast_status'] = "Success";
