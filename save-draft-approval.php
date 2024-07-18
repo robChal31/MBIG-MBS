@@ -351,7 +351,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $email          = $dra['username'];
             $name           = $dra['generalname'];
             $fileUrl        = $dra['fileUrl'];
-            $subject = "Ini Adalah Test Program $program di $school_name Telah Berhasil Dikonfirmasi";
+            $subject = "Program $program di $school_name Telah Berhasil Dikonfirmasi";
             $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil dikonfirmasi oleh Head of Sales Admin.</p>
                         <p> Namun, untuk manfaat PDMTA, Beasiswa S2, Studi Banding dan Assessment, Admin wajib melakukan konfirmasi ulang kepada AR/ACCT terkait dengan ketentuan pembayaran sekolah.</p>
 
@@ -359,10 +359,10 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
                         <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
             $cc = [];
-            $cc[] = [
-                'email' => 'bany@mentarigroups.com',
-                'name' => 'Bany'
-            ];
+            // $cc[] = [
+            //     'email' => 'bany@mentarigroups.com',
+            //     'name' => 'Bany'
+            // ];
 
             sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
         }
