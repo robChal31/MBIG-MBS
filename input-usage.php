@@ -36,7 +36,15 @@ if ($result->num_rows > 0) {
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Description</label>
-                    <textarea name="description" id="description_usage" class="form-control"></textarea>
+                    <?php if($usages['redeemable'] == 1) { ?>
+                        <textarea name="description" id="description_usage" class="form-control" style="height: 150px;">
+Nama event:
+Tgl event:
+Kelas/Sesi:
+Nama Peserta: </textarea>
+                    <?php }else { ?>
+
+                    <?php } ?>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Year</label>
