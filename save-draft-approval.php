@@ -345,27 +345,44 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                     br.code;
                 ";
         $result = mysqli_query($conn,$sql);
+        $unit_bussiness_code = [];
+        $program = '';
+        $school_name = '';
+        $fileUrl = '';
         while ($dra = $result->fetch_assoc()){
-            $program        = strtoupper($dra['program']);
-            $school_name    = $dra['school_name2'];
-            $email          = $dra['username'];
-            $name           = $dra['generalname'];
-            $fileUrl        = $dra['fileUrl'];
-            $subject = "Program $program di $school_name Telah Berhasil Dikonfirmasi";
-            $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil dikonfirmasi oleh Head of Sales Admin.</p>
-                        <p> Namun, untuk manfaat PDMTA, Beasiswa S2, Studi Banding dan Assessment, Admin wajib melakukan konfirmasi ulang kepada AR/ACCT terkait dengan ketentuan pembayaran sekolah.</p>
-
-                        <p>Mohon untuk memperbarui data secara berkala di MBS selama perencanaan dan implementasi benefit berlangsung.<p>
-
-                        <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
-            $cc = [];
-            // $cc[] = [
-            //     'email' => 'bany@mentarigroups.com',
-            //     'name' => 'Bany'
-            // ];
-
-            sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
+            $unit_bussiness_code[] = $dra['code'];
+            $program = strtoupper($dra['program']);
+            $school_name = $dra['school_name2'];
+            $fileUrl = $dra['fileUrl'];
         }
+
+        $unit_bussiness_code = implode("','", $unit_bussiness_code);
+
+        $sql = "SELECT * FROM user WHERE role IN ('$unit_bussiness_code')";
+        var_dump($sql);
+        $result = mysqli_query($conn, $sql);
+
+        $cc = [];
+        while ($dra = $result->fetch_assoc()){   
+            $cc[] = [
+                'email' => $dra['username'],
+                'name' => $dra['generalname']
+            ];
+        }
+
+        $email = 'secretary@mentaribooks.com';
+        $name = 'Putri';
+
+        $subject = "Program $program di $school_name Telah Berhasil Dikonfirmasi";
+        $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil dikonfirmasi oleh Head of Sales Admin.</p>
+                    <p> Namun, untuk manfaat PDMTA, Beasiswa S2, Studi Banding dan Assessment, Admin wajib melakukan konfirmasi ulang kepada AR/ACCT terkait dengan ketentuan pembayaran sekolah.</p>
+
+                    <p>Mohon untuk memperbarui data secara berkala di MBS selama perencanaan dan implementasi benefit berlangsung.<p>
+
+                    <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
+
+
+        sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
 
         
     }
