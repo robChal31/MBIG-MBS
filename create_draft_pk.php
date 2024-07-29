@@ -68,7 +68,7 @@
       $wilayah      = $dra['wilayah'];
       $program      = $dra['program'];
   
-      if(($id_ec != $_SESSION['id_user'] && $_SESSION['role'] != 'admin') || $dra['status'] != 0) {
+      if(($id_ec != $_SESSION['id_user'] || $_SESSION['role'] != 'admin') || $dra['status'] != 0) {
         $_SESSION['toast_status'] = 'Error';
         $_SESSION['toast_msg'] = 'Unauthorized Access';
         header('Location: ./draft-pk.php');
