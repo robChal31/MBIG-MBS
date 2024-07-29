@@ -61,11 +61,12 @@
     
     $sql        = "SELECT 
                         da.token, b.generalname as ec_name, a.school_name, a.program, a.segment, da.id_draft_approval,
-                        da.notes, da.status
+                        da.notes, da.status, IFNULL(sc.name, a.school_name) AS school_name2
                     FROM draft_approval da 
                     LEFT JOIN draft_benefit a  on a.id_draft = da.id_draft 
                     LEFT JOIN user b on a.id_ec = b.id_user 
                     LEFT JOIN user c on c.id_user = da.id_user_approver 
+                    LEFT JOIN schools AS sc ON sc.id = a.school_name
                     WHERE da.id_draft = $id_draft
                     AND da.token = '$token'";
 
@@ -85,7 +86,7 @@
 
     while($row = mysqli_fetch_assoc($result)) {
         $ec_name        = $row['ec_name'];
-        $school_name    = $row['school_name'];
+        $school_name    = $row['school_name2'];
         $segment        = $row['segment'];
         $program        = $row['program'];
         $token          = $row['token'];
