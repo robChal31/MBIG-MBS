@@ -43,7 +43,7 @@ Tgl event:
 Kelas/Sesi:
 Nama Peserta: </textarea>
                     <?php }else { ?>
-
+                        <textarea name="description" id="description_usage" class="form-control" style="height: 150px;"></textarea>
                     <?php } ?>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
