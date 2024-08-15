@@ -51,7 +51,10 @@ if ($result->num_rows > 0) {
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
                                 <td><?= $usage['descr'] ?></td>
-                                <td><?= $usage['redeem_code'] ?></td>
+                                <?php
+                                    if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
+                                        <td><?= $usage['redeem_code'] ?></td>
+                                <?php } ?>
                                 <td class="text-center"><?= $usage['usage1'] ?></td>
                                 <td class="text-center"><?= $usage['qty'] - $acc_qty1 ?></td>
                                 <td class="text-center"><?= $usage['usage2'] ?></td>
