@@ -27,7 +27,6 @@ if ($result->num_rows > 0) {
                         <?php
                             if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
                             <th>Code</th>
-                                
                         <?php } ?>
                         <th scope="col">Year 1</th>
                         <th scope="col">Remaining Year 1</th>
