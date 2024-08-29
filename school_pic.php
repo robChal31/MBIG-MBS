@@ -36,13 +36,14 @@
                                 $sql_q = " WHERE ";
                                 $id_user = $_SESSION['id_user'];
 
-                                $sql = "SELECT b.id_draft, pk.no_pk, c.generalname, spp.jabatan, spp.name, spp.email, spp.no_tlp, IFNULL(sc.name, b.school_name) as school_name2
+                                $sql = "SELECT b.id_draft, pk.no_pk, c.generalname, spp.jabatan, spp.name, spp.email, spp.no_tlp, IFNULL(sc.name, b.school_name) as school_name2, prog.is_pk
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
                                         LEFT JOIN user c on c.id_user = b.id_ec 
                                         INNER JOIN pk pk on pk.benefit_id = b.id_draft
-                                        LEFT JOIN school_pic_partner spp on spp.id_draft = b.id_draft";
+                                        LEFT JOIN school_pic_partner spp on spp.id_draft = b.id_draft
+                                        LEFT JOIN programs as prog on prog.name = b.program ";
                                 if($_SESSION['role'] == 'ec'){
                                     $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or b.id_ec = $id_user) ";
                                     $sql_q = " AND ";
@@ -72,7 +73,9 @@
                                                 <?php } else { ?>
                                                     <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-pen'></i></span>
                                                 <?php } ?>
-                                                <span  class='btn btn-outline-secondary btn-sm me-2'><a href='https://mentaripartner.com' data-toggle='tooltip' title='MPP Link'><i class="text-secondary fa fa-link"></i></a></span>
+                                               <?php if($row['is_pk']) : ?>
+                                                    <a href='https://mentaripartner.com' target="_blank" data-toggle='tooltip' title='MPP Link'><img style="width: 50px" class="img-fluid rounded shadow" src="img/mpp.jfif" alt=""></a>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                <?php     }
