@@ -72,6 +72,7 @@
                                                 <?php } else { ?>
                                                     <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-pen'></i></span>
                                                 <?php } ?>
+                                                <span  class='btn btn-outline-secondary btn-sm me-2'><a href='https://mentaripartner.com' data-toggle='tooltip' title='MPP Link'><i class="text-secondary fa fa-link"></i></a></span>
                                             </td>
                                         </tr>
                                <?php     }

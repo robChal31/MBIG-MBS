@@ -80,12 +80,12 @@ if ($result->num_rows > 0) {
             <tr>
                 <td><strong>File Draft Benefit</strong></td>
                 <td>:</td>
-                <td><a href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i> Document</a></td>
+                <td><a _blank="true" href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i> Document</a></td>
             </tr>
             <tr>
                 <td><strong>MPP Website</strong></td>
                 <td>:</td>
-                <td><a href='https://mentaripartner.com' data-toggle='tooltip' title='View Doc'><i class="bi bi-link"></i> https://mentaripartner.com</a></td>
+                <td><a href='https://mentaripartner.com' data-toggle='tooltip' title='MPP Link'><i class="bi bi-link"></i> https://mentaripartner.com</a></td>
             </tr>
         </table>
 
