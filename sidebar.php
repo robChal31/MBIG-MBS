@@ -33,7 +33,7 @@ $last_path_with_query;
                 <a href="approved_list.php" class="nav-item nav-link <?= $last_path_with_query == 'approved_list.php' ? "active" : '' ?>"><i class="fas fa-signature"></i>Approved Benefit</a>
                 <a href="benefits.php" class="nav-item nav-link <?= $last_path_with_query == 'benefits.php' ? "active" : '' ?>"><i class="fa fa-gift"></i>Benefits</a>
             <?php endif; ?>
-                <a href="school_pic.php" class="nav-item nav-link <?= $last_path_with_query == 'school_pic.php' ? "active" : '' ?>"><i class="fas fa-users"></i>Program PIC</a>
+                <a href="school_pic.php" class="nav-item nav-link <?= $last_path_with_query == 'school_pic.php' ? "active" : '' ?>"><i class="fas fa-users"></i>School Program</a>
             <?php if($_SESSION['role'] == 'admin') { ?>
                 <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">
                     <div><i class="fas fa-database"></i> Master Data</div>

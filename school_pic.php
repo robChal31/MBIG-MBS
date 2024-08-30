@@ -69,12 +69,12 @@
                                             <td><?= $row['email'] ?></td>
                                             <td scope='col'>
                                                 <?php if(!$row['name']) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-success btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-plus'></i></span>
+                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-success btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Add'><i class='fa fa-plus'></i></span>
                                                 <?php } else { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-pen'></i></span>
+                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fa fa-pen'></i></span>
                                                 <?php } ?>
                                                <?php if($row['is_pk']) : ?>
-                                                    <a href='https://mentaripartner.com' target="_blank" data-toggle='tooltip' title='MPP Link'><img style="width: 50px" class="img-fluid rounded shadow" src="img/mpp.jfif" alt=""></a>
+                                                    <a href='https://mentaripartner.com' target="_blank" data-toggle='tooltip' title='Qty manfaat PK3 akan di refiil di bulan Juli setiap tahun hingga berakhir kerjasama'><img style="width: 50px" class="img-fluid rounded shadow" src="img/mpp.jfif" alt=""></a>
                                                 <?php endif; ?>
                                             </td>
                                         </tr>
