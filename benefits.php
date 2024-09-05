@@ -139,7 +139,7 @@
     $('#pkModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
         let action = event.relatedTarget.getAttribute('data-action');
-
+        $('#pkModalBody').html('');
         $('#pkModalLabel').html("Detail PK");
         $.ajax({
             url: 'detail-pk.php',
@@ -157,6 +157,7 @@
     $('#usageModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
         let action = event.relatedTarget.getAttribute('data-action');
+        $('#usageModalBody').html('');
 
         $('#usageModalLabel').html("Add Benefit Usage");
         $.ajax({
@@ -177,7 +178,7 @@
     $('#historyUsageModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
         let action = event.relatedTarget.getAttribute('data-action');
-
+        $('#historyUsageModalBody').html('');
         $('#historyUsageModalLabel').html("History Benefit Usage");
         $.ajax({
             url: 'history-usage.php',
