@@ -61,19 +61,20 @@ Nama Peserta: </textarea>
 
                 <?php 
                     if($usages['redeemable'] == 1) { ?>
-                        <div class="col-md-6 col-12 mb-3">
+                        <div class="col-md-12 col-12 mb-3">
                             <label class="form-label d-block">Events</label>
                             <select name="event" id="event" class="form-control form-control-sm select2" style="background-color: white; width: 100%;" required>
                             </select>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
+                            <label class="form-label">Ticket ID</label>
+                            <input type="text" name="id_ticket" id="id_ticket" class="form-control form-control-sm" value="" readonly required>
+                        </div>   
+                        <div class="col-md-6 col-12 mb-3">
                             <label class="form-label">Diskon</label>
                             <input type="number" name="diskon" id="diskon" class="form-control form-control-sm" value="" required>
                         </div>              
-                        <div class="col-md-6 col-12 mb-3">
-                            <label class="form-label">Ticket ID</label>
-                            <input type="text" name="id_ticket" id="id_ticket" class="form-control form-control-sm" value="" readonly required>
-                        </div>              
+                                  
                 <?php } ?>
                
 
@@ -201,7 +202,7 @@ Nama Peserta: </textarea>
             $.ajax({
                 url: 'https://hadiryuk.id/api/eventBenefit', 
                 method: 'GET',
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 beforeSend: function() {
@@ -210,15 +211,21 @@ Nama Peserta: </textarea>
                 success: function(response) {
                     if(response.length > 0) {
                         let options = '<option value="">--Select event--</option>';
-                        response.map((el,idx) => {
+                        response.map((el, idx) => {
                             options += '<option value="' + el.id_event + '">[' + el.location_place + ' - ' + el.date_start +  '] | ' + el.title + '</option>';
-                        })
+                        });
 
                         $('#event').html(options);
-                        $('#event').select2();
+
+                        // Initialize Choices.js
+                        const element = document.getElementById('event');
+                        const choices = new Choices(element, {
+                            searchEnabled: true,
+                            removeItemButton: true
+                        });
 
                         $('#submit_usage').prop('disabled', false);
-                    }else {
+                    } else {
                         Swal.fire({
                             title: "Failed get event list!",
                             text: response.message,
@@ -229,7 +236,6 @@ Nama Peserta: </textarea>
                             $('#usageModal').modal('hide');
                         }, 3000);
                     }
-                    
                 },
                 error: function(xhr, status, error) {
                     Swal.fire({
@@ -237,13 +243,13 @@ Nama Peserta: </textarea>
                         text: error + '. \nPlease try again later or contact the developer.',
                         icon: "error"
                     });
-                    
                     setTimeout(function() {
                         Swal.close();
                         $('#usageModal').modal('hide');
                     }, 3000);
                 }
             });
+
 
             $('#event').on('change', function() {
                 if($(this).val()) {
