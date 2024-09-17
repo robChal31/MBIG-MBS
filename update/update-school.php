@@ -41,7 +41,7 @@
                 $address        = $row['address'];
             }
         }
-        var_dump($institutionid);die;
+
         if(!$institutionid) {
             $sql = "INSERT INTO `schools` (`institutionid`, `name`, `address`, `phone`, `segment`, `ec_id`, `created_date`) VALUES
             ($school_id_new, '$school_name_new', '$school_address_new', '$school_phone_new', '$school_segment_new', 'school_ec_id_new', $school_created_date_new)";

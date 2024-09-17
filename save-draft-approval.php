@@ -359,7 +359,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $unit_bussiness_code = implode("','", $unit_bussiness_code);
 
         $sql = "SELECT * FROM user WHERE role IN ('$unit_bussiness_code')";
-        var_dump($sql);
+
         $result = mysqli_query($conn, $sql);
 
         $cc = [];

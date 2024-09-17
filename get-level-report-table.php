@@ -21,10 +21,23 @@
         exit();
     }
 
+    $selectedPrograms   = ISSET($_POST['selectedPrograms']) ? $_POST['selectedPrograms'] : null;
     $selectedLevel      = ISSET($_POST['selectedLevel']) ? $_POST['selectedLevel'] : null;
     $selectedStatus2    = ISSET($_POST['selectedStatus']) ? $_POST['selectedStatus'] : null;
     $startDate2         = ISSET($_POST['startDate']) ? $_POST['startDate'] : date('Y-m', strtotime('-6 month'));
     $endDate2           = ISSET($_POST['endDate']) ? $_POST['endDate'] : date('Y-m');
+
+    $selected_programs      = $selectedPrograms ? implode(", ", $selectedPrograms) : 'all';
+    $programs_temp          = [];
+    $query_param_program    = $selected_programs == 'all' ? "" : (preg_match('/\b9999\b/', $selected_programs) ? " AND (id IN ($selected_programs) OR is_pk = 1)" : " AND id IN ($selected_programs)");
+    $query_program          = "SELECT * from programs WHERE is_active = 1 $query_param_program;"; 
+
+    $result         = mysqli_query($conn, $query_program);
+    while ($data = $result->fetch_assoc()) {
+        $programs_temp[] = $data['name'];
+    }
+
+    $selected_programs = implode("', '", $programs_temp);
 
 ?>
 
@@ -52,13 +65,14 @@
                 </thead>
                 <tbody>
                     <?php
+                        $query_program = " AND a.program IN ('$selected_programs') ";
                         $query_level = $selectedLevel == 'Other' ? " AND (a.level NOT IN ('tk', 'sd', 'smp', 'sma', 'yayasan', 'other') OR a.level IS NULL)" : " AND a.level IN ('$selectedLevel') ";
                         $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                     FROM draft_benefit a
                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                 LEFT JOIN user b on a.id_ec = b.id_user
                                 WHERE a.deleted_at IS NULL AND a.status IN ($selectedStatus2) 
-                                $query_level 
+                                $query_level $query_program
                                 AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate2' AND '$endDate2' 
                                 ORDER BY a.date ASC";
                         
