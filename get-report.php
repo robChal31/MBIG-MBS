@@ -26,7 +26,7 @@
     $reports = [];
 
     $programs_temp = [];
-    $query_param_program = $selected_programs == 'all' ? "" : (preg_match('/\b9999\b/', $selected_programs) ? " AND id IN ($selected_programs) OR is_pk = 1" : " AND id IN ($selected_programs)");
+    $query_param_program = $selected_programs == 'all' ? "" : (preg_match('/\b9999\b/', $selected_programs) ? " AND (id IN ($selected_programs) OR is_pk = 1)" : " AND id IN ($selected_programs)");
     $query_program  = "SELECT * from programs WHERE is_active = 1 $query_param_program;"; 
 
     $result         = mysqli_query($conn, $query_program);
@@ -46,113 +46,113 @@
 
 <?php include 'report-data.php'; ?>
 
-        <!-- Sale & Revenue Start -->
-        <div class="container-fluid p-4">
-            <div class="col-12" id="report-chart">
-                <?php if ($program_total && $level_total && $periode_total && $ec_total) { ?>
-                    <h4>Report Visualization</h4>
-                    <span class="text-muted">You can click on the chart to see more detail</span>
-                    <div class="bg-whites rounded h-100 p-4 my-4">
-                        <div class="row my-2 py-2 justify-content-center">
-                            <div class="col-md-4 col-12">
-                                <canvas id="program-chart"></canvas>
-                            </div>
-                            <div class="col-md-4 col-12">
-                                <canvas id="level-chart"></canvas>
-                            </div>
-                            <div class="col-md-4 col-12">
-                            <canvas id="segment-chart"></canvas>
+    <!-- Sale & Revenue Start -->
+    <div class="container-fluid p-4">
+        <div class="col-12" id="report-chart">
+            <?php if ($program_total && $level_total && $periode_total && $ec_total) { ?>
+                <h4>Report Visualization</h4>
+                <span class="text-muted">You can click on all the chart to see more detail</span>
+                <div class="bg-whites rounded h-100 p-4 my-4">
+                    <div class="row my-2 py-2 justify-content-center">
+                        <div class="col-md-4 col-12">
+                            <canvas id="program-chart"></canvas>
                         </div>
+                        <div class="col-md-4 col-12">
+                            <canvas id="level-chart"></canvas>
                         </div>
+                        <div class="col-md-4 col-12">
+                        <canvas id="segment-chart"></canvas>
                     </div>
+                    </div>
+                </div>
 
-                    <hr>
-                    <h5>All Data</h5>
-                    <div class="col-12">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-bordered" id="table_data">
-                                <thead>
-                                    <tr>
-                                        <th scope="col" style="width: 10%">Nama EC</th>
-                                        <th scope="col" style="width: 20%">Nama Sekolah</th>
-                                        <th scope="col">Segment</th>
-                                        <th scope="col">Program</th>
-                                        <th scope="col">Level</th>
-                                        <th scope="col">Created at</th>
-                                        <th scope="col" style="width: 13%">Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                        $query_program = " AND a.program IN ('$selected_programs') ";
-                                        $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
-                                                    FROM draft_benefit a
-                                                LEFT JOIN schools as sc on sc.id = a.school_name
-                                                LEFT JOIN user b on a.id_ec = b.id_user
-                                                WHERE a.deleted_at IS NULL AND a.status IN ($selected_status) 
-                                                $query_program 
-                                                AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' 
-                                                ORDER BY a.date ASC";
+                <hr>
+                <h5>All Data</h5>
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered" id="table_data">
+                            <thead>
+                                <tr>
+                                    <th scope="col" style="width: 10%">Nama EC</th>
+                                    <th scope="col" style="width: 20%">Nama Sekolah</th>
+                                    <th scope="col">Segment</th>
+                                    <th scope="col">Program</th>
+                                    <th scope="col">Level</th>
+                                    <th scope="col">Created at</th>
+                                    <th scope="col" style="width: 13%">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                    $query_program = " AND a.program IN ('$selected_programs') ";
+                                    $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
+                                                FROM draft_benefit a
+                                            LEFT JOIN schools as sc on sc.id = a.school_name
+                                            LEFT JOIN user b on a.id_ec = b.id_user
+                                            WHERE a.deleted_at IS NULL AND a.status IN ($selected_status) 
+                                            $query_program 
+                                            AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' 
+                                            ORDER BY a.date ASC";
+                                    
+
+                                    $result = mysqli_query($conn, $sql2);
+                                    setlocale(LC_MONETARY,"id_ID");
+                                    if (mysqli_num_rows($result) > 0) {
+                                        while($row = mysqli_fetch_assoc($result)) {
+                                            $stat = ($row['status'] == 0 && $row['fileUrl']) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
+                                            $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
+                                            $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
+                                ?>
+                                        <tr>
+                                            <td><?= $row['generalname'] ?></td>
+                                            <td><?= $row['school_name2'] ?></td>
+                                            <td><?= ucfirst($row['segment']) ?></td>
+                                            <td><?= $row['program'] ?></td>
+                                            <td><?= strtoupper($row['level']) ?></td>
+                                            <td><?= $row['date'] ?></td>
+                                            <td><?= $stat ?></td>
+                                        </tr>
                                         
+                                    <?php } } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
 
-                                        $result = mysqli_query($conn, $sql2);
-                                        setlocale(LC_MONETARY,"id_ID");
-                                        if (mysqli_num_rows($result) > 0) {
-                                            while($row = mysqli_fetch_assoc($result)) {
-                                                $stat = ($row['status'] == 0 && $row['fileUrl']) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
-                                                $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
-                                                $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
-                                    ?>
-                                            <tr>
-                                                <td><?= $row['generalname'] ?></td>
-                                                <td><?= $row['school_name2'] ?></td>
-                                                <td><?= ucfirst($row['segment']) ?></td>
-                                                <td><?= $row['program'] ?></td>
-                                                <td><?= strtoupper($row['level']) ?></td>
-                                                <td><?= $row['date'] ?></td>
-                                                <td><?= $stat ?></td>
-                                            </tr>
-                                            
-                                        <?php } } ?>
-                                </tbody>
-                            </table>
+                <hr>
+                <div class="bg-whites rounded h-100 p-4 my-4">
+                    <div class="row my-2 py-4 justify-content-center">
+                        <div class="col-md-10 col-12">
+                            <canvas id="periode-chart"></canvas>
                         </div>
                     </div>
+                </div>
 
-                    <hr>
-                    <div class="bg-whites rounded h-100 p-4 my-4">
-                        <div class="row my-2 py-4 justify-content-center">
-                            <div class="col-md-10 col-12">
-                                <canvas id="periode-chart"></canvas>
-                            </div>
+                <hr>
+                <div class="bg-whites rounded h-100 p-4 my-4">
+                    <div class="row my-2 py-2 justify-content-center">
+                        <div class="col-md-12 col-12">
+                            <canvas id="ec-chart"></canvas>
                         </div>
-                    </div>
+                    </div>  
+                </div>
 
-                    <hr>
-                    <div class="bg-whites rounded h-100 p-4 my-4">
-                        <div class="row my-2 py-2 justify-content-center">
-                            <div class="col-md-12 col-12">
-                                <canvas id="ec-chart"></canvas>
-                            </div>
-                        </div>  
-                    </div>
-
-                <?php }else { ?>
-                    <div class="">
-                        <h4>No Report Available</h4>
-                    </div>
-                <?php } ?>
-            </div>
-            <div class="col-12 d-none" id="report-table">
-                
-            </div>
-            <div class="col-12 d-none" id="report-loading">
-                <div class="text-center" style="height: 200px; display: flex; align-items: center; justify-content: center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>
-            </div>
-            <div class="col-12 d-none" id="report-error">
-                
-            </div>
+            <?php }else { ?>
+                <div class="">
+                    <h4>No Report Available</h4>
+                </div>
+            <?php } ?>
         </div>
+        <div class="col-12 d-none" id="report-table">
+            
+        </div>
+        <div class="col-12 d-none" id="report-loading">
+            <div class="text-center" style="height: 200px; display: flex; align-items: center; justify-content: center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>
+        </div>
+        <div class="col-12 d-none" id="report-error">
+            
+        </div>
+    </div>
 
 
 <script>
@@ -288,6 +288,18 @@
                     y: {
                         display: true
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        // Get index of clicked element
+                        const elementIndex = activeElements[0].index;
+                        // Get label (program)
+                        const selectedPeriode = periodeChart.data.labels[elementIndex];
+                        // Get data (total value)
+                        const selectedData = periodeChart.data.datasets[0].data[elementIndex];
+                    
+                        changeDisplayedPeriodeReport(selectedPeriode)
+                    }
                 }
             }
         });
@@ -323,43 +335,55 @@
                     y: {
                         display: true
                     }
+                },
+                onClick: (event, activeElements) => {
+                    if (activeElements.length > 0) {
+                        // Get index of clicked element
+                        const elementIndex = activeElements[0].index;
+                        // Get label (program)
+                        const selectedEc = ecChart.data.labels[elementIndex];
+                        // Get data (total value)
+                        const selectedData = ecChart.data.datasets[0].data[elementIndex];
+                    
+                        changeDisplayedEcReport(selectedEc)
+                    }
                 }
             }
         });
 
         var segmentChart = new Chart(segmentCtx, {
-                type: 'pie',
-                data: {
-                    labels: <?= json_encode($segment_label) ?>,
-                    datasets: [{
-                        label: 'Total',
-                        data: <?= json_encode($segment_total) ?>,
-                        backgroundColor: ['#ff6000', '#5f0f40', '#9a031e', '#fb8b24', '#0f4c5c'],
-                    }]
-                },
-                options: {
-                    plugins: {
-                        legend: {
-                            display: false,
-                            labels: {
-                                color: 'rgb(255, 99, 132)'
-                            }
-                        },
-                        title: {
-                            display: true,
-                            text: 'Draft Benefit Per Segment',
-                            color: '#282828',
-                            font: {
-                                size: 17
-                            }
-                        },
-                    },
-                    scales: {
-                        y: {
-                           display: false
+            type: 'pie',
+            data: {
+                labels: <?= json_encode($segment_label) ?>,
+                datasets: [{
+                    label: 'Total',
+                    data: <?= json_encode($segment_total) ?>,
+                    backgroundColor: ['#ff6000', '#5f0f40', '#9a031e', '#fb8b24', '#0f4c5c'],
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: {
+                        display: false,
+                        labels: {
+                            color: 'rgb(255, 99, 132)'
                         }
                     },
-                    onClick: (event, activeElements) => {
+                    title: {
+                        display: true,
+                        text: 'Draft Benefit Per Segment',
+                        color: '#282828',
+                        font: {
+                            size: 17
+                        }
+                    },
+                },
+                scales: {
+                    y: {
+                        display: false
+                    }
+                },
+                onClick: (event, activeElements) => {
                     if (activeElements.length > 0) {
                         // Get index of clicked element
                         const elementIndex = activeElements[0].index;
@@ -371,8 +395,8 @@
                         changeDisplayedSegmentReport(selectedSegment)
                     }
                 }
-                }
-            });
+            }
+        });
 
         function changeDisplayedProgramReport(selectedPrograms) {
             let selectedStatus = <?= json_encode($selected_status) ?>;
@@ -389,7 +413,7 @@
                 },
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
-                    $('#report-error').removeClass('d-none');
+                    $('#report-error').addClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -399,9 +423,10 @@
                     $('#report-table').html(response)
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').toggleClass('d-none');
-                    $('#report-chart').toggleClass('d-none');
-                    $('#report-table').toggleClass('d-none');
+                    $('#report-loading').addClass('d-none');
+                    $('#report-chart').addClass('d-none');
+                    $('#report-table').addClass('d-none');
+                    $('#report-error').removeClass('d-none');
                     $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
                 }
             });
@@ -422,7 +447,7 @@
                 },
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
-                    $('#report-error').removeClass('d-none');
+                    $('#report-error').addClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -432,10 +457,11 @@
                     $('#report-table').html(response)
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').toggleClass('d-none');
-                    $('#report-chart').toggleClass('d-none');
-                    $('#report-table').toggleClass('d-none');
+                    $('#report-loading').addClass('d-none');
+                    $('#report-chart').addClass('d-none');
+                    $('#report-table').addClass('d-none');
                     console.error('Error:', error);
+                    $('#report-error').removeClass('d-none');
                     $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
                 }
             });
@@ -456,7 +482,7 @@
                 },
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
-                    $('#report-error').removeClass('d-none');
+                    $('#report-error').addClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -466,10 +492,91 @@
                     $('#report-table').html(response)
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').toggleClass('d-none');
+                    $('#report-loading').addClass('d-none');
+                    $('#report-chart').addClass('d-none');
+                    $('#report-table').addClass('d-none');
+                    console.error('Error:', error);
+                    $('#report-error').removeClass('d-none');
+                    $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+                }
+            });
+        }
+
+        function changeDisplayedPeriodeReport(selectedPeriode) {
+            let selectedStatus = <?= json_encode($selected_status) ?>;
+            let selectedPrograms = <?= json_encode($selectedPrograms) ?>;
+            let startDate = $('input[name="start_date"]').val();
+            let endDate = $('input[name="end_date"]').val();
+
+            $.ajax({
+                url: './get-periode-report-table.php',
+                type: 'POST',
+                data: {
+                    selectedPeriode: selectedPeriode,
+                    selectedPrograms: selectedPrograms,
+                    selectedStatus: selectedStatus,
+                    startDate: startDate,
+                    endDate: endDate
+                },
+                beforeSend: function() {
+                    $('#report-loading').removeClass('d-none');
+                    $('#report-error').addClass('d-none');
+                },
+                success: function(response) {
+                    $('#report-loading').addClass('d-none');
+                    $('#report-error').addClass('d-none');
                     $('#report-chart').toggleClass('d-none');
                     $('#report-table').toggleClass('d-none');
+                    $('#report-table').html(response)
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                },
+                error: function(xhr, status, error) {
+                    $('#report-loading').addClass('d-none');
+                    $('#report-chart').addClass('d-none');
+                    $('#report-table').addClass('d-none');
                     console.error('Error:', error);
+                    $('#report-error').removeClass('d-none');
+                    $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+                }
+            });
+        }
+
+        function changeDisplayedEcReport(selectedEc) {
+            let selectedStatus = <?= json_encode($selected_status) ?>;
+            let selectedPrograms = <?= json_encode($selectedPrograms) ?>;
+            let startDate = $('input[name="start_date"]').val();
+            let endDate = $('input[name="end_date"]').val();
+
+            $.ajax({
+                url: './get-ec-report-table.php',
+                type: 'POST',
+                data: {
+                    selectedEc: selectedEc,
+                    selectedPrograms: selectedPrograms,
+                    selectedStatus: selectedStatus,
+                    startDate: startDate,
+                    endDate: endDate
+                },
+                beforeSend: function() {
+                    $('#report-loading').removeClass('d-none');
+                    $('#report-error').addClass('d-none');
+                },
+                success: function(response) {
+                    $('#report-loading').addClass('d-none');
+                    $('#report-error').addClass('d-none');
+                    $('#report-chart').toggleClass('d-none');
+                    $('#report-table').toggleClass('d-none');
+                    $('#report-table').html(response)
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                },
+                error: function(xhr, status, error) {
+                    $('#report-loading').addClass('d-none');
+                    $('#report-chart').addClass('d-none');
+                    $('#report-table').addClass('d-none');
+                    console.error('Error:', error);
+                    $('#report-error').removeClass('d-none');
                     $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
                 }
             });
