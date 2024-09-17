@@ -147,8 +147,8 @@
         $("#back-to-main").click(function() {
             $('#report-loading').addClass('d-none');
             $('#report-error').addClass('d-none');
-            $('#report-chart').toggleClass('d-none');
-            $('#report-table').toggleClass('d-none');
+            $('#report-chart').removeClass('d-none');
+            $('#report-table').addClass('d-none');
         })
     })
 

@@ -1,5 +1,4 @@
 <?php
-
     include 'db_con.php';
     ob_start();
     session_start();
