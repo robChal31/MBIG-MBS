@@ -117,7 +117,7 @@
                                             <span><i class='fa fa-check'></i></span>
                                         <?php endif; ?>
                                     </td> -->
-                                    <td scope='col' class="bg-white">
+                                    <td scope='col' >
                                         <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
                                         
                                         <?php if($benefit['confirmed'] == 1) : ?>

@@ -414,6 +414,8 @@
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
                     $('#report-error').addClass('d-none');
+                    $('#report-chart').toggleClass('d-none');
+                    $('#report-table').toggleClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -448,6 +450,8 @@
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
                     $('#report-error').addClass('d-none');
+                    $('#report-chart').toggleClass('d-none');
+                    $('#report-table').toggleClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -483,6 +487,8 @@
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
                     $('#report-error').addClass('d-none');
+                    $('#report-chart').toggleClass('d-none');
+                    $('#report-table').toggleClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -521,6 +527,8 @@
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
                     $('#report-error').addClass('d-none');
+                    $('#report-chart').toggleClass('d-none');
+                    $('#report-table').toggleClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
@@ -561,6 +569,8 @@
                 beforeSend: function() {
                     $('#report-loading').removeClass('d-none');
                     $('#report-error').addClass('d-none');
+                    $('#report-chart').toggleClass('d-none');
+                    $('#report-table').toggleClass('d-none');
                 },
                 success: function(response) {
                     $('#report-loading').addClass('d-none');
