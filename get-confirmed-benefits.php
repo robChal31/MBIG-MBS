@@ -29,7 +29,7 @@
     $query_benefits = "SELECT * 
                         FROM (
                             SELECT 
-                                db.*, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at,
+                                db.*, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at,
                                 IFNULL(sc.name, db.school_name) AS school_name2,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
@@ -114,7 +114,7 @@
                                         <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
                                         
                                         <?php if($benefit['confirmed'] == 1) : ?>
-                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'></span>
+                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
 
                                             <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
                                         <?php endif; ?>

@@ -1,5 +1,4 @@
 <?php
-
     include 'db_con.php';
     ob_start();
     session_start();
@@ -40,6 +39,7 @@
             <table class="table table-striped table-bordered" id="table_draft">
                 <thead>
                     <tr>
+                        <th>#</th>
                         <th scope="col" style="width: 10%">Nama EC</th>
                         <th scope="col" style="width: 20%">Nama Sekolah</th>
                         <th scope="col">Segment</th>
@@ -71,6 +71,7 @@
                                 $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
                     ?>
                             <tr>
+                                <th scope="row"><?= $row['id_draft'] ?></th>
                                 <td><?= $row['generalname'] ?></td>
                                 <td><?= $row['school_name2'] ?></td>
                                 <td><?= ucfirst($row['segment']) ?></td>

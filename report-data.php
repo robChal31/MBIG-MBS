@@ -42,7 +42,7 @@
                         $query_filter_draft
                         db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                         GROUP BY db.level"; 
-
+    var_dump($query_level);
     $result       = mysqli_query($conn, $query_level);
     $level_label  = array();
     $level_total  = array();
@@ -126,7 +126,7 @@
                         $query_filter_draft
                         db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                         GROUP BY db.segment"; 
-
+    var_dump($query_segment);
     $result         = mysqli_query($conn, $query_segment);
     $segment_label  = array();
     $segment_total  = array();
