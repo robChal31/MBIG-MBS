@@ -412,17 +412,10 @@
                     endDate: endDate
                 },
                 beforeSend: function() {
-                    $('#report-loading').removeClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
+                    hideBeforeSend()
                 },
                 success: function(response) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').removeClass('d-none');
-                    $('#report-table').html(response)
+                    showAfterSuccess(response);
                 },
                 error: function(xhr, status, error) {
                     $('#report-loading').addClass('d-none');
@@ -448,25 +441,13 @@
                     endDate: endDate
                 },
                 beforeSend: function() {
-                    $('#report-loading').removeClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
+                    hideBeforeSend()
                 },
                 success: function(response) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').removeClass('d-none');
-                    $('#report-table').html(response)
+                    showAfterSuccess(response);
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
-                    console.error('Error:', error);
-                    $('#report-error').removeClass('d-none');
-                    $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+                    showError(error);
                 }
             });
         }
@@ -485,25 +466,13 @@
                     endDate: endDate
                 },
                 beforeSend: function() {
-                    $('#report-loading').removeClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
+                    hideBeforeSend()
                 },
                 success: function(response) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').removeClass('d-none');
-                    $('#report-table').html(response)
+                    showAfterSuccess(response);
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
-                    console.error('Error:', error);
-                    $('#report-error').removeClass('d-none');
-                    $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+                    showError(error);
                 }
             });
         }
@@ -525,27 +494,15 @@
                     endDate: endDate
                 },
                 beforeSend: function() {
-                    $('#report-loading').removeClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
+                    hideBeforeSend()
                 },
                 success: function(response) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').removeClass('d-none');
-                    $('#report-table').html(response)
+                    showAfterSuccess(response);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
-                    console.error('Error:', error);
-                    $('#report-error').removeClass('d-none');
-                    $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+                    showError(error);
                 }
             });
         }
@@ -567,29 +524,41 @@
                     endDate: endDate
                 },
                 beforeSend: function() {
-                    $('#report-loading').removeClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
+                    hideBeforeSend()
                 },
                 success: function(response) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-error').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').removeClass('d-none');
-                    $('#report-table').html(response)
+                    showAfterSuccess(response);
                     window.scrollTo({ top: 0, behavior: 'smooth' });
 
                 },
                 error: function(xhr, status, error) {
-                    $('#report-loading').addClass('d-none');
-                    $('#report-chart').addClass('d-none');
-                    $('#report-table').addClass('d-none');
-                    console.error('Error:', error);
-                    $('#report-error').removeClass('d-none');
-                    $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+                    showError(error);
                 }
             });
+        }
+
+        function hideBeforeSend() {
+            $('#report-loading').removeClass('d-none');
+            $('#report-error').addClass('d-none');
+            $('#report-chart').addClass('d-none');
+            $('#report-table').addClass('d-none');
+        }
+
+        function showAfterSuccess(response) {
+            $('#report-loading').addClass('d-none');
+            $('#report-error').addClass('d-none');
+            $('#report-chart').addClass('d-none');
+            $('#report-table').removeClass('d-none');
+            $('#report-table').html(response)
+        }
+
+        function showError(error) {
+            $('#report-loading').addClass('d-none');
+            $('#report-chart').addClass('d-none');
+            $('#report-table').addClass('d-none');
+            console.error('Error:', error);
+            $('#report-error').removeClass('d-none');
+            $('#report-error').html("<div class='alert alert-danger'>Error: " + error + "</div>");
         }
 
         $(document).ready(function() {
