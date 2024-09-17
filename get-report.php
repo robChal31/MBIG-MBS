@@ -431,12 +431,14 @@
 
         function changeDisplayedLevelReport(selectedLevel) {
             let selectedStatus = <?= json_encode($selected_status) ?>;
+            let selectedPrograms = <?= json_encode($selectedPrograms) ?>;
             let startDate = $('input[name="start_date"]').val();
             let endDate = $('input[name="end_date"]').val();
             $.ajax({
                 url: './get-level-report-table.php',
                 type: 'POST',
                 data: {
+                    selectedPrograms: selectedPrograms,
                     selectedLevel: selectedLevel,
                     selectedStatus: selectedStatus,
                     startDate: startDate,
@@ -456,12 +458,14 @@
 
         function changeDisplayedSegmentReport(selectedSegment) {
             let selectedStatus = <?= json_encode($selected_status) ?>;
+            let selectedPrograms = <?= json_encode($selectedPrograms) ?>;
             let startDate = $('input[name="start_date"]').val();
             let endDate = $('input[name="end_date"]').val();
             $.ajax({
                 url: './get-segment-report-table.php',
                 type: 'POST',
                 data: {
+                    selectedPrograms: selectedPrograms,
                     selectedSegment: selectedSegment,
                     selectedStatus: selectedStatus,
                     startDate: startDate,
