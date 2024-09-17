@@ -35,6 +35,7 @@ $last_path_with_query;
             <?php endif; ?>
                 <a href="school_pic.php" class="nav-item nav-link <?= $last_path_with_query == 'school_pic.php' ? "active" : '' ?>"><i class="fas fa-users"></i>School Program</a>
             <?php if($_SESSION['role'] == 'admin') { ?>
+                <a href="report.php" class="nav-item nav-link <?= $last_path_with_query == 'report.php' ? "active" : '' ?>"><i class="fas fa-chart-bar"></i>Report</a>
                 <a class="nav-item nav-link d-flex justify-content-between align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" role="button" aria-expanded="false" aria-controls="collapsibleNav">
                     <div><i class="fas fa-database"></i> Master Data</div>
                     <i class="fas fa-chevron-down chevron-icon"></i>

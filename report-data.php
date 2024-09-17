@@ -1,14 +1,14 @@
 <?php
 
-    $levels = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
-    $id_user        = $_SESSION['id_user'];
-    $role           = $_SESSION['role'];
+    $levels     = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
+    $id_user    = $_SESSION['id_user'];
+    $role       = $_SESSION['role'];
     
     $query_filter_draft = $role == 'ec' ? "WHERE db.id_ec = $id_user AND " : "WHERE ";
 
     $query_program  = "SELECT 
                             total_draft,
-                            prog.program,
+                            IF(is_pk = 1, 'PK', prog.program) AS program,
                             prog.code,
                             prog.is_pk,
                             prog.is_active,
@@ -17,7 +17,7 @@
                             SELECT COUNT(db.id_draft) as total_draft, program, prog.code, prog.is_pk, prog.is_active 
                             FROM draft_benefit db 
                             left join programs as prog on prog.name = db.program
-                            $query_filter_draft db.status = 1
+                            $query_filter_draft db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                             group by prog.code
                         ) AS prog
                         GROUP BY 
@@ -37,27 +37,10 @@
         }
     }
 
-    $query_segment  = "SELECT COUNT(db.id_draft) as total, segment
-                        FROM draft_benefit db
-                        $query_filter_draft
-                        db.status = 1
-                        GROUP BY db.segment"; 
-
-    $result         = mysqli_query($conn, $query_segment);
-    $segment_label  = array();
-    $segment_total  = array();
-    setlocale(LC_MONETARY,"id_ID");
-    if (mysqli_num_rows($result) > 0) {
-        while($row = mysqli_fetch_assoc($result)) {
-            $segment_label[] = strtoupper($row['segment']);
-            $segment_total[] = floatval($row['total']);
-        }
-    }
-
     $query_level  = "SELECT COUNT(db.id_draft) as total, level
                         FROM draft_benefit db
                         $query_filter_draft
-                        db.status = 1
+                        db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                         GROUP BY db.level"; 
 
     $result       = mysqli_query($conn, $query_level);
@@ -68,7 +51,7 @@
     if (mysqli_num_rows($result) > 0) {
         while($row = mysqli_fetch_assoc($result)) {
             $is_exist = array_filter($levels, function($lv) use($row) {
-                return $lv == $row['level'];
+                return strtoupper($lv) == strtoupper($row['level']);
             });
             if($is_exist) {
                 $level_label[] = strtoupper($row['level']);
@@ -87,7 +70,7 @@
                             COUNT(db.id_draft) AS total
                         FROM draft_benefit as db
                         $query_filter_draft
-                        db.status = 1
+                        db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                         GROUP BY periode"; 
 
     $result         = mysqli_query($conn, $query_periode);
@@ -106,7 +89,7 @@
                             COUNT(db.id_draft) AS total
                         FROM draft_benefit as db
                         $query_filter_draft
-                        db.status = 1
+                        db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                         GROUP BY 
                             yearly"; 
 
@@ -124,7 +107,7 @@
     $query_ec  = "SELECT COUNT(db.id_draft) as total, user.generalname as ec
                     FROM user as user 
                     LEFT JOIN draft_benefit db on db.id_ec = user.id_user
-                    WHERE db.status = 1 AND user.role = 'ec'
+                    WHERE db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL AND user.role = 'ec'
                     GROUP BY user.id_user"; 
 
     $result         = mysqli_query($conn, $query_ec);
@@ -138,43 +121,20 @@
         }
     }
 
-    $query_filter_reject = $role == 'admin' ? 'WHERE ' : "WHERE arh.id_user = '$id_user' AND";
-    $query_rejected  = "SELECT COUNT(arh.id_draft) as total, user.generalname as ec,
-                        (
-                            select COUNT(db.id_draft) as total_draft
-                            from draft_benefit as db 
-                            where db.id_ec = 139
-                        ) as total_draft
-                        FROM user as user 
-                        LEFT JOIN approval_reject_history AS arh on arh.id_user = user.id_user
-                        $query_filter_reject user.role = 'ec'
-                        GROUP BY user.id_user; ";
-    $result    = mysqli_query($conn, $query_rejected);
-    $ec_reject_label  = array();
-    $ec_total_reject  = array();
-    $ec_total_draft  = array();
-    setlocale(LC_MONETARY,"id_ID");
-    if (mysqli_num_rows($result) > 0) {
-        while($row = mysqli_fetch_assoc($result)) {
-            $ec_reject_label[] = $row['ec'];
-            $ec_total_reject[] = floatval($row['total']);
-            $ec_total_draft[] = floatval($row['total_draft']);
-        }
-    }
+    $query_segment  = "SELECT COUNT(db.id_draft) as total, segment
+                        FROM draft_benefit db
+                        $query_filter_draft
+                        db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
+                        GROUP BY db.segment"; 
 
-    $query_schools  = "SELECT 
-                            COUNT(b.id_draft) as total, IFNULL(sc.name, b.school_name) as school_name2
-                        FROM draft_benefit b
-                        LEFT JOIN schools sc on sc.id = b.school_name
-                        GROUP BY school_name2";
-    $result         = mysqli_query($conn, $query_schools);
-    $school_labels  = array();
-    $school_data    = array();
+    $result         = mysqli_query($conn, $query_segment);
+    $segment_label  = array();
+    $segment_total  = array();
     setlocale(LC_MONETARY,"id_ID");
     if (mysqli_num_rows($result) > 0) {
         while($row = mysqli_fetch_assoc($result)) {
-            $school_labels[] = $row['school_name2'];
-            $school_data[] = floatval($row['total']);
+            $segment_label[] = strtoupper($row['segment']);
+            $segment_total[] = floatval($row['total']);
         }
     }
 

@@ -37,7 +37,7 @@
                     FROM benefit_role br
                     $filter_sql
                     ";
-
+    
     $exec_type = mysqli_query($conn, $query_type);
     if (mysqli_num_rows($exec_type) > 0) {
         $types = mysqli_fetch_all($exec_type, MYSQLI_ASSOC);    
@@ -53,17 +53,28 @@
 
             <div class="bg-whites rounded h-100 p-4 mb-4">
                 <h6 style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
-                <div class="row justify-content-center align-items-end">
-                    <div class="col-6">
+                <div class="row justify-content-center">
+                    <div class="col-6 mb-4">
                         <label for="type">Benefit Type</label>
                         <select class="form-select form-select-sm select2" name="type[]" aria-label="Default select example" multiple>
                             <?php foreach($types as $type) : ?>
                                 <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
                             <?php endforeach; ?>
                         </select>
+                       
                     </div>
-                    <div class="col-6">
-                        <button class="btn btn-primary btn-sm" id="filter-btn"><i class="fa fa-filter"></i> Filter</button>
+                    <div class="col-6 mb-4">
+                        <label for="type">Usage Year</label>
+                        <select class="form-select form-select-sm select2" name="usage_year[]" aria-label="Default select example" multiple>
+                            <option value="1">Year 1</option>
+                            <option value="2">Year 2</option>
+                            <option value="3">Year 3</option>
+                        </select>
+                    </div>
+                    <div class="col-12 mb-4">
+                        <div class="d-flex justify-content-end">  
+                            <button class="btn btn-primary" id="filter-btn"><i class="fa fa-filter"></i> Filter</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -206,11 +217,16 @@
 
     function getBenefit() {
         let selectedType = $('select[name="type[]"]').val();
+        let usage_year = $('select[name="usage_year[]"]').val();
         $.ajax({
             url: './get-confirmed-benefits.php',
             type: 'POST',
             data: {
                 types: selectedType,
+                usage_year : usage_year
+            },
+            beforeSend: function() {
+                $('#benefits-container').html('<div class="text-center" style="height: 200px; display: flex; align-items: center; justify-content: center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>')
             },
             success: function(response) {
                 $('#benefits-container').html(response)

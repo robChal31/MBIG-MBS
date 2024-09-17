@@ -15,28 +15,43 @@
     }
 
     $role = $_SESSION['role'];
-    $types = $_POST['types'];
+    $types = ISSET($_POST['types']) ? $_POST['types'] : [];
+    $usage_year = ISSET($_POST['usage_year']) ? $_POST['usage_year'] : [];
     $selected_type = implode(",", $types);
+    $query_selected_usage_year = "";
+    foreach ($usage_year as $key => $value) {
+        $query_selected_usage_year .= $key == 0 ? " WHERE tab.tot_usage$value > 0" : " OR tab.tot_usage$value > 0";
+    }
     $benefits = [];
 
-    $query_benefits = "SELECT *, IFNULL(sc.name, db.school_name) as school_name2
-                        FROM draft_benefit db 
-                        LEFT JOIN draft_benefit_list dbl on db.id_draft = dbl.id_draft
-                        LEFT JOIN (
+    $query_selected_type = $selected_type ? " AND dbl.id_template IN ($selected_type)" : "";
+
+    $query_benefits = "SELECT * 
+                        FROM (
                             SELECT 
-                                SUM(COALESCE(bu.qty1, 0)) AS tot_usage1,
-                                SUM(COALESCE(bu.qty2, 0)) AS tot_usage2,
-                                SUM(COALESCE(bu.qty3, 0)) AS tot_usage3,
-                                bu.id_benefit_list as id_bl
-                            FROM benefit_usages bu
-                            GROUP BY bu.id_benefit_list
-                        ) as bu on bu.id_bl = dbl.id_benefit_list
-                        LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
-                        LEFT JOIN pk p on p.benefit_id = db.id_draft
-                        LEFT JOIN schools as sc on sc.id = db.school_name
-                        WHERE db.verified = 1
-                        AND dbl.id_template IN ($selected_type);
-                        ";
+                                db.*, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at,
+                                IFNULL(sc.name, db.school_name) AS school_name2,
+                                bu.tot_usage1,
+                                bu.tot_usage2,
+                                bu.tot_usage3
+                            FROM draft_benefit db
+                            LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
+                            LEFT JOIN (
+                                SELECT 
+                                    SUM(COALESCE(bu.qty1, 0)) AS tot_usage1, 
+                                    SUM(COALESCE(bu.qty2, 0)) AS tot_usage2, 
+                                    SUM(COALESCE(bu.qty3, 0)) AS tot_usage3, 
+                                    bu.id_benefit_list AS id_bl 
+                                FROM benefit_usages bu 
+                                GROUP BY bu.id_benefit_list
+                            ) AS bu ON bu.id_bl = dbl.id_benefit_list
+                            LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
+                            LEFT JOIN pk p ON p.benefit_id = db.id_draft
+                            LEFT JOIN schools sc ON sc.id = db.school_name
+                            WHERE db.verified = 1
+                            $query_selected_type
+                            AND dbl.id_template 
+                        ) AS tab $query_selected_usage_year;";
 
     $exec_benefits = mysqli_query($conn, $query_benefits);
     if (mysqli_num_rows($exec_benefits) > 0) {
@@ -72,6 +87,7 @@
                     <tbody>
                         <?php
                             foreach($benefits as $benefit) {
+                                
                                 $status_class = $benefit['verified'] == 1 ? 'bg-success' :  'bg-primary';
                                 $status_msg = ($benefit['verified'] == 1 ? 'Verified' : 'Waiting Verification');
                                 if(strtolower($benefit['program']) == 'cbls3') {

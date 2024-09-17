@@ -243,13 +243,13 @@
         
         $sheet->setCellValue('A'.$row, 'No.');
         $sheet->setCellValue('B'.$row, 'Manfaat/fasilitas pengembangan sekolah');
-        $sheet->setCellValue('C'.$row, 'Sub-benefit');
-        $sheet->setCellValue('D'.$row, 'Nama Manfaat');
-        $sheet->setCellValue('E'.$row, 'Deskripsi');
-        $sheet->setCellValue('F'.$row, 'Pelaksanaan');
-        $sheet->setCellValue('G'.$row, 'Total Tahun 1');
-        $sheet->setCellValue('H'.$row, 'Total Tahun 2');
-        $sheet->setCellValue('I'.$row, 'Total Tahun 3');
+        // $sheet->setCellValue('C'.$row, 'Sub-benefit');
+        $sheet->setCellValue('C'.$row, 'Nama Manfaat');
+        $sheet->setCellValue('D'.$row, 'Deskripsi');
+        $sheet->setCellValue('E'.$row, 'Pelaksanaan');
+        $sheet->setCellValue('F'.$row, 'Total Tahun 1');
+        $sheet->setCellValue('G'.$row, 'Total Tahun 2');
+        $sheet->setCellValue('H'.$row, 'Total Tahun 3');
 
         $row++;
         $sql = "SELECT 
@@ -263,13 +263,13 @@
         while ($data = $result->fetch_assoc()) {
             $sheet->setCellValue('A'.$row,$j);
             $sheet->setCellValue('B'.$row, $data['benefit']);
-            $sheet->setCellValue('C'.$row, $data['subbenefit']);
-            $sheet->setCellValue('D'.$row, $data['benefit_name']);
-            $sheet->setCellValue('E'.$row, $data['description']);
-            $sheet->setCellValue('F'.$row, $data['pelaksanaan']);
-            $sheet->setCellValue('G'.$row, $data['qty']);
-            $sheet->setCellValue('H'.$row, $data['qty2']);
-            $sheet->setCellValue('I'.$row, $data['qty3']);
+            // $sheet->setCellValue('C'.$row, $data['subbenefit']);
+            $sheet->setCellValue('C'.$row, $data['benefit_name']);
+            $sheet->setCellValue('D'.$row, $data['description']);
+            $sheet->setCellValue('E'.$row, $data['pelaksanaan']);
+            $sheet->setCellValue('F'.$row, $data['qty']);
+            $sheet->setCellValue('G'.$row, $data['qty2']);
+            $sheet->setCellValue('H'.$row, $data['qty3']);
             
             $j++; $row++;
         }
@@ -277,21 +277,21 @@
         $row++;
     
         $sheet->setCellValue('A'.$row,'Dibuat oleh EC');
-        $sheet->setCellValue('E'.$row,'Dicek dan disetujui oleh Pimpinan (HOR / HOS)');
-        $sheet->setCellValue('I'.$row,'Disetujui oleh Pimpinan (Top Leader)');
+        $sheet->setCellValue('D'.$row,'Dicek dan disetujui oleh Pimpinan (HOR / HOS)');
+        $sheet->setCellValue('H'.$row,'Disetujui oleh Pimpinan (Top Leader)');
         $row=$row+6;
         $sheet->setCellValue('A'.$row,'Nama');
-        $sheet->setCellValue('E'.$row,'HOR / HOS');
-        $sheet->setCellValue('I'.$row,'Dwinanto Setiawan');
+        $sheet->setCellValue('D'.$row,'HOR / HOS');
+        $sheet->setCellValue('H'.$row,'Dwinanto Setiawan');
         $row++;
         $sheet->setCellValue('A'.$row,'E-signature *wajib');
-        $sheet->setCellValue('E'.$row,'E-signature *wajib');
-        $sheet->setCellValue('I'.$row,'E-signature *wajib');
+        $sheet->setCellValue('D'.$row,'E-signature *wajib');
+        $sheet->setCellValue('H'.$row,'E-signature *wajib');
 
         for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
             $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
         }
-        $columnIndexes = range('C','H');
+        $columnIndexes = range('C','G');
         foreach($columnIndexes as $columnIndex) {
             $sheet->getColumnDimension($columnIndex)->setWidth(75);
         }
