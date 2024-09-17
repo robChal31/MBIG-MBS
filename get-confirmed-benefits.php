@@ -14,17 +14,18 @@
         exit();
     }
 
-    $role = $_SESSION['role'];
-    $types = ISSET($_POST['types']) ? $_POST['types'] : [];
-    $usage_year = ISSET($_POST['usage_year']) ? $_POST['usage_year'] : [];
-    $selected_type = implode(",", $types);
-    $query_selected_usage_year = "";
+    $role                       = $_SESSION['role'];
+    $types                      = ISSET($_POST['types']) ? $_POST['types'] : [];
+    $usage_year                 = ISSET($_POST['usage_year']) ? $_POST['usage_year'] : [];
+    $selected_type              = implode(",", $types);
+    $query_selected_usage_year  = "";
+
     foreach ($usage_year as $key => $value) {
         $query_selected_usage_year .= $key == 0 ? " WHERE tab.tot_usage$value > 0" : " OR tab.tot_usage$value > 0";
     }
-    $benefits = [];
 
-    $query_selected_type = $selected_type ? " AND dbl.id_template IN ($selected_type)" : "";
+    $benefits               = [];
+    $query_selected_type    = $selected_type ? " AND dbl.id_template IN ($selected_type)" : "";
 
     $query_benefits = "SELECT * 
                         FROM (
@@ -86,7 +87,7 @@
                     </thead>
                     <tbody>
                         <?php
-                            foreach($benefits as $benefit) {
+                            foreach($benefits as $loop => $benefit) {
                                 
                                 $status_class = $benefit['verified'] == 1 ? 'bg-success' :  'bg-primary';
                                 $status_msg = ($benefit['verified'] == 1 ? 'Verified' : 'Waiting Verification');
@@ -95,7 +96,7 @@
                                     $benefit['qty3'] = $benefit['qty'];
                                 }
                         ?>
-                                <tr>
+                                <tr class="<?= !$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info  text-white' : '' ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
                                     <td><?= strtoupper($benefit['program']) ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
@@ -116,7 +117,7 @@
                                             <span><i class='fa fa-check'></i></span>
                                         <?php endif; ?>
                                     </td> -->
-                                    <td scope='col'>
+                                    <td scope='col' class="bg-white">
                                         <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
                                         
                                         <?php if($benefit['confirmed'] == 1) : ?>
