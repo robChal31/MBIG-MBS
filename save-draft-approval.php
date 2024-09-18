@@ -97,6 +97,9 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     $uc_program = '';
 
     $tokenLeader = generateRandomString(16);
+    $for_approve_cc_ec_email = '';
+    $for_approve_cc_ec_name = '';
+
     if(mysqli_affected_rows($conn) == 1){
         // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
         $sql = "SELECT 
@@ -114,9 +117,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         while ($dra = $result->fetch_assoc()){
             $fileUrl = $dra['fileUrl'];
             $email  = $dra['username'];
+            $for_approve_cc_ec_email  = $dra['username'];
             $school_name = $dra['school_name'];
             $program = $dra['program'];
             $ecname = $dra['generalname'];
+            $for_approve_cc_ec_name = $dra['generalname'];
             $approver_name = $dra['approver_name'];
             $saemail = $dra['sa_email'];
             $leadid = $dra['leadid'];
@@ -362,7 +367,12 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
         $result = mysqli_query($conn, $sql);
 
-        $cc = [];
+        $cc = [
+            [
+                'email' => $for_approve_cc_ec,
+                'name' => $for_approve_cc_ec_name
+            ]
+        ];
         while ($dra = $result->fetch_assoc()){   
             $cc[] = [
                 'email' => $dra['username'],
