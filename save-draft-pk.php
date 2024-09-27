@@ -124,7 +124,7 @@
 
         if(count($school_data) > 0) {
             $school_id_new              = $school_data[0]['institutionid'];
-            $school_name_new            = $school_data[0]['name'];
+            $school_name_new            = mysqli_real_escape_string($conn, $school_name_new);
             $school_address_new         = $school_data[0]['address'];
             $school_phone_new           = $school_data[0]['phone'];
             $school_segment_new         = $school_data[0]['segment'];
