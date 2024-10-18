@@ -182,8 +182,8 @@ if ($exec_list_book->num_rows > 0) {
                               <th>Harga Buku Normal</th>
                               <th>Standard Discount</th>
                               <th>Harga Setelah Diskon</th>
-                              <th>Revenue setelah One Price</th>
-                              <th>Revenue Sebelum One Price</th>
+                              <th>Revenue Harga Program</th>
+                              <th>Revenue Harga Normal</th>
                               <th>Alokasi pengembangan sekolah</th>
                               <th>Action</th>
                           </thead>

@@ -201,7 +201,7 @@
                     lead.username as lead_mail, lead.id_user as lead_id
                 FROM draft_benefit as db
                 LEFT JOIN user as ec on ec.id_user = db.id_ec 
-                LEFT JOIN user as lead on ec.leadid = lead.id_user 
+                LEFT JOIN user as lead on ec.leadid3 = lead.id_user 
                 WHERE db.id_draft = $id_draft";
 
         $result = mysqli_query($conn,$sql);

@@ -53,30 +53,30 @@
     $total_benefit1 = ISSET($_POST["total_benefit1"]) ? $_POST["total_benefit1"] : 0;
     $total_benefit2 = ISSET($_POST["total_benefit2"]) ? $_POST["total_benefit2"] : 0;
     $total_benefit3 = ISSET($_POST["total_benefit3"]) ? $_POST["total_benefit3"] : 0;
-    $total_benefit = $total_benefit1 + $total_benefit2 + $total_benefit3;
+    $total_benefit  = $total_benefit1 + $total_benefit2 + $total_benefit3;
     
-    $selisih_benefit1 = ISSET($_POST["selisih_benefit1"]) ? $_POST["selisih_benefit1"] : 0;
-    $selisih_benefit2 = ISSET($_POST["selisih_benefit2"]) ? $_POST["selisih_benefit2"] : 0;
-    $selisih_benefit3 = ISSET($_POST["selisih_benefit3"]) ? $_POST["selisih_benefit3"] : 0;
-    $selisih_benefit = $selisih_benefit1 + $selisih_benefit2 + $selisih_benefit3;
+    $selisih_benefit1   = ISSET($_POST["selisih_benefit1"]) ? $_POST["selisih_benefit1"] : 0;
+    $selisih_benefit2   = ISSET($_POST["selisih_benefit2"]) ? $_POST["selisih_benefit2"] : 0;
+    $selisih_benefit3   = ISSET($_POST["selisih_benefit3"]) ? $_POST["selisih_benefit3"] : 0;
+    $selisih_benefit    = $selisih_benefit1 + $selisih_benefit2 + $selisih_benefit3;
 
     $save_as_draft = ISSET($_POST["save_as_draft"]) ? true : false;
 
-    $benefits = $_POST["benefit"];
-    $subbenefits = $_POST["subbenefit"];
-    $benefitIds = $_POST["benefit_id"];
-    $benefitNames = $_POST["benefit_name"];
-    $descriptions = $_POST["description"];
-    $pelaksanaans = $_POST["pelaksanaan"];
-    $keterangans = $_POST["keterangan"];
-    $members = $_POST["member"];
-    $members2 = $_POST["member2"];
-    $members3 = $_POST["member3"];
-    $calcValues = $_POST["calcValue"];
-    $manvals = $_POST["manval"];
-    $valbens = $_POST["valben"];
-    $id_templates = $_POST["id_templates"];
-    $editmode = $_POST["editmode"];
+    $benefits       = $_POST["benefit"];
+    $subbenefits    = $_POST["subbenefit"];
+    $benefitIds     = $_POST["benefit_id"];
+    $benefitNames   = $_POST["benefit_name"];
+    $descriptions   = $_POST["description"];
+    $pelaksanaans   = $_POST["pelaksanaan"];
+    $keterangans    = $_POST["keterangan"];
+    $members        = $_POST["member"];
+    $members2       = $_POST["member2"];
+    $members3       = $_POST["member3"];
+    $calcValues     = $_POST["calcValue"];
+    $manvals        = $_POST["manval"];
+    $valbens        = $_POST["valben"];
+    $id_templates   = $_POST["id_templates"];
+    $editmode       = $_POST["editmode"];
     
     if($selisih_benefit < 0){
         echo "Selisih Benefit Minus";
@@ -385,22 +385,30 @@
         $tokenLeader = generateRandomString(16);
          
         //get Leader ID;
-        $leaderId = 1;
-        $sql = "Select leadid from user where id_user='".$_SESSION['id_user']."';";
-        $ress= mysqli_query($conn,$sql);
+        $leaderId   = null;
+        $sql        = "Select * from user where id_user='".$_SESSION['id_user']."';";
+        $ress       = mysqli_query($conn,$sql);
+        $leaderId1  = null;
+        $leaderId2  = null;
+        $leaderId3  = null;
+
         while ($datt = mysqli_fetch_assoc($ress)){
-            $leaderId = $datt['leadid'];
-            $sql = "SELECT username, generalname from user where id_user = '$leaderId';";
-            $ress = mysqli_query($conn,$sql);
+            $leaderId1  = $datt['leadid'];
+            $leaderId2  = $datt['leadid2'];
+            $leaderId3  = $datt['leadid3'];
+            $leaderId   = $datt['leadid'] ? $datt['leadid'] : ($datt['leadid2'] ? $datt['leadid2'] : $datt['leadid3']);
+            $sql        = "SELECT username, generalname from user where id_user = '$leaderId';";
+            $ress       = mysqli_query($conn,$sql);
             while ($datt = mysqli_fetch_assoc($ress)){
-                $leaderName = $datt['generalname'];
-                $leaderEmail = $datt['username'];
+                $leaderName     = $datt['generalname'];
+                $leaderEmail    = $datt['username'];
             }
         }
+
         if(is_null($leaderId)){
             $leaderId = 1;
-            $leaderEmail = 'michaelct.mbig@gmail.com';
-            $leaderName = 'Mike';
+            $leaderEmail = 'bany@mentarigroups.com';
+            $leaderName = 'Bany';
         }
     
         $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leaderId."', '0');";
@@ -408,6 +416,72 @@
     
         $mail = new PHPMailer(true);
         $ec_name = $_SESSION['generalname'];
+
+        $message = "
+                        <style>
+                            * {
+                                font-family: Helvetica, sans-serif;
+                            }
+                            .container {
+                                width: 80%;
+                                margin: auto;
+                            }
+                        </style>
+
+                        <div class='container'>
+                            <p>
+                                $ec_name! Telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
+                            </p>
+                            <p>Ayo, cepat-cepat dicek agar bisa segera diajukan ke Top Leader! Sukses untuk kita bersama! 👍😊</p>
+                            <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
+                            <p style='margin: 20px 0px;'>
+                                <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
+                                    Redirect me!
+                                </a>
+                            </p>
+                            <div style='border-bottom: 1px solid #ddd;'></div>
+                            <p>Jika tombol tidak berfungsi dengan benar, silakan salin tautan berikut dan tambahkan ke peramban Anda </p>
+                            <p style='color: #0096c7'>https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader</p>
+                            <div style='text-align: center; margin-top: 35px;'>
+                                <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
+                            </div>
+                        </div>
+                    ";
+
+        if($leaderId == $leaderId3) {
+            $message = "
+                        <style>
+                            * {
+                                font-family: Helvetica, sans-serif;
+                            }
+                            .container {
+                                width: 80%;
+                                margin: auto;
+                            }
+                        </style>
+
+                        <div class='container'>
+                            <p>
+                                $ecname telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
+                            </p>
+                            <p>Wah, seru banget nih! $ecname sudah menunggu kamu untuk memeriksa formulir $uc_program di $school_name. Jika ada beberapa hal yang belum disetujui, berikan arahan dan masukan dengan baik dan konstruktif untuk membantu tim meningkatkan formulirnya.</p>
+                            <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
+                            <p style='margin: 20px 0px;'>
+                                <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
+                                    Redirect me!
+                                </a>
+                            </p>
+                            <div style='border-bottom: 1px solid #ddd;'></div>
+                            <p>Jika tombol tidak berfungsi dengan benar, silakan salin tautan berikut dan tambahkan ke peramban Anda </p>
+                            <p style='color: #0096c7'>https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader</p>
+                            <div style='text-align: center; margin-top: 35px;'>
+                                <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
+                            </div>
+                        </div>
+                    ";
+        }
+
+            
         try {
     
             $mail->isSMTP(); 
@@ -427,34 +501,7 @@
             $mail->isHTML(true);
             $uc_program = strtoupper($program);
             $mail->Subject = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
-            $mail->Body    = "<style>
-                                * {
-                                    font-family: Helvetica, sans-serif;
-                                }
-                                .container {
-                                    width: 80%;
-                                    margin: auto;
-                                }
-                            </style>
-        
-                            <div class='container'>
-                                <p>
-                                    $ec_name! Telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
-                                </p>
-                                <p>Ayo, cepat-cepat dicek agar bisa segera diajukan ke Top Leader! Sukses untuk kita bersama! 👍😊</p>
-                                <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
-                                <p style='margin: 20px 0px;'>
-                                    <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
-                                        Redirect me!
-                                    </a>
-                                </p>
-                                <div style='border-bottom: 1px solid #ddd;'></div>
-                                <p>Jika tombol tidak berfungsi dengan benar, silakan salin tautan berikut dan tambahkan ke peramban Anda </p>
-                                <p style='color: #0096c7'>https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader</p>
-                                <div style='text-align: center; margin-top: 35px;'>
-                                    <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
-                                </div>
-                            </div>";
+            $mail->Body    = $message;
             $mail->send();
     
     

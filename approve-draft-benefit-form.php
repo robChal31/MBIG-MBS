@@ -24,7 +24,7 @@
     $id_draft   = $_GET['id_draft'];
     $token      = $_GET['token'];
 
-    if (!$token && ($id_user == 70 || $id_user == 5)) {
+    if ((!$token || $token == '') && ($id_user == 70 || $id_user == 5)) {
         $tokenLeader = generateRandomString(16);
         $sql_check = "SELECT * FROM draft_approval WHERE id_draft = '$id_draft' AND id_user_approver = '$id_user'";
         $result = $conn->query($sql_check);

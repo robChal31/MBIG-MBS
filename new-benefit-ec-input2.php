@@ -1,5 +1,7 @@
 <?php include 'header.php'; ?>
+
 <?php
+
 $current_row = 1;
 if($_GET['edit'] == 'edit'){ 
   $id_draft = $_GET['id_draft'];
@@ -43,16 +45,18 @@ if($_GET['edit'] == 'edit'){
   $sumalok  = $_SESSION['sumalok'];
 }
 
-$query_status = "select db.status  
-                  from draft_benefit db 
-                  inner join draft_approval da on da.id_draft = db.id_draft 
-                  where (da.status = 0 or da.status = 1)
-                  and db.id_draft = $id_draft
+$program = strtolower($program);
+
+$query_status = "SELECT db.status  
+                  FROM draft_benefit db 
+                  INNER JOIN draft_approval da on da.id_draft = db.id_draft 
+                  WHERE (da.status = 0 or da.status = 1)
+                  AND db.id_draft = $id_draft
                 ";
 $result_status = mysqli_query($conn, $query_status);
 $data_status = mysqli_fetch_assoc($result_status);
 
-if($data_status['status'] != 2 && $data_status['status'] != null){
+if($data_status && $data_status['status'] != 2 && $data_status['status'] != null){
   $msg = $data_status['status'] == 1 ? 'Draft telah Di Approve' : ($data_status['status'] == 0 ? 'Draft sedang dalam proses approval' : '');
   $_SESSION['toast_status'] = 'Unauthorized Access';
   $_SESSION['toast_msg'] = $msg;
@@ -60,8 +64,6 @@ if($data_status['status'] != 2 && $data_status['status'] != null){
   exit();
 }
 
-
-$program = strtolower($program);
 ?>
 
 <style>
@@ -492,10 +494,16 @@ $program = strtolower($program);
       }).then((result) => {
         if (result.isConfirmed) {
           Swal.fire({
-            title: "Saved!",
-            text: "Your data has been processed.",
-            icon: "success"
+            title: "Processing...",
+            html: '<div class="spinner"></div>', // You can use a CSS spinner here
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            allowEnterKey: false,
+            didOpen: () => {
+              Swal.showLoading(); // This shows a built-in loading animation
+            }
           });
+
           $(this).unbind('submit').submit();
         }
       });

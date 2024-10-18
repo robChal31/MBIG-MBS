@@ -38,8 +38,6 @@ if ($result->num_rows > 0) {
                     <label class="form-label">Description</label>
                     <?php if($usages['redeemable'] == 1) { ?>
                         <textarea name="description" id="description_usage" class="form-control" style="height: 150px;">
-Nama event:
-Tgl event:
 Kelas/Sesi:
 Nama Peserta: </textarea>
                     <?php }else { ?>

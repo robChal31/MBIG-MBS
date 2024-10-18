@@ -6,7 +6,7 @@ include 'db_con.php';
 $id_benefit_llist = $_POST['id_benefit_list'];  
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT 
-            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created, dtb.redeemable, bu.used_at, bu.redeem_code, bu.id as id_usage
+            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created, dtb.redeemable, bu.used_at, bu.redeem_code
         FROM benefit_usages AS bu
         LEFT JOIN draft_benefit_list AS dbl ON dbl.id_benefit_list = bu.id_benefit_list
         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
@@ -35,7 +35,6 @@ if ($result->num_rows > 0) {
                         <th scope="col">Year 3</th>
                         <th scope="col">Remaining Year 3</th>
                         <th scope="col">Created At</th>
-                        <th scope="col"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -62,7 +61,6 @@ if ($result->num_rows > 0) {
                                 <td class="text-center"><?= $usage['usage3'] ?></td>
                                 <td class="text-center"><?= $usage['qty3'] - $acc_qty3 ?></td>
                                 <td><?= $usage['created'] ?></td>
-                                <td><a href="edit-usage.php?id=<?=$usage['id_usage']?>"><i class="fas fa-edit"></i> Edit</a></td>
                             </tr>
                         <?php } ?>
                 </tbody>

@@ -1,12 +1,12 @@
 
 <?php
 
-$toast_status = $_SESSION["toast_status"];
-$toast_msg = $_SESSION["toast_msg"];
+$toast_status = ISSET($_SESSION["toast_status"]) ? $_SESSION["toast_status"] : null;
+$toast_msg = ISSET($_SESSION["toast_msg"]) ? $_SESSION["toast_msg"] : null;
 unset($_SESSION["toast_status"]);
 unset($_SESSION["toast_msg"]);
 
-if(ISSET($toast_status)) : ?>
+if($toast_status) : ?>
     <div class="d-flex justify-content-end mb-2" style="position: absolute; top: 100px; right: 40px; z-index: 999;">
         <div class="toast">
             <div class="toast-header bg-<?= $toast_status == 'Success' ? 'success' : 'danger' ?> text-white">

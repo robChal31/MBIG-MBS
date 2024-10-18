@@ -38,12 +38,12 @@
                         </thead>
                         <tbody>
                             <?php
-                                $sql_q = " WHERE ";
-                                $id_user = $_SESSION['id_user'];
+                                $sql_q      = " WHERE ";
+                                $id_user    = $_SESSION['id_user'];
                                 $sql = "SELECT 
                                             a.id_draft_approval, a.id_draft, a.status, a.token, b.status as draft_status, b.verified,
                                             b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver, b.deleted_at
+                                            c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver, b.deleted_at, c.leadId, c.leadid2, c.leadid3
                                         FROM `draft_approval` a 
                                         INNER JOIN draft_benefit b on a.id_draft = b.id_draft
                                         LEFT JOIN schools as sc on sc.id = b.school_name 
@@ -58,7 +58,8 @@
                                             GROUP BY id_draft
                                         ) latest_approval ON a.id_draft = latest_approval.id_draft ";
                                 if($_SESSION['role'] == 'ec'){
-                                    $sql .= " WHERE (a.id_user_approver =" . $_SESSION['id_user'] . " or c.leadId='" . $_SESSION['id_user'] . "') ";
+                                    // $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or c.leadid2 = $id_user or c.leadid3 = $id_user) ";
+                                    $sql .= " WHERE (a.id_user_approver = $id_user) ";
                                     $sql_q = " AND ";
                                 }
 

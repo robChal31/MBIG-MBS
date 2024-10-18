@@ -107,8 +107,8 @@
                                     <td>Harga Buku Normal</td>
                                     <td>Standard Discount</td>
                                     <td>Harga Setelah Diskon</td>
-                                    <td>Revenue setelah One Price</td>
-                                    <td>Revenue Sebelum One Price</td>
+                                    <th>Revenue Harga Program</th>
+                                    <th>Revenue Harga Normal</th>
                                     <td>Alokasi pengembangan sekolah</td>
                                     <td></td>
                                 </thead>

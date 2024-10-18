@@ -47,7 +47,7 @@
                                         LEFT JOIN user c on c.id_user = b.id_ec 
                                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
                                 if($_SESSION['role'] == 'ec'){
-                                    $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or b.id_ec = $id_user) ";
+                                    $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or c.leadid2 = $id_user or c.leadid3 = $id_user or b.id_ec = $id_user) ";
                                     $sql_q = " AND ";
                                 }
 

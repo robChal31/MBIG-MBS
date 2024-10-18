@@ -51,6 +51,7 @@
                                         $program_names = $program_names ? ("'" . implode("', '", $program_names) . "'") : false;
 
                                         $query_filter_pk = $program_names ? " AND a.program NOT IN ($program_names)" : '';
+                                        $id_user = $_SESSION['id_user'];
 
                                         $order_by = ' ORDER BY a.date ASC';
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
@@ -60,7 +61,7 @@
                                                 WHERE a.deleted_at is null
                                                 $query_filter_pk"; 
                                         if($_SESSION['role'] == 'ec'){
-                                            $sql.=" AND (a.id_ec=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."')";
+                                            $sql.=" AND (a.id_ec = $id_user or b.leadId = $id_user or b.leadId2 = $id_user or b.leadId3 = $id_user)";
                                         }
                                         $sql .= $order_by;
                                         

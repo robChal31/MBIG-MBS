@@ -32,24 +32,17 @@
     $role = $_SESSION['role'];
     $types = [];
 
-    $filter_sql = $role == 'admin' ? ' GROUP BY br.benefit' : " WHERE br.code = '$role' GROUP BY br.code, br.benefit";
-    if($role == 'ec') {
-        $query_type = "SELECT GROUP_CONCAT(dtb.id_template_benefit SEPARATOR ',') as id_templates, dtb.benefit, dtb.redeemable, dtb.subbenefit
-                        FROM draft_template_benefit dtb
-                        GROUP BY dtb.subbenefit
-                        ";
-    }else {
-        $query_type = "SELECT GROUP_CONCAT(br.id_template SEPARATOR ',') as id_templates, br.benefit, br.code
-                        FROM benefit_role br
-                        $filter_sql
-                        ";
-    }
- 
+    $filter_sql = $role == 'admin' ? 'GROUP BY br.benefit' : "WHERE br.code = '$role' GROUP BY br.code, br.benefit";
+    $query_type = "SELECT GROUP_CONCAT(br.id_template SEPARATOR ',') as id_templates, br.benefit, br.code
+                    FROM benefit_role br
+                    $filter_sql
+                    ";
+    
     $exec_type = mysqli_query($conn, $query_type);
     if (mysqli_num_rows($exec_type) > 0) {
         $types = mysqli_fetch_all($exec_type, MYSQLI_ASSOC);    
     }
-    $matched_ec_default_benefits = ['Kolektif', 'MBMTA', 'FGB', 'RBMG'];
+    
 ?>
 
 <div class="content">
@@ -60,19 +53,12 @@
 
             <div class="bg-whites rounded h-100 p-4 mb-4">
                 <h6 style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
-                <div class="row p-4">
-                    <div class="col-12 mb-4">
+                <div class="row">
+                    <div class="col-md-5 col-12 mb-4">
                         <label for="type">Benefit Type</label>
                         <select class="form-select form-select-sm select2" name="type[]" aria-label="Default select example" multiple>
                             <?php foreach($types as $type) : ?>
-                                <?php if($role == 'ec') : ?>
-                                    <?php 
-                                        $match_found = array_filter($matched_ec_default_benefits, fn($benefit) => stripos($type['subbenefit'], $benefit) !== false);
-                                    ?>
-                                    <option value="<?= $type['id_templates'] ?>" <?= $match_found ? 'selected' : '' ?> ><?= $type['subbenefit'] ?></option>
-                                <?php else : ?>
-                                    <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
-                                <?php endif; ?>
+                                <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
                             <?php endforeach; ?>
                         </select>
                        
@@ -232,7 +218,7 @@
     function getBenefit() {
         let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
-
+        console.log(selectedType, usage_year);
         $.ajax({
             url: './get-confirmed-benefits.php',
             type: 'POST',
