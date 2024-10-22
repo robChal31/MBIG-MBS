@@ -205,13 +205,13 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $subject    = 'Mentari Benefit | Formulir '.$school_name.' sudah disetujui oleh leader';
             $message    = 'Yeay, formulir '.$program.' buat '.$school_name.' sudah disetujui oleh leader! Menunggu persetujuan top leader';
             
-            // if(ISSET($saemail)) {
-            //     $sa_name = explode('@', $saemail)[0];
-            //     $cc[] = [
-            //         'email' => $saemail,
-            //         'name' => $sa_name
-            //     ];
-            // }
+            if(ISSET($saemail)) {
+                $sa_name = explode('@', $saemail)[0];
+                $cc[] = [
+                    'email' => $saemail,
+                    'name' => $sa_name
+                ];
+            }
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
     
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid3."', '0');";
@@ -256,28 +256,28 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $subject = "Yeay, formulir $school_name sudah disetujui!";
             $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>";
             
-            // $cc = [];
-            // if(ISSET($saemail)) {
-            //     $sa_name = explode('@', $saemail)[0];
-            //     $cc[] = [
-            //         'email' => $saemail,
-            //         'name' => $sa_name
-            //     ];
-            // }
-            // $cc[] = [
-            //         'email' => "novitasari@mentaribooks.com",
-            //         'name' => "Novi / Mentaribooks"
-            // ];
+            $cc = [];
+            if(ISSET($saemail)) {
+                $sa_name = explode('@', $saemail)[0];
+                $cc[] = [
+                    'email' => $saemail,
+                    'name' => $sa_name
+                ];
+            }
+            $cc[] = [
+                    'email' => "novitasari@mentaribooks.com",
+                    'name' => "Novi / Mentaribooks"
+            ];
             
-            // $cc[] = [
-            //     'email' => "ar@mentaribooks.com",
-            //     'name' => "AR"
-            // ];
+            $cc[] = [
+                'email' => "ar@mentaribooks.com",
+                'name' => "AR"
+            ];
 
-            // $cc[] = [
-            //     'email' => "secretary@mentaribooks.com",
-            //     'name' => "Putri"
-            // ];
+            $cc[] = [
+                'email' => "secretary@mentaribooks.com",
+                'name' => "Putri"
+            ];
 
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
 
@@ -342,19 +342,19 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     
             $result = mysqli_query($conn, $sql);
     
-            // $cc = [
-            //     [
-            //         'email' => $for_approve_cc_ec,
-            //         'name' => $for_approve_cc_ec_name
-            //     ]
-            // ];
+            $cc = [
+                [
+                    'email' => $for_approve_cc_ec,
+                    'name' => $for_approve_cc_ec_name
+                ]
+            ];
             
-            // while ($dra = $result->fetch_assoc()){   
-            //     $cc[] = [
-            //         'email' => $dra['username'],
-            //         'name' => $dra['generalname']
-            //     ];
-            // }
+            while ($dra = $result->fetch_assoc()){   
+                $cc[] = [
+                    'email' => $dra['username'],
+                    'name' => $dra['generalname']
+                ];
+            }
     
             $email = 'tuankrab31@gmail.com';
             $name = 'Putri';
@@ -384,15 +384,15 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
         $result = $conn->query($approver_query);
         
-        // $cc = [];
-        // if ($result->num_rows > 0) {  
-        //   while ($row = $result->fetch_assoc()) {
-        //     $cc[] = [
-        //         'email' => $row['email'],
-        //         'name' => $row['name']
-        //     ];
-        //   }
-        // }
+        $cc = [];
+        if ($result->num_rows > 0) {  
+          while ($row = $result->fetch_assoc()) {
+            $cc[] = [
+                'email' => $row['email'],
+                'name' => $row['name']
+            ];
+          }
+        }
 
         sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
         $sql = "UPDATE draft_benefit set status = 2, verified = 0 where id_draft = '$id_draft';";
