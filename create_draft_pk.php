@@ -40,7 +40,7 @@
 <?php include 'header.php'; ?>
 
 <?php
-  $id_draft = $_GET['id_draft'];
+  $id_draft     = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : null;
   $email        = '';
   $ecname       = '';
   $id_ec        = '';

@@ -356,7 +356,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                 ];
             }
     
-            $email = 'tuankrab31@gmail.com';
+            $email = 'secretary@mentaribooks.com';
             $name = 'Putri';
     
             $subject = "Program $program di $school_name Telah Berhasil Dikonfirmasi";

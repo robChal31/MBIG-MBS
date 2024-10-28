@@ -95,7 +95,7 @@
                             <select name="program" class="form-select form-select-sm" required>
                               <?php
                                   $programs = [];
-                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0";
+                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0 AND code NOT IN ('cbls1', 'cbls3')";
 
                                   $exec_program = mysqli_query($conn, $query_program);
                                   if (mysqli_num_rows($exec_program) > 0) {

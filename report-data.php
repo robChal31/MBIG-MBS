@@ -51,7 +51,8 @@
     if (mysqli_num_rows($result) > 0) {
         while($row = mysqli_fetch_assoc($result)) {
             $is_exist = array_filter($levels, function($lv) use($row) {
-                return strtoupper($lv) == strtoupper($row['level']);
+                $lvl = $row['level'] ? strtoupper($row['level']) : '';
+                return strtoupper($lv) == $lvl;
             });
             if($is_exist) {
                 $level_label[] = strtoupper($row['level']);
