@@ -84,7 +84,7 @@
                                 $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
                     ?>
                             <tr>
-                                <th scope="row"><?= $row['id_draft'] ?></th>
+                                <th><?= $row['id_draft'] ?></th>
                                 <td><?= $row['generalname'] ?></td>
                                 <td><?= $row['school_name2'] ?></td>
                                 <td><?= ucfirst($row['segment']) ?></td>

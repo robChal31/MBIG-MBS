@@ -53,12 +53,12 @@
         $school_data = json_decode($response, true);
 
         if(count($school_data) > 0) {
-            $school_id_new          = $school_data[0]['institutionid'];
-            $school_name_new        = $school_data[0]['name'];
-            $school_address_new     = $school_data[0]['address'];
-            $school_phone_new       = $school_data[0]['phone'];
-            $school_segment_new     = $school_data[0]['segment'];
-            $school_ec_id_new       = $school_data[0]['ec_id'];
+            $school_id_new              = $school_data[0]['institutionid'];
+            $school_name_new            = $school_data[0]['name'];
+            $school_address_new         = $school_data[0]['address'];
+            $school_phone_new           = $school_data[0]['phone'];
+            $school_segment_new         = $school_data[0]['segment'];
+            $school_ec_id_new           = $school_data[0]['ec_id'];
             $school_created_date_new    = $school_data[0]['created_date'];
 
             $sql = "SELECT * FROM schools WHERE id = $school_id_new";
