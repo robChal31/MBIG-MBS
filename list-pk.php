@@ -60,7 +60,7 @@
                                         <label for="program" class="form-label">Program</label>
                                         <select placeholder="Select Program" name="programs[]" id="program" class="form-control form-control-sm select2" style="background-color: white;" multiple>
                                             <?php foreach ($programs as $program) { ?>
-                                                <option value="<?= trim($program['name']) ?>" <?= in_array($program['name'], $selected_program) ? 'selected' : '' ?>><?= $program['name'] ?></option>
+                                                <option value="<?= trim($program['name']) ?>" <?= !$selected_program ? '' : (in_array($program['name'], $selected_program) ? 'selected' : '') ?>><?= $program['name'] ?></option>
                                             <?php } ?>
                                         </select>
                                     </div>
@@ -126,6 +126,7 @@
                                 $sql .= $start_date ? " AND b.date >= '$start_date' " : '';
                                 $sql .= $end_date ? " AND b.date <= '$end_date' " : '';        
                                 $sql .= " ORDER BY b.date DESC";
+
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");
