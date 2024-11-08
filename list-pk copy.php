@@ -1,32 +1,11 @@
 <?php include 'header.php'; ?>
 <style>
-    table.dataTable tbody td {
-        vertical-align: middle !important;
-    }
-
-    .rotate-icon {
-        transition: transform 0.3s ease;
-    }
-
-    /* Rotate the icon if the collapsible is shown by default */
-    .collapse.show ~ .rotate-icon {
-        transform: rotate(180deg);
-    }
+  table.dataTable tbody td {
+      vertical-align: middle !important;
+  }
 </style>
 <?php 
     $role = $_SESSION['role'];
-    $selected_program = $_POST['programs'] ?? NULL;
-    $start_date = $_POST['start_date'] ?? NULL;
-    $end_date = $_POST['end_date'] ?? NULL;
-
-    $selected_programs_q = $selected_program ? implode("', '", $selected_program) : 'all';
-
-    $programs = [];
-    $programs_q = "SELECT * FROM programs AS program WHERE program.is_active = 1";
-    $programs_exec = mysqli_query($conn, $programs_q);
-    if (mysqli_num_rows($programs_exec) > 0) {
-      $programs = mysqli_fetch_all($programs_exec, MYSQLI_ASSOC);    
-    }
 
 ?>
 
@@ -34,56 +13,9 @@
     <?php include 'navbar.php'; ?>
     <div class="container-fluid p-4">
         <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header bg-primary d-flex justify-content-between align-items-center text-white" data-bs-toggle="collapse" data-bs-target="#collapseCard">
-                   Filter
-                    <i class="fas fa-chevron-down rotate-icon"></i>
-                </div>
-                <div id="collapseCard" class="collapse show">
-                    <div class="card-body">
-                        <form method="POST" action="" id="filterForm">
-                            <div class="row">
-                                <div class="col-md-3 col-12">
-                                    <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">Start Date</label>
-                                        <input type="text" class="form-control dateFilter" name="start_date" placeholder="Select Date" value="<?= $start_date ?>">
-                                    </div>
-                                </div>
-                                <div class="col-md-3 col-12">
-                                    <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">End Date</label>
-                                        <input type="text" class="form-control dateFilter" name="end_date" placeholder="Select Date" value="<?= $end_date ?>">
-                                    </div>
-                                </div>
-                                <div class="col-md-4 col-12">
-                                    <div class="mb-3">
-                                        <label for="program" class="form-label">Program</label>
-                                        <select placeholder="Select Program" name="programs[]" id="program" class="form-control form-control-sm select2" style="background-color: white;" multiple>
-                                            <?php foreach ($programs as $program) { ?>
-                                                <option value="<?= trim($program['name']) ?>" <?= in_array($program['name'], $selected_program) ? 'selected' : '' ?>><?= $program['name'] ?></option>
-                                            <?php } ?>
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                           
-                            
-                            <div class="d-flex justify-content-end px-4">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
-                            </div>
-
-                        </form>
-                 
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-12">
             
             <div class="bg-whites rounded h-100 p-4">
-                <h6 class="mb-4">Agreement List</h6>    
-            
+                <h6 class="mb-4">Agreement List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">
                         <thead>
@@ -121,11 +53,7 @@
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.confirmed = 1 AND b.deleted_at IS NULL ";
-                                $sql .= $selected_program ? " AND b.program IN ('$selected_programs_q') " : '';
-                                $sql .= $start_date ? " AND b.date >= '$start_date' " : '';
-                                $sql .= $end_date ? " AND b.date <= '$end_date' " : '';        
-                                $sql .= " ORDER BY b.date DESC";
+                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.confirmed = 1 AND b.deleted_at IS NULL ORDER BY b.id_draft DESC";
 
                                 $result = mysqli_query($conn, $sql);
                                 setlocale(LC_MONETARY,"id_ID");
@@ -251,24 +179,8 @@
         });
     })
 
-    flatpickr(".dateFilter", {
-        dateFormat: "Y-m-d",
-        allowInput: true,
-    });
-
     $(document).ready(function() {
-        const element = document.getElementById('program');
-        const choices = new Choices(element, {
-            placeholder: true,
-            placeholderValue: 'Select Program',
-            searchEnabled: true,
-            removeItemButton: true
-        });
-
-        document.querySelector('.card-header').addEventListener('click', function () {
-            this.classList.toggle('collapsed');
-        });
-
+    
     })
 
     $(document).on('click', '.close', function() {
