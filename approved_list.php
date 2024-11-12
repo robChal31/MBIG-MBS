@@ -78,30 +78,31 @@
                                             </td>
                                             <td scope='col'>
 
-                                                <?php if($row['status'] == 1 && $role == 'sa' && $row['pk_id'] == null && $row['verified'] == 0) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
-                                                <?php }else if($row['status'] == 1 && $row['pk_id']) { ?>
-                                                    <?php if($role == 'sa' && $row['verified'] == 0) { ?>
-                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
-                                                    <?php }else { ?>
-                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='view' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fas fa-eye'></i></span>
+                                                <div class="d-flex gap-1">
+                                                    <?php if($row['status'] == 1 && $role == 'sa' && $row['pk_id'] == null && $row['verified'] == 0) { ?>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
+                                                    <?php }else if($row['status'] == 1 && $row['pk_id']) { ?>
+                                                        <?php if($role == 'sa' && $row['verified'] == 0) { ?>
+                                                            <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                                        <?php }else { ?>
+                                                            <span data-id="<?= $row['id_draft'] ?>" data-action='view' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fas fa-eye'></i></span>
+                                                        <?php } ?>
                                                     <?php } ?>
-                                                <?php } ?>
 
-                                                <!-- <?php if($row['verified'] == 0 && $id_user == 70 && $row['file_pk']) {?>
-                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
-                                                <?php } ?> -->
+                                                    <!-- <?php if($row['verified'] == 0 && $id_user == 70 && $row['file_pk']) {?>
+                                                        <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
+                                                    <?php } ?> -->
 
-                                                <?php if($id_user == 70 && $row['verified'] == 0 && $row['pk_id']) { ?>
-                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
+                                                    <?php if($id_user == 70 && $row['verified'] == 0) { ?>
+                                                        <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
 
-                                                    <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-1 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
-                                                <?php } ?>
+                                                        <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-1 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
+                                                    <?php } ?>
 
-                                                <?php if($id_user == 5 && $row['verified'] == 1) { ?>
-                                                    <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Confirm'><i class='fas fa-fingerprint'></i></a>
-                                                <?php } ?>
-                                               
+                                                    <?php if($id_user == 5 && $row['verified'] == 1) { ?>
+                                                        <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Confirm'><i class='fas fa-fingerprint'></i></a>
+                                                    <?php } ?>
+                                                </div>
                                             </td>
                                         </tr>
                                <?php     }

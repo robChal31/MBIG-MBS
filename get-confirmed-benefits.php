@@ -112,15 +112,17 @@
                                     <td class="text-center"><?= $benefit['qty3'] ?></td>
                                     <td class="text-center"><?= $benefit['tot_usage3'] ?? 0?></td>
                                     <td scope='col' >
-                                        <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
-                                        
-                                        <?php if($benefit['confirmed'] == 1) : ?>
-                                            <?php if(($_SESSION['role'] == "ec" && $benefit['redeemable'] == 1) || $_SESSION['role'] != "ec") : ?>
-                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
-                                            <?php endif; ?>
+                                       <div class="d-flex gap-1">
+                                            <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
+                                            
+                                            <?php if($benefit['confirmed'] == 1) : ?>
+                                                <?php if(($_SESSION['role'] == "ec" && $benefit['redeemable'] == 1) || $_SESSION['role'] != "ec") : ?>
+                                                    <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
+                                                <?php endif; ?>
 
-                                            <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
-                                        <?php endif; ?>
+                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+                                            <?php endif; ?>
+                                       </div>
                                     </td>
                                 </tr>
                         <?php } ?>
