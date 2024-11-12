@@ -120,9 +120,11 @@
     if(!$save_as_draft) {
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setCellValue('A2', 'FORM PERHITUNGAN HARGA DAN BENEFIT');
+        $sheet->setCellValue('A2', 'PERHITUNGAN HARGA DAN BENEFIT');
+        // $sheet->setCellValue('A2', 'FORM PERHITUNGAN HARGA DAN BENEFIT');
         $sheet->mergeCells('A2:J2');
-        $sheet->setCellValue('A3', 'PROGRAM COMPETENCY BASED LEARNING SOLUTION (CBLS ) 2023');
+        // $sheet->setCellValue('A3', 'PROGRAM COMPETENCY BASED LEARNING SOLUTION (CBLS ) 2023');
+        $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program));
         $sheet->mergeCells('A3:J3');
         $sheet->setCellValue('A4', 'TAHUN AJARAN');
         $sheet->mergeCells('A4:J4');

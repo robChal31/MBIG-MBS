@@ -63,6 +63,9 @@
                                         if($_SESSION['role'] == 'ec'){
                                             $sql.=" AND (a.id_ec = $id_user or b.leadId = $id_user or b.leadId2 = $id_user or b.leadId3 = $id_user)";
                                         }
+
+                                        $sql .= " AND NOT (status IN (2) AND a.program IN ('cbls1', 'cbls3'))";
+
                                         $sql .= $order_by;
                                         
                                         $result = mysqli_query($conn, $sql);

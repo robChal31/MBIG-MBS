@@ -22,13 +22,13 @@
                             <tr>
                                 <th>No</th>
                                 <th>No PK</th>
-                                <th scope="col" style="width:10%">EC</th>
-                                <th scope="col" style="width: 20%">School Name</th>
-                                <th scope="col">Name</th>
-                                <th scope="col">Position</th>
-                                <th scope="col">Phone No</th>
-                                <th scope="col">Email</th>
-                                <th scope="col">Action</th>
+                                <th>EC</th>
+                                <th>School Name</th>
+                                <th>Name</th>
+                                <th>Position</th>
+                                <th>Phone No</th>
+                                <th>Email</th>
+                                <th style="width:30% !important">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -68,14 +68,16 @@
                                             <td><?= $row['no_tlp'] ?></td>
                                             <td><?= $row['email'] ?></td>
                                             <td scope='col'>
-                                                <?php if(!$row['name']) { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-success btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Add'><i class='fa fa-plus'></i></span>
-                                                <?php } else { ?>
-                                                    <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fa fa-pen'></i></span>
-                                                <?php } ?>
-                                               <?php if($row['is_pk']) : ?>
-                                                    <a href='https://mentaripartner.com' target="_blank" data-toggle='tooltip' title='Qty manfaat PK3 akan di refiil di bulan Juli setiap tahun hingga berakhir kerjasama'><img style="width: 50px" class="img-fluid rounded shadow" src="img/mpp.jfif" alt=""></a>
-                                                <?php endif; ?>
+                                                <div class="d-flex align-items-center">
+                                                    <?php if(!$row['name']) { ?>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-success btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Add'><i class='fa fa-plus'></i></span>
+                                                    <?php } else { ?>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='picAct' data-bs-toggle='modal' data-bs-target='#picModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fa fa-pen'></i></span>
+                                                    <?php } ?>
+                                                    <?php if($row['is_pk']) : ?>
+                                                        <a href='https://mentaripartner.com' target="_blank" data-toggle='tooltip' title='Qty manfaat PK3 akan di refiil di bulan Juli setiap tahun hingga berakhir kerjasama'><img style="width: 50px" class="img-fluid rounded shadow" src="img/mpp.jfif" alt=""></a>
+                                                    <?php endif; ?>
+                                                </div>
                                             </td>
                                         </tr>
                                <?php     }
