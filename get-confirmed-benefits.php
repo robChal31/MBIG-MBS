@@ -30,7 +30,7 @@
     $query_benefits = "SELECT * 
                         FROM (
                             SELECT 
-                                db.*, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable,
+                                db.*, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
                                 IFNULL(sc.name, db.school_name) AS school_name2,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
@@ -49,12 +49,14 @@
                             LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
                             LEFT JOIN pk p ON p.benefit_id = db.id_draft
                             LEFT JOIN schools sc ON sc.id = db.school_name
+                            LEFT JOIN user ec ON ec.id_user = db.id_ec
                             WHERE db.verified = 1
                             $query_selected_type
                             $query_role
                         ) AS tab $query_selected_usage_year;";
 
     $exec_benefits = mysqli_query($conn, $query_benefits);
+
     if (mysqli_num_rows($exec_benefits) > 0) {
         $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);    
     }
@@ -69,6 +71,7 @@
                             <th style="width: 4%">No PK</th>
                             <th>Jenis Program</th>
                             <th>School</th>
+                            <th>EC Name</th>
                             <th scope="col">Benefit</th>
                             <th style="width: 4%" scope="col">Sub Benefit</th>
                             <!-- <th scope="col" style="width: 30%">Description</th> -->
@@ -99,6 +102,7 @@
                                     <td><?= $benefit['no_pk'] ?></td>
                                     <td><?= strtoupper($benefit['program']) ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
+                                    <td><?= $benefit['generalname'] ?></td>
                                     <td><?= $benefit['benefit'] ?></td>
                                     <td><?= $benefit['subbenefit'] ?></td>
                                     <!-- <td><?= $benefit['description'] ?></td> -->
