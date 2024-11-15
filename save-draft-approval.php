@@ -58,7 +58,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         
     } catch (Exception $e) {
         $_SESSION['toast_status'] = "Error";
-        $_SESSION['toast_msg'] = "Failed send e-mail to $email";
+        $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
         header('Location: ./draft-approval-list.php');
         exit();
     }
@@ -81,7 +81,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
     $status_msg = $status == 1 ? 'Approve' : 'Reject';
 
-    $url_redirect = $approver_id == 70 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
+    $url_redirect = $approver_id == 70 || $approver_id == 5 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
 
     date_default_timezone_set('Asia/Jakarta');
     $current_time = date('Y-m-d H:i:s');
@@ -342,11 +342,9 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     
             $result = mysqli_query($conn, $sql);
     
-            $cc = [
-                [
-                    'email' => $for_approve_cc_ec,
+            $cc[] = [
+                    'email' => $for_approve_cc_ec_email,
                     'name' => $for_approve_cc_ec_name
-                ]
             ];
             
             while ($dra = $result->fetch_assoc()){   
@@ -404,10 +402,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     
     $_SESSION['toast_status']   = "Success";
     $_SESSION['toast_msg']      = "Berhasil $status_msg Draft Benefit";
-    if($approver_id == 70 || $approver_id == 5) {
-        header('Location: ./approved_list.php');
-    }else {
-        header($url_redirect);
-    }
+    header($url_redirect);
 
     exit();
