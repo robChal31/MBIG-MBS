@@ -80,7 +80,7 @@ if ($result->num_rows > 0) {
             <tr>
                 <td><strong>File Draft Benefit</strong></td>
                 <td>:</td>
-                <td><a _blank="true" href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip"></i> Document</a></td>
+                <td><a _blank="true" href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="fa fa-paperclip"></i> Document</a></td>
             </tr>
             <tr>
                 <td><strong>MPP Website</strong></td>

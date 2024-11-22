@@ -93,7 +93,29 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
   .txt-area:hover {
     height: 200px;
   }
-  
+
+    /* Style the dropdown options */
+  .select2-container .select2-dropdown {
+    width: 50vw !important; /* Set the dropdown's overall width */
+  }
+
+  .select2-container .select2-results__option {
+      white-space: nowrap; /* Prevent text wrapping */
+      max-width: 50vw; /* Limit the width of each option */
+      overflow: hidden; /* Hide overflowing text */
+      text-overflow: ellipsis; /* Add ellipsis to overflowed text */
+  }
+
+/* Optional styling for the optgroup label */
+.select2-optgroup-label {
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Initially hide the options inside the optgroup */
+.select2-results__options optgroup {
+    display: none;
+}
 
 </style>
 
@@ -134,7 +156,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
                           <thead>
                               <td>Benefit</td>
                               <td>Sub Benefit</td>
-                              <td>Nama Benefit</td>
+                              <td style="width:15%">Nama Benefit</td>
                               <td>Deskripsi</td>
                               <td style="min-width:100px">Nilai Benefit</td>
                               <td>Pelaksanaan</td>
@@ -528,6 +550,18 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
         success: function(data) {
           var dropdown = $('#' + rowId + ' select');
           dropdown.html(data);
+          $('#' + rowId + ' select').select2({
+            placeholder: 'Select a benefit',
+            templateResult: formatGroupItems,
+            closeOnSelect: false,
+          });
+
+          $(document).on('mouseenter', '.select2-results__option', function () {
+              const title = $(this).attr('title');
+              if (title) {
+                  $(this).tooltip({ title, placement: 'top' }).tooltip('show');
+              }
+          });
         },
         error: function(xhr, status, error) {
           console.log('error', error);
@@ -536,6 +570,42 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
         }
       });
     }
+
+    // Custom function to format the group items and make them clickable
+    function formatGroupItems(data) {
+
+      if (data.element && data.element.tagName === 'OPTGROUP') {
+          return $(`<div class="select2-optgroup-label" style=" color: #333; padding: 5px; cursor: pointer;">
+                      <b>${data.text}</b>
+                  </div>`);
+      }
+
+      if (data.element && data.element.tagName === 'OPTION') {
+        let colorHighlight = $(data.element).attr('data-color'); 
+        if(colorHighlight) {
+          console.log('Option xx:', colorHighlight);
+          return $(`<span style="background-color: #${colorHighlight}; padding: 5px; color: white">${data.text}</span>`);
+        }
+
+        // You can use this value to customize how each option is rendered
+        // return $(`<span style="display: block; background-color: #f5f5f5; padding: 5px; color: blue;">${data.text}</span> - ${colorHighlight}`);
+        
+      }
+
+      return data.text;
+    }
+
+    // Add event listener to toggle groups when clicking on the group label
+    $(document).on('click', '.select2-optgroup-label', function (e) {
+        const $group = $(this).closest('.select2-results__group');
+        $group.nextUntil('.select2-results__group').toggle(); // Hide/show options
+        e.stopPropagation(); // Prevent dropdown close
+    });
+
+    // Additional event listener for when options in a group are shown
+    $(document).on('click', '.select2-results__group', function () {
+        $(this).find('.select2-results__options').toggle(); // Show or hide options on group click
+    });
 
     populateDropdown('row' + <?= $current_row ?>);
     $('#submt').prop('disabled', true);

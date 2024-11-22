@@ -45,6 +45,13 @@ $value          = str_replace(".", "", $value);
 $optional       = $_POST['optional'] ?? 0;
 $subject        = $_POST['subject'] ?? NULL;
 $redeemable     = $_POST['redeemable'] ?? 0;
+$order          = $_POST['benefit_order'] ?? 1000;
+$color          = $_POST['highlight_color'] ?? NULL;
+$info           = $_POST['info'] ?? NULL;
+
+if ($avail == '' || !is_array($avail) || count($avail) == 0) {
+    error_json("Please select at least one availability");
+}
 
 $avail = implode(" ", $avail);
 
@@ -72,7 +79,7 @@ try {
 
     if ($is_template_exist) {
         $sql = "UPDATE draft_template_benefit 
-                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable'
+                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable', benefit_order = '$order', highlight_color = '$color', info = '$info'
                 WHERE id_template_benefit = '$id_template'";
 
         if (!$conn->query($sql)) {
@@ -84,8 +91,8 @@ try {
             error_json('Query failed: ' . $conn->error);
         }
     } else {
-        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable) VALUES (
-            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable')";
+        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable, benefit_order, highlight_color, info) VALUES (
+            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable', '$order', '$color', '$info')";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

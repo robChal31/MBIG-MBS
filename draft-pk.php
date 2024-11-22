@@ -86,7 +86,7 @@
                                                     </td>
                                                     <td scope="col">
                                                         <?php if($row['fileUrl']) { ?>
-                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="bi bi-paperclip me-1"></i></a>
+                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="fa fa-paperclip me-1"></i></a>
                                                         <?php } ?>
                                                         <?php 
                                                             if($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')){ ?>

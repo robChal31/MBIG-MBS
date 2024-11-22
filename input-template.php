@@ -57,7 +57,7 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Avail Code</label>
-                    <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple>
+                    <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple required>
                         <?php foreach($programs as $prog) { ?>
                             <option value="<?= $prog['code'] ?>" <?= strpos(($template['avail'] ?? ''), $prog['code']) !== false ? 'selected' : '' ?>><?= $prog['name'] ?></option>
                         <?php } ; ?>
@@ -121,6 +121,29 @@ if (mysqli_num_rows($program_exec) > 0) {
                         <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
                         <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
                     </select>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Order</label>
+                    <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
+                    <input type="number" name="benefit_order" class="form-control form-control-sm" value="<?= $template['benefit_order'] ?? '' ?>" placeholder="benefit order..." required>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Highlight Color</label>
+                    <select name="highlight_color" id="highlight_color" class="form-control form-control-sm bg-white ">
+                        <option value="" disabled selected>--Select Highlight Color --</option>
+                        <option value="8338ec" <?= ($template['highlight_color'] ?? '') == '8338ec' ? 'selected' : '' ?> style="color: #8338ec">Purple</option>
+                        <option value="ff006e" <?= ($template['highlight_color'] ?? '') == 'ff006e' ? 'selected' : '' ?> style="color: #ff006e">Red</option>
+                        <option value="fb5607" <?= ($template['highlight_color'] ?? '') == 'fb5607' ? 'selected' : '' ?> style="color: #fb5607">Orange</option>
+                        <option value="3a86ff" <?= ($template['highlight_color'] ?? '') == '3a86ff' ? 'selected' : '' ?> style="color: #3a86ff">Blue</option>
+                    </select>
+                </div>
+
+                <div class="col-12 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Info</label>
+                    <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
+                    <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info..." required>
                 </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">

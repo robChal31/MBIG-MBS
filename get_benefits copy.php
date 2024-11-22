@@ -9,7 +9,7 @@
     }
 
     $program = $_POST['program'];
-    $selected_template = $_POST['selectedTemplate'] ?? NULL;
+    $selected_template = $_POST['selectedTemplate'];
     $selected = $_POST['selected'] ?? NULL;
     
     $query_program = "SELECT code FROM programs WHERE name = '$program' AND is_active = 1 LIMIT 1";
@@ -37,34 +37,21 @@
         // $sql = 'SELECT * FROM `draft_template_benefit` order by benefit,subbenefit,benefit_name asc';
         $result = $conn->query($sql);
         
-        $grouped_benefits = [];
+  
         if ($result->num_rows > 0) {
-
+          $options .= "<option value=''>Select Benefit</option>";
           $number = 1;
           while ($row = $result->fetch_assoc()) {
-            $grouped_benefits[$row['benefit']][$number] = $row;
-            $number++;
-          }
-
-          $options .= "<option value=''>Select Benefit</option>";
-
-          foreach ($grouped_benefits as $key => $grouped_benefit) {
-            $options .= "<optgroup label='$key'>";
-            foreach ($grouped_benefit as $key => $benefit) {
-              $option = $benefit['benefit_name'];
-              $is_selected = '';
-              if($selected) {
-                $is_selected = $selected == $benefit['id_template_benefit'] ? 'selected' : '';
-              }
-              $id_template = $benefit['id_template_benefit'];
-              $benefit_group = $benefit['benefit'];
-              $subbenefit = $benefit['subbenefit'];
-              $info = $benefit['info'] ? "data-bs-toggle='tooltip' title='$benefit[info]'" : '';
-              $highlight_color = $benefit['highlight_color'] ? "data-color='$benefit[highlight_color]'" : '';
-              $options .= "<option value='$id_template' $is_selected $info $highlight_color >$benefit_group - $subbenefit - $option</option>";
-  
+            $option = $row['benefit_name'];
+            if($selected) {
+              $is_selected = $selected == $row['id_template_benefit'] ? 'selected' : '';
             }
-            $options .= "</optgroup>";
+            $id_template = $row['id_template_benefit'];
+            $benefit = $row['benefit'];
+            $subbenefit = $row['subbenefit'];
+            $options .= "<option value='$id_template' $is_selected data-bs-toggle='tooltip' title='This is option 1'>$benefit - $subbenefit - $option</option>";
+            // $options .= "<option value='".$row['id_template_benefit']."' ". $is_selected .">".$row['benefit']." - ".$row['subbenefit']." - ".$option."</option>";
+            $number++;
           }
           $conn->close();
       
