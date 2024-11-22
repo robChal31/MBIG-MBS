@@ -96,26 +96,27 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
 
     /* Style the dropdown options */
   .select2-container .select2-dropdown {
-    width: 50vw !important; /* Set the dropdown's overall width */
+    width: 60vw !important; /* Set the dropdown's overall width */
   }
 
   .select2-container .select2-results__option {
-      white-space: nowrap; /* Prevent text wrapping */
-      max-width: 50vw; /* Limit the width of each option */
-      overflow: hidden; /* Hide overflowing text */
-      text-overflow: ellipsis; /* Add ellipsis to overflowed text */
+      /* white-space: nowrap; 
+      overflow: hidden; 
+      text-overflow: ellipsis;  */
+      max-width: 60vw; 
+      font-size: 14px;
   }
 
-/* Optional styling for the optgroup label */
-.select2-optgroup-label {
-    font-weight: bold;
-    cursor: pointer;
-}
+  /* Optional styling for the optgroup label */
+  .select2-optgroup-label {
+      font-weight: bold;
+      cursor: pointer;
+  }
 
-/* Initially hide the options inside the optgroup */
-.select2-results__options optgroup {
-    display: none;
-}
+  /* Initially hide the options inside the optgroup */
+  .select2-results__options optgroup {
+      display: none;
+  }
 
 </style>
 
@@ -387,7 +388,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
             row.find('input[name="valuedefault[]"]').val(data[0].valueMoney);
             row.find('input[name="valben[]"]').val(formatNumber(data[0].valueMoney));
             var program = '<?= $program ?>';
-            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name==="input manual" || data[0].benefit_name==="Dana Pengembangan" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah"){
+            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name==="input manual" || data[0].benefit_name==="Dana Pengembangan" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
 
               row.find('input[name="valben[]"]').prop("readonly", false);
             }else{
@@ -583,7 +584,6 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
       if (data.element && data.element.tagName === 'OPTION') {
         let colorHighlight = $(data.element).attr('data-color'); 
         if(colorHighlight) {
-          console.log('Option xx:', colorHighlight);
           return $(`<span style="background-color: #${colorHighlight}; padding: 5px; color: white">${data.text}</span>`);
         }
 

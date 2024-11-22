@@ -28,11 +28,16 @@ function sanitize_input($conn, $input) {
     return mysqli_real_escape_string($conn, str_replace(["&#13;", "&#10;"], ["\r", "\n"], $input));
 }
 
-$id_program = sanitize_input($conn, $_POST['id_program']);
-$name = sanitize_input($conn, $_POST['name']);
-$code = sanitize_input($conn, $_POST['code']);
-$is_pk = $_POST['is_pk'];
+$id_program     = sanitize_input($conn, $_POST['id_program']);
+$name           = sanitize_input($conn, $_POST['name']);
+$code           = sanitize_input($conn, $_POST['code']);
+$code           = trim($code);
+$is_pk          = $_POST['is_pk'];
+$is_classified  = $_POST['is_classified'] ?? 1;
 
+if (preg_match('/\s/', $code)) {
+    error_json('Program code cannot contain spaces.');
+}
 
 try {
     $program_exist_query = "SELECT * FROM programs WHERE id = '$id_program'";
@@ -63,7 +68,7 @@ try {
         }
 
         $sql = "UPDATE programs 
-                    SET name = '$name', code = '$code', is_pk = '$is_pk', updated_at = NOW()
+                    SET name = '$name', code = '$code', is_pk = '$is_pk', updated_at = NOW(), is_classified = '$is_classified'
                 WHERE id = '$id_program'";
 
         if (!$conn->query($sql)) {
@@ -107,8 +112,8 @@ try {
         if ($is_program_code_exist_exec->num_rows > 0) {
             error_json('Program code already exists.');
         }
-        $sql = "INSERT INTO programs (name, code, is_pk, created_at) VALUES (
-            '$name', '$code', '$is_pk', NOW())";
+        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified) VALUES (
+            '$name', '$code', '$is_pk', NOW(), '$is_classified')";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

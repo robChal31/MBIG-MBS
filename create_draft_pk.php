@@ -199,7 +199,7 @@
                               <option value="">-- Select Program --</option>
                               <?php
                                   $programs = [];
-                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";
+                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";          
 
                                   $exec_program = mysqli_query($conn, $query_program);
                                   if (mysqli_num_rows($exec_program) > 0) {

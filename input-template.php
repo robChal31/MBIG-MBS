@@ -140,10 +140,19 @@ if (mysqli_num_rows($program_exec) > 0) {
                     </select>
                 </div>
 
-                <div class="col-12 mb-3">
+                <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Info</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
-                    <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info..." required>
+                    <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info...">
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Manual Input Value</label>
+                    <select name="manual_input" id="manual_input" class="form-control form-control-sm bg-white" required>
+                        <option value="" disabled selected>--Select --</option>
+                        <option value="1" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
+                        <option value="0" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >No</option>
+                    </select>
                 </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">
