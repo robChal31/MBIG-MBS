@@ -86,11 +86,14 @@
     $ecs = mysqli_fetch_all($ec_exec, MYSQLI_ASSOC);    
   }
 
+  $role = $_SESSION['role'];
+
   $programs = [];
+  $query_admin = $role == 'admin' ? '' : " AND program.is_classified = 0";
   $query_program = "SELECT program.*, IFNULL(category.name, 'Unset') as category
                       FROM programs as program
                       LEFT JOIN program_categories as category on category.id = program.program_category_id
-                      WHERE is_active = 1 AND is_pk = 1";          
+                      WHERE program.is_active = 1 AND program.is_pk = 1 $query_admin ";          
 
   $exec_program = mysqli_query($conn, $query_program);
   if (mysqli_num_rows($exec_program) > 0) {
