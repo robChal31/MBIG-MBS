@@ -1,3 +1,4 @@
+<?php include 'header.php'; ?>
 <style>
     select {
         max-width: 400px;
@@ -37,7 +38,6 @@
     }
 </style>
 
-<?php include 'header.php'; ?>
 
 <?php
   $id_draft     = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : null;
@@ -84,6 +84,23 @@
   $ec_exec = mysqli_query($conn, $ecs_q);
   if (mysqli_num_rows($ec_exec) > 0) {
     $ecs = mysqli_fetch_all($ec_exec, MYSQLI_ASSOC);    
+  }
+
+  $programs = [];
+  $query_program = "SELECT program.*, IFNULL(category.name, 'Unset') as category
+                      FROM programs as program
+                      LEFT JOIN program_categories as category on category.id = program.program_category_id
+                      WHERE is_active = 1 AND is_pk = 1";          
+
+  $exec_program = mysqli_query($conn, $query_program);
+  if (mysqli_num_rows($exec_program) > 0) {
+      $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
+  }
+
+  $grouped_programs = [];
+
+  foreach($programs as $prog) {
+    $grouped_programs[$prog['category']][] = $prog;
   }
 
 ?>
@@ -197,18 +214,13 @@
                           <td>
                             <select name="program" class="form-select form-select-sm select2" required id="program" required style="width: 100%;">
                               <option value="">-- Select Program --</option>
-                              <?php
-                                  $programs = [];
-                                  $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";          
-
-                                  $exec_program = mysqli_query($conn, $query_program);
-                                  if (mysqli_num_rows($exec_program) > 0) {
-                                      $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
-                                  }
-
-                                  foreach($programs as $prog) : ?>
-                                    <option value="<?= $prog['name'] ?>" <?= strtolower($prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $prog['name'] ?></option>
-                            <?php endforeach; ?>
+                                <?php foreach($grouped_programs as $key => $grouped_program) { ?>
+                                  <optgroup label="<?= $key ?>">
+                                    <?php foreach($grouped_program as $g_prog) { ?>
+                                          <option value="<?= $g_prog['name'] ?>" <?= strtolower($g_prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $g_prog['name'] ?></option>
+                                    <?php }; ?>
+                                  </optgroup>
+                                <?php }; ?>
                             </select>
                           </td>
                         </tr>
@@ -229,6 +241,12 @@
     $(document).ready(function(){
 
       $('.select2').select2();
+
+      $('#program').select2({
+        placeholder: 'Select a Program',
+        templateResult: formatGroupItems,
+        closeOnSelect: false,
+      });
 
       $("select[name='level']").on('change', function() {
         let value = $(this).val();
@@ -305,6 +323,28 @@
         });
       })
 
+      function formatGroupItems(data) {
+
+        if (data.element && data.element.tagName === 'OPTGROUP') {
+            return $(`<div class="select2-optgroup-label" style=" color: #333; padding: 5px; cursor: pointer;">
+                        <b>${data.text}</b>
+                    </div>`);
+        }
+        return data.text;
+      }
+
+    });
+
+    // Add event listener to toggle groups when clicking on the group label
+    $(document).on('click', '.select2-optgroup-label', function (e) {
+      const $group = $(this).closest('.select2-results__group');
+      $group.nextUntil('.select2-results__group').toggle(); // Hide/show options
+      e.stopPropagation(); // Prevent dropdown close
+    });
+
+    // Additional event listener for when options in a group are shown
+    $(document).on('click', '.select2-results__group', function () {
+        $(this).find('.select2-results__options').toggle(); // Show or hide options on group click
     });
 
 </script>

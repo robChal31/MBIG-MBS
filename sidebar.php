@@ -46,6 +46,9 @@ $last_path_with_query;
                             <a class="nav-link <?= $last_path_with_query == 'books.php' ? "active" : '' ?>" href="books.php"><i class="fas fa-book"></i> Books</a>
                         </li>
                         <li>
+                            <a class="nav-link <?= $last_path_with_query == 'program_categories.php' ? "active" : '' ?>" href="program_categories.php"><i class="fas fa-file-alt"></i> Program Categories</a>
+                        </li>
+                        <li>
                             <a class="nav-link <?= $last_path_with_query == 'programs.php' ? "active" : '' ?>" href="programs.php"><i class="fas fa-graduation-cap"></i> Programs</a>
                         </li>
                         <li>

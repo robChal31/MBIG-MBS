@@ -61,14 +61,11 @@
   }
 
   
-  $programs = [];
-  $programs_q = "SELECT program.*, cat.name as category 
-                  FROM programs AS program 
-                  LEFT JOIN program_categories as cat on cat.id = program.program_category_id
-                  WHERE program.is_active = 1";
-  $programs_exec = mysqli_query($conn, $programs_q);
-  if (mysqli_num_rows($programs_exec) > 0) {
-    $programs = mysqli_fetch_all($programs_exec, MYSQLI_ASSOC);    
+  $program_categories = [];
+  $program_categories_q = "SELECT * FROM program_categories AS program WHERE program.deleted_at IS NULL";
+  $program_categories_exec = mysqli_query($conn, $program_categories_q);
+  if (mysqli_num_rows($program_categories_exec) > 0) {
+    $program_categories = mysqli_fetch_all($program_categories_exec, MYSQLI_ASSOC);    
   }
     
 ?>
@@ -82,10 +79,10 @@
                   <div class="bg-whites rounded h-100 p-4">
                     <div class="d-flex justify-content-between">
                       <div class="">
-                        <h6 class="mb-4">Programs</h6>
+                        <h6 class="mb-4">Program Categories</h6>
                       </div>
                       <div class="">
-                        <button type="button" class="btn btn-primary btn-sm" data-action="create" data-bs-toggle="modal" data-bs-target="#programModal" id="add_program">Add Program</button>
+                        <button type="button" class="btn btn-primary btn-sm" data-action="create" data-bs-toggle="modal" data-bs-target="#programCategoryModal" id="add_program">Add Program Category</button>
                       </div>
                     </div>
                     <div class="table-responsive">
@@ -93,30 +90,24 @@
                           <thead>
                               <tr>
                                   <th style="width: 5%;">Id</th>
-                                  <th scope="col">Code</th>
                                   <th scope="col">Name</th>
-                                  <th scope="col">Category</th>
-                                  <th scope="col">Is PK</th>
                                   <th scope="col">Created at</th>
                                   <th scope="col">Updated at</th>
                                   <th scope="col">Action</th>
                               </tr>
                           </thead>
                           <tbody>
-                             <?php $no = 1; foreach($programs as $program) { ?>
+                             <?php $no = 1; foreach($program_categories as $program_category) { ?>
                                 <tr>
                                     <td class="text-center"><?= $no ?></td>
-                                    <td class="text-start"><?= $program['code'] ?></td>
-                                    <td class="text-start"><?= $program['name'] ?></td>
-                                    <td class="text-start"><?= $program['category'] ?? 'None' ?></td>
-                                    <td class="text-start"><?= $program['is_pk'] ? "<span><i class='fa fa-check'></i></span>" : '' ?></td>
-                                    <td class="text-start"><?= $program['created_at'] ?></td>
-                                    <td class="text-start"><?= $program['updated_at'] ?></td>
+                                    <td class="text-start"><?= $program_category['name'] ?></td>
+                                    <td class="text-start"><?= $program_category['created_at'] ?></td>
+                                    <td class="text-start"><?= $program_category['updated_at'] ?></td>
                                     <td class="text-center">
-                                      <span data-id="<?= $program['id'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#programModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                      <span data-id="<?= $program_category['id'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#programCategoryModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
 
                                       <?php if($_SESSION['role'] == "admin") { ?>
-                                        <span data-id="<?= $program['id'] ?>" class='del-prog btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
+                                        <span data-id="<?= $program_category['id'] ?>" class='del-prog btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
                                       <?php } ?>
                                     </td>
                             <?php $no++; } ?>
@@ -129,16 +120,16 @@
       </div>
       <!-- Form End -->
 
-      <div class="modal fade" id="programModal" tabindex="-1" role="dialog" aria-labelledby="programModalLabel" aria-hidden="true" data-backdrop="static">
+      <div class="modal fade" id="programCategoryModal" tabindex="-1" role="dialog" aria-labelledby="programCategoryModalLabel" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="programModalLabel">Modal title</h5>
+                <h5 class="modal-title" id="programCategoryModalLabel">Modal title</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="programModalBody">
+            <div class="modal-body" id="programCategoryModalBody">
                 Loading...
             </div>
             </div>
@@ -152,47 +143,47 @@
 
       $('.select2').select2();
 
-      var programModal = document.getElementById('programModal');
-      programModal.addEventListener('show.bs.modal', function (event) {
+      var programCategoryModal = document.getElementById('programCategoryModal');
+      programCategoryModal.addEventListener('show.bs.modal', function (event) {
           var rowid = event.relatedTarget.getAttribute('data-id')
           let action = event.relatedTarget.getAttribute('data-action');
 
-          var modalTitle = programModal.querySelector('.modal-title')
+          var modalTitle = programCategoryModal.querySelector('.modal-title')
           modalTitle.textContent = action == 'create' ?  "Create Program" : "Edit Program";
          
           $.ajax({
-              url: 'input-program.php',
+              url: 'input-program-category.php',
               type: 'POST',
               data: {
-                id_program: rowid,
+                id_program_category: rowid,
               },
               success: function(data) {
-                  $('#programModalBody').html(data);
+                  $('#programCategoryModalBody').html(data);
                   $('.select2').select2({
-                    dropdownParent: $('#programModal')
+                    dropdownParent: $('#programCategoryModal')
                   });
               }
           });
       })
 
-      var addProgramModal = document.getElementById('add_program');
-      addProgramModal.addEventListener('show.bs.modal', function (event) {
+      var addprogramCategoryModal = document.getElementById('add_program');
+      addprogramCategoryModal.addEventListener('show.bs.modal', function (event) {
           var rowid = 0;
           let action = event.relatedTarget.getAttribute('data-action');
 
-          var modalTitle = addProgramModal.querySelector('.modal-title')
+          var modalTitle = addprogramCategoryModal.querySelector('.modal-title')
           modalTitle.textContent = action == 'create' ?  "Create Program" : "Edit Program";
          
           $.ajax({
-              url: 'input-program.php',
+              url: 'input-program-category.php',
               type: 'POST',
               data: {
-                id_program: rowid,
+                id_program_category: rowid,
               },
               success: function(data) {
-                  $('#programModalBody').html(data);
+                  $('#programCategoryModalBody').html(data);
                   $('.select2').select2({
-                    dropdownParent: $('#programModal')
+                    dropdownParent: $('#programCategoryModal')
                   });
               }
           });
@@ -214,10 +205,10 @@
       }).then((result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: 'delete-program.php',
+            url: 'delete-program-category.php',
             type: 'POST',
             data: {
-              id_program: id
+              id_program_category: id
             },
             beforeSend: function() {
               Swal.fire({
@@ -256,7 +247,7 @@
     });
 
     $(document).on('click', '.close', function() {
-        $('#programModal').modal('hide');
+        $('#programCategoryModal').modal('hide');
     });
 
 </script>

@@ -28,12 +28,13 @@ function sanitize_input($conn, $input) {
     return mysqli_real_escape_string($conn, str_replace(["&#13;", "&#10;"], ["\r", "\n"], $input));
 }
 
-$id_program     = sanitize_input($conn, $_POST['id_program']);
-$name           = sanitize_input($conn, $_POST['name']);
-$code           = sanitize_input($conn, $_POST['code']);
-$code           = trim($code);
-$is_pk          = $_POST['is_pk'];
-$is_classified  = $_POST['is_classified'] ?? 1;
+$id_program             = sanitize_input($conn, $_POST['id_program']);
+$name                   = sanitize_input($conn, $_POST['name']);
+$code                   = sanitize_input($conn, $_POST['code']);
+$code                   = trim($code);
+$is_pk                  = $_POST['is_pk'];
+$program_category_id    = $_POST['program_category_id'] ?? NULL;
+$is_classified          = $_POST['is_classified'] ?? 1;
 
 if (preg_match('/\s/', $code)) {
     error_json('Program code cannot contain spaces.');
@@ -67,10 +68,22 @@ try {
             }
         }
 
+        if (is_null($program_category_id) || $program_category_id === '') {
+            $program_category_id_sql = 'NULL';
+        } else {
+            $program_category_id_sql = "'" . sanitize_input($conn, $program_category_id) . "'";
+        }
+        
+        // Gunakan variabel $program_category_id_sql dalam query
         $sql = "UPDATE programs 
-                    SET name = '$name', code = '$code', is_pk = '$is_pk', updated_at = NOW(), is_classified = '$is_classified'
+                    SET name = '$name', 
+                        code = '$code', 
+                        is_pk = '$is_pk', 
+                        updated_at = NOW(), 
+                        is_classified = '$is_classified', 
+                        program_category_id = $program_category_id_sql
                 WHERE id = '$id_program'";
-
+        
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);
         }
@@ -112,8 +125,8 @@ try {
         if ($is_program_code_exist_exec->num_rows > 0) {
             error_json('Program code already exists.');
         }
-        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified) VALUES (
-            '$name', '$code', '$is_pk', NOW(), '$is_classified')";
+        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id) VALUES (
+            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id)";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

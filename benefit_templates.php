@@ -130,11 +130,13 @@
                                         <?php endif; ?>
                                     </td> -->
                                     <td>
-                                      <span data-id="<?= $template['id_template_benefit'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#templateModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                      <div class="d-flex gap-2">
+                                        <span data-id="<?= $template['id_template_benefit'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#templateModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
 
-                                      <?php if($_SESSION['role'] == "admin") { ?>
-                                        <span data-id="<?= $template['id_template_benefit'] ?>" class='del-template btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
-                                      <?php } ?>
+                                        <?php if($_SESSION['role'] == "admin") { ?>
+                                          <span data-id="<?= $template['id_template_benefit'] ?>" class='del-template btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
+                                        <?php } ?>
+                                      </div>
                                     </td>
                             <?php } ?>
                           </tbody>

@@ -18,6 +18,14 @@ if (mysqli_num_rows($draft_exec) > 0) {
 $program = $programs[0] ?? [];
 $is_pk = $program['is_pk'] ?? 1;
 $is_classified = $program['is_classified'] ?? 1;
+
+$program_categories = [];
+$program_categories_q = "SELECT * FROM program_categories AS program WHERE program.deleted_at IS NULL";
+$program_categories_exec = mysqli_query($conn, $program_categories_q);
+if (mysqli_num_rows($program_categories_exec) > 0) {
+  $program_categories = mysqli_fetch_all($program_categories_exec, MYSQLI_ASSOC);    
+}
+
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
@@ -49,6 +57,17 @@ $is_classified = $program['is_classified'] ?? 1;
                         <option value="0" <?= $is_classified == 0 ? 'selected' : '' ?>>No</option>
                     </select>
                 </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Program Category</label>
+                    <select name="program_category_id" id="is_classified" class="form-control form-control-sm">
+                        <option value="" disabled selected>Select Category</option>
+                        <?php foreach($program_categories as $pc) { ?>
+                            <option value="<?= $pc['id'] ?>" <?= $pc['id'] == ($program['program_category_id'] ?? '') ? 'selected' : '' ?>><?= $pc['name'] ?></option>
+                        <?php } ; ?>
+                    </select>
+                </div>
+
                 
                 <input type="hidden" name="id_program" value="<?= $id_program == 0 ? '' : $id_program ?>">
             </div>
