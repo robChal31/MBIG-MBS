@@ -78,7 +78,7 @@
                                         <input type="text" class="form-control dateFilter" name="end_date" value="<?= $default_end_date ?>" placeholder="End Date">
                                     </div>
                                 </div>
-                                <div class="col-3">
+                                <div class="col-6">
                                     <div class="mb-3">
                                         <label for="dateFilter" class="form-label">Program</label>
                                         <select name="program[]" id="program" class="form-control form-control-sm" style="background-color: white; width: 100%;" multiple>
@@ -89,7 +89,7 @@
                                         </select>
                                     </div>
                                 </div>
-                                <div class="col-3">
+                                <!-- <div class="col-3">
                                     <div class="mb-3">
                                         <label for="dateFilter" class="form-label">Status</label>
                                         <select name="status[]" id="status" class="form-control form-control-sm" style="background-color: white; width: 100%;" multiple>
@@ -98,7 +98,7 @@
                                             <option value="2" selected>Rejected</option>
                                         </select>
                                     </div>
-                                </div>
+                                </div> -->
                                 
                             </div>
                             
@@ -114,7 +114,7 @@
 
             <div class="card">
                 <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                    <span class="fw-bold">Reports</span>           
+                    <span class="fw-bold">Adoption Report</span>           
                 </div>
                 <div class="card-body">
                     <div class="" id="report-container"></div>
@@ -137,12 +137,6 @@
         removeItemButton: true
     });
 
-    const element2 = document.getElementById('status');
-    const choices2 = new Choices(element2, {
-        searchEnabled: true,
-        removeItemButton: true
-    });
-
     document.querySelector('.card-header').addEventListener('click', function () {
         this.classList.toggle('collapsed');
     });
@@ -158,20 +152,17 @@
         });
     });
 
-
-
     function getReport() {
         let selectedPrograms = $('select[name="program[]"]').val();
-        let selectedStatus = $('select[name="status[]"]').val();
+        // let selectedStatus = $('select[name="status[]"]').val();
         let startDate = $('input[name="start_date"]').val();
         let endDate = $('input[name="end_date"]').val();
 
         $.ajax({
-            url: './get-report.php',
+            url: './get-report-adoption.php',
             type: 'POST',
             data: {
                 selectedPrograms: selectedPrograms,
-                selectedStatus: selectedStatus,
                 startDate: startDate,
                 endDate: endDate
             },

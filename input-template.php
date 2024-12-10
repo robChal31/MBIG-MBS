@@ -151,7 +151,16 @@ if (mysqli_num_rows($program_exec) > 0) {
                     <select name="manual_input" id="manual_input" class="form-control form-control-sm bg-white" required>
                         <option value="" disabled selected>--Select --</option>
                         <option value="1" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
-                        <option value="0" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >No</option>
+                        <option value="0" <?= ($template['manual_input'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
+                    </select>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Editable Quantity</label>
+                    <select name="editable_qty" id="editable_qty" class="form-control form-control-sm bg-white" required>
+                        <option value="" disabled selected>--Select --</option>
+                        <option value="1" <?= ($template['editable_qty'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
+                        <option value="0" <?= ($template['editable_qty'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
                     </select>
                 </div>
 

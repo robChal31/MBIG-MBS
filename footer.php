@@ -240,6 +240,20 @@
                 }
             });
 
+            $('#collapsibleNav2').on('shown.bs.collapse', function () {
+                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
+            });
+
+            $('#collapsibleNav2').on('hidden.bs.collapse', function () {
+                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
+            });
+
+            $('#collapsibleNav2 a').each(function () {
+                if (this.href.includes(currentPath)) {
+                    $('#collapsibleNav2').collapse('show');
+                }
+            });
+
             function yesnoCheck(that) {
               if (that.value == "Others") {
                   document.getElementById("titleOther").style.display = "block";

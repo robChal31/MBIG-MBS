@@ -50,7 +50,7 @@ if (mysqli_num_rows($program_categories_exec) > 0) {
                 </div>
 
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Is Classified</label>
+                    <label class="form-label" style="font-size: .85rem;">Is General</label>
                     <select name="is_classified" id="is_classified" class="form-control form-control-sm" required>
                         <option value="" disabled selected>Select Type</option>
                         <option value="1" <?= $is_classified == 1 ? 'selected' : '' ?>>Yes</option>

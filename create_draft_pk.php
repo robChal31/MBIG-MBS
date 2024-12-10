@@ -14,9 +14,9 @@
       text-align: start !important;
     }
 
-    .benefit-desc:hover {
+    /* .benefit-desc:hover {
       width: 40% !important;
-    }
+    } */
     
     .benefit-ket {
         display: none;
@@ -34,7 +34,11 @@
     }
 
     table.dataTable thead th {
-        font-size: .9rem !important;
+        font-size: .85rem !important;
+    }
+
+    table.dataTable tbody td {
+        font-size: .75rem !important;
     }
 </style>
 
