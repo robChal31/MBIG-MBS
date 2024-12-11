@@ -16,8 +16,8 @@
 <?php 
     $role = $_SESSION['role'];
     $selected_program = $_POST['programs'] ?? NULL;
-    $start_date = $_POST['start_date'] ?? NULL;
-    $end_date = $_POST['end_date'] ?? NULL;
+    $start_date = $_POST['start_date'] ?? date('Y-m-d', strtotime('-1 year'));
+    $end_date = $_POST['end_date'] ?? date('Y-m-d');
 
     $selected_programs_q = $selected_program ? implode("', '", $selected_program) : 'all';
 
@@ -43,20 +43,20 @@
                     <div class="card-body">
                         <form method="POST" action="" id="filterForm">
                             <div class="row">
-                                <div class="col-md-3 col-12">
+                                <div class="col-md-2 col-12">
                                     <div class="mb-3">
                                         <label for="dateFilter" class="form-label">Start Date</label>
                                         <input type="text" class="form-control dateFilter" name="start_date" placeholder="Select Date" value="<?= $start_date ?>">
                                     </div>
                                 </div>
-                                <div class="col-md-3 col-12">
+                                <div class="col-md-2 col-12">
                                     <div class="mb-3">
                                         <label for="dateFilter" class="form-label">End Date</label>
                                         <input type="text" class="form-control dateFilter" name="end_date" placeholder="Select Date" value="<?= $end_date ?>">
                                     </div>
                                 </div>
-                                <div class="col-md-4 col-12">
-                                    <div class="mb-3">
+                                <div class="col-md-8 col-12 mb-2">
+                                    <div class="mb-2">
                                         <label for="program" class="form-label">Program</label>
                                         <select placeholder="Select Program" name="programs[]" id="program" class="form-control form-control-sm select2" style="background-color: white;" multiple>
                                             <?php foreach ($programs as $program) { ?>
@@ -64,11 +64,15 @@
                                             <?php } ?>
                                         </select>
                                     </div>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <button type="button" class="btn btn-sm btn-secondary" id="select-all">Select All</button>
+                                        <button type="button" class="btn btn-sm btn-secondary" id="clear-all">Clear All</button>
+                                    </div>
                                 </div>
                             </div>
                            
                             
-                            <div class="d-flex justify-content-end px-4">
+                            <div class="d-flex justify-content-end my-2">
                                 <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
                             </div>
 
@@ -145,7 +149,7 @@
                                             <td><?= $row['generalname'] ?></td>
                                             <td><?= $row['school_name2'] ?></td>
                                             <td><?= ucfirst($row['segment']) ?></td>
-                                            <td><?= $row['program'] ?></td>
+                                            <td><?= strtoupper($row['program']) ?></td>
                                             <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
                                             <td><?= number_format($row['alokasi'], 0, ',', '.') ?></td>
                                             <td><?= $row['no_pk'] ?></td>
@@ -266,11 +270,28 @@
             removeItemButton: true
         });
 
+        // Select All functionality
+        document.getElementById('select-all').addEventListener('click', () => {
+            const allOptions = Array.from(element.options);
+            allOptions.forEach(option => {
+                if (!option.selected) {
+                    choices.setChoiceByValue(option.value);
+                }
+            });
+        });
+
+        // Clear All functionality
+        document.getElementById('clear-all').addEventListener('click', () => {
+            choices.removeActiveItems();
+        });
+
+
         document.querySelector('.card-header').addEventListener('click', function () {
             this.classList.toggle('collapsed');
         });
 
     })
+
 
     $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');
