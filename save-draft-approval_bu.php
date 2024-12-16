@@ -81,7 +81,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
     $status_msg = $status == 1 ? 'Approve' : 'Reject';
 
-    $url_redirect = $id_user == 70 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
+    $url_redirect = $id_user == 70 || $id_user == 15 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
 
     date_default_timezone_set('Asia/Jakarta');
     $current_time = date('Y-m-d H:i:s');
@@ -138,7 +138,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
 
     if($status == 1) {
         
-        if(!is_null($leadid) && $leadid != 16 && $id_user != 70 && $id_user != 5) {
+        if(!is_null($leadid) && $leadid != 16 && $id_user != 70 && $id_user != 5 || $id_user != 15) {
             $sql = "select * from user where id_user = $leadid";
             $result = mysqli_query($conn,$sql);
             while ($dra = $result->fetch_assoc()){
@@ -314,7 +314,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     }else if($id_user == 16 && $status == 1) {
         $sql = "UPDATE draft_benefit set status = 1 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
-    }else if($id_user == 70 && $status == 1) {
+    }else if(($id_user == 70 || $id_user == 15) && $status == 1) {
         $sql = "UPDATE draft_benefit set verified = 1 where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);       
         $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '5', '0');";
@@ -399,7 +399,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     
     $_SESSION['toast_status'] = "Success";
     $_SESSION['toast_msg'] = "Berhasil $status_msg Draft Benefit";
-    if($id_user == 70 || $id_user == 5) {
+    if($id_user == 70 || $id_user == 5 || $id_user == 15) {
         header('Location: ./approved_list.php');
     }else {
         header($url_redirect);

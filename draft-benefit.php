@@ -77,7 +77,7 @@
                                                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                                                 $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
                                                 $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70;
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
                                     ?>
                                                 <tr>
                                                     <td><?= $row['generalname'] ?></td>

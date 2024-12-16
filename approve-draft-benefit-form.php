@@ -24,7 +24,7 @@
     $id_draft   = $_GET['id_draft'];
     $token      = $_GET['token'];
 
-    if ((!$token || $token == '') && ($id_user == 70 || $id_user == 5)) {
+    if ((!$token || $token == '') && ($id_user == 70 || $id_user == 15 || $id_user == 5)) {
         $tokenLeader = generateRandomString(16);
         $sql_check = "SELECT * FROM draft_approval WHERE id_draft = '$id_draft' AND id_user_approver = '$id_user'";
         $result = $conn->query($sql_check);
@@ -113,7 +113,7 @@
                 <?php else: ?>
                     <div class="col-md-7 col-12">
                         <div class="bg-whites rounded h-100 p-4">
-                            <h6 class="mb-4"><?= $id_user == 70 ? 'Verify' : 'Approve' ?> Draft Benefit</h6>    
+                            <h6 class="mb-4"><?= $id_user == 70 || $id_user == 15 ? 'Verify' : 'Approve' ?> Draft Benefit</h6>    
                             <form action="save-draft-approval.php" method="POST" id="form">
                                 <input type="hidden" name="token" value="<?= $token ?>">
                                 <input type="hidden" name="id_user" value="<?= $id_user ?>">
@@ -144,7 +144,7 @@
                                 <div class="my-2 py-2">
                                     <label for="approval_status" class="form-label px-1 mb-0 pb-0" style="font-size: .85rem;">Status</label>
                                     <select class="form-select form-select-sm" aria-label="Default select" name='status' id="approval_status" required>
-                                        <option value="1" <?= $status == 1 ? 'selected' : '' ?>><?= $id_user == 70 ? 'Verify' : 'Approve'; ?></option>
+                                        <option value="1" <?= $status == 1 ? 'selected' : '' ?>><?= $id_user == 70 || $id_user == 15 ? 'Verify' : 'Approve'; ?></option>
                                         <option value="2" <?= $status == 2 ? 'selected' : '' ?>>Reject</option>
                                     </select>
                                 </div>
