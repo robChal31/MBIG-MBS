@@ -423,6 +423,10 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
             }else{
               row.find('input[name="valben[]"]').prop("readonly", true);
             }
+
+            if($data[0].manual_input == "0"){
+              row.find('input[name="valben[]"]').prop("readonly", true);
+            }
             updateDisabledField(element);
         }
       });
