@@ -7,7 +7,6 @@
     //ini_set('display_errors', 'On');
     use PhpOffice\PhpSpreadsheet\Spreadsheet;
     use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
-    use PhpOffice\PhpSpreadsheet\Style\NumberFormat;
     use PhpOffice\PhpSpreadsheet\Style\Alignment;
     use PHPMailer\PHPMailer\PHPMailer;
     $config = require 'config.php';
@@ -144,7 +143,7 @@
         $sheet->setCellValue('A10','Mata Ajar');
         $sheet->setCellValue('B10','Judul Buku');
         $sheet->setCellValue('C10','Jumlah Siswa');
-        $sheet->setCellValue('D10','USULAN Harga Program');
+        $sheet->setCellValue('D10','Usulan Harga Program');
         $sheet->setCellValue('E10','Harga Buku Normal');
         $sheet->setCellValue('F10','Standard Discount (%)');
         $sheet->setCellValue('G10','Harga Buku Setelah Diskon');
@@ -187,6 +186,8 @@
         $sheet->setCellValue('J'.$row, $sumalok);
 
         $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $row++;
+        $row++;
         $row++;
         
         $sheet->setCellValue('A'.$row, 'Manfaat/fasilitas pengembangan sekolah');
@@ -361,17 +362,19 @@
         $sheet->setCellValue('E'.$row,'E-signature *wajib');
         $sheet->setCellValue('I'.$row,'E-signature *wajib');
         
-        for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
-        }
-        $columnIndexes = range('C','K');
+        // for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
+        //     $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
+        // }
+        $columnIndexes = range('A','L');
         foreach($columnIndexes as $columnIndex) {
-            $sheet->getColumnDimension($columnIndex)->setWidth(75);
+            $sheet->getColumnDimension($columnIndex)->setWidth(18);
+            $sheet->getStyle($columnIndex)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnIndex)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
         }
-        $sheet->getRowDimension(10)->setRowHeight(60);
-        $rowStyle = $sheet->getStyle('A10:Z10');
-        $rowStyle->getAlignment()->setWrapText(true);
-        $rowStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(10)->setRowHeight(50);
+        // $rowStyle = $sheet->getStyle('A10:Z10');
+        // $rowStyle->getAlignment()->setWrapText(true);
+        // $rowStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
     
         $writer = new Xlsx($spreadsheet);
         $pattern = '/[^a-zA-Z0-9\s]/';
