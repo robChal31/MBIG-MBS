@@ -60,11 +60,12 @@
     $selisih_benefit3   = ISSET($_POST["selisih_benefit3"]) ? $_POST["selisih_benefit3"] : 0;
     $selisih_benefit    = $selisih_benefit1 + $selisih_benefit2 + $selisih_benefit3;
 
+
     $save_as_draft = ISSET($_POST["save_as_draft"]) ? true : false;
 
     $benefits       = $_POST["benefit"];
     $subbenefits    = $_POST["subbenefit"];
-    $benefitIds     = $_POST["benefit_id"];
+    $benefitIds     = ISSET($_POST["benefit_id"]) ? $_POST["benefit_id"] : NULL;
     $benefitNames   = $_POST["benefit_name"];
     $descriptions   = $_POST["description"];
     $pelaksanaans   = $_POST["pelaksanaan"];
@@ -73,7 +74,7 @@
     $members2       = $_POST["member2"];
     $members3       = $_POST["member3"];
     $calcValues     = $_POST["calcValue"];
-    $manvals        = $_POST["manval"];
+    $manvals        = ISSET($_POST["manval"]) ? $_POST["manval"] : NULL;
     $valbens        = $_POST["valben"];
     $id_templates   = $_POST["id_templates"];
     $editmode       = $_POST["editmode"];
