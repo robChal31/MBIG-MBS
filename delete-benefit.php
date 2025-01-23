@@ -21,10 +21,9 @@
         $fileUrl = $data['fileUrl'];
     }
    
-
     $is_creator_or_admin = $id_user == $id_ec || $id_user == 70 || $id_user == 15;
 
-    if (($id_user != $id_ec && $row['status'] != 0 && $row['fileUrl']) || (($id_user != 70 || $id_user != 15) && $id_user != $id_ec)) {
+    if (($id_user != $id_ec && $status != 0 && $fileUrl) || (($id_user != 70 || $id_user != 15) && $id_user != $id_ec)) {
         $response = [
             'status' => 'Error',
             'message' => 'Unauthorized Access'
