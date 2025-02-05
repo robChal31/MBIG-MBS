@@ -224,7 +224,9 @@
         
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
-        $sheet->setCellValue('A2', 'DAFTAR BENEFIT');
+        $sheet->setCellValue('A2', 'PERHITUNGAN HARGA & BENEFIT PROGRAM');
+        $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(14);
+        
         $sheet->mergeCells('A2:H2');
         $sheet->mergeCells('A4:H4');
         $sheet->getStyle('A2:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
@@ -239,7 +241,7 @@
         $sheet->setCellValue('A9', 'Tanggal Dibuat');
         $sheet->setCellValue('B9', ': '.date('d M Y'));
 
-        $row = 12;
+        $row = 11;
         
         $sheet->setCellValue('A'.$row, 'No.');
         $sheet->setCellValue('B'.$row, 'Manfaat/fasilitas pengembangan sekolah');
@@ -262,6 +264,7 @@
         $j = 1;
         while ($data = $result->fetch_assoc()) {
             $sheet->setCellValue('A'.$row,$j);
+            $sheet->getStyle('A' . $row)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->setCellValue('B'.$row, $data['benefit']);
             // $sheet->setCellValue('C'.$row, $data['subbenefit']);
             $sheet->setCellValue('C'.$row, $data['benefit_name']);
@@ -288,17 +291,27 @@
         $sheet->setCellValue('D'.$row,'E-signature *wajib');
         $sheet->setCellValue('H'.$row,'E-signature *wajib');
 
-        for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
-            $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
+        // for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
+        //     $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
+        // }
+
+        $columnIndexes = range('A', 'L');
+        foreach ($columnIndexes as $columnIndex) {
+            $width = in_array($columnIndex, ['B', 'C', 'D', 'E']) ? 35 : 13;
+            // $center = in_array($columnIndex, ['A', 'F', 'G', 'H']) ? true : false;
+            $sheet->getColumnDimension($columnIndex)->setWidth($width);
+            $sheet->getStyle($columnIndex)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($columnIndex)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+            // if($center){
+            //     $sheet->getStyle($columnIndex)->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            // }
         }
-        $columnIndexes = range('C','G');
-        foreach($columnIndexes as $columnIndex) {
-            $sheet->getColumnDimension($columnIndex)->setWidth(75);
-        }
-        $sheet->getRowDimension(10)->setRowHeight(60);
-        $rowStyle = $sheet->getStyle('A10:Z10');
-        $rowStyle->getAlignment()->setWrapText(true);
-        $rowStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(10)->setRowHeight(35);
+        $sheet->getRowDimension(27)->setRowHeight(25);
+        
+        // $rowStyle = $sheet->getStyle('A10:Z10');
+        // $rowStyle->getAlignment()->setWrapText(true);
+        // $rowStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
     
         $writer = new Xlsx($spreadsheet);
         $pattern = '/[^a-zA-Z0-9\s]/';
