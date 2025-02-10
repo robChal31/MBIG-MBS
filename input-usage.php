@@ -210,16 +210,23 @@ Nama Peserta: </textarea>
                     if(response.length > 0) {
                         let options = '<option value="">--Select event--</option>';
                         response.map((el, idx) => {
-                            options += '<option value="' + el.id_event + '">[' + el.location_place + ' - ' + el.date_start +  '] | ' + el.title + '</option>';
+                            options += '<option value="' + el.id_event + '">' + el.title + ' [' + el.location_place + ' - ' + el.date_start +  '] |' + '</option>';
                         });
 
-                        $('#event').html(options);
-
-                        // Initialize Choices.js
                         const element = document.getElementById('event');
+
+                        // Destroy existing instance if already initialized
+                        if (element.choicesInstance) {
+                            element.choicesInstance.destroy();
+                        }
+
+                        // Replace options in the select element
+                        $('#event').html(options);
+                        
                         const choices = new Choices(element, {
                             searchEnabled: true,
-                            removeItemButton: true
+                            removeItemButton: true,
+                            searchResultLimit: 100
                         });
 
                         $('#submit_usage').prop('disabled', false);
