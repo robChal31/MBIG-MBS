@@ -54,8 +54,8 @@
 
         if(count($school_data) > 0) {
             $school_id_new              = $school_data[0]['institutionid'];
-            $school_name_new            = $school_data[0]['name'];
-            $school_address_new         = $school_data[0]['address'];
+            $school_name_new            = mysqli_real_escape_string($conn, $school_data[0]['name']);
+            $school_address_new         = mysqli_real_escape_string($conn, $school_data[0]['address']);
             $school_phone_new           = $school_data[0]['phone'];
             $school_segment_new         = $school_data[0]['segment'];
             $school_ec_id_new           = $school_data[0]['ec_id'];
@@ -138,7 +138,7 @@
         exit();
     } catch (\Throwable $th) {
         $_SESSION['toast_status'] = 'Error';
-        $_SESSION['toast_msg'] = 'Gagal Menyimpan Draft Benefit';
+        $_SESSION['toast_msg'] = 'Gagal Menyimpan Draft Benefit ' . $th->getMessage();
         
         $location = 'Location: ./draft-benefit.php'; 
         mysqli_close($conn);

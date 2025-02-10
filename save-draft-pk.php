@@ -383,7 +383,6 @@
     } catch (\Throwable $th) {
         $_SESSION['toast_status'] = 'Error';
         $_SESSION['toast_msg'] = 'Gagal Menyimpan Draft Benefit';
-        var_dump($th);die;
         $location = 'Location: ./draft-pk.php'; 
         mysqli_close($conn);
         header($location);
