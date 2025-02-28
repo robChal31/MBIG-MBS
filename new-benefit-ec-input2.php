@@ -418,14 +418,14 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
               row.find('input[name="member3[]"]').prop("readonly", true);
             }
             var program = '<?= $program ?>';
-            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name==="input manual" || data[0].benefit_name==="Dana Pengembangan" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
+            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
 
               row.find('input[name="valben[]"]').prop("readonly", false);
             }else{
               row.find('input[name="valben[]"]').prop("readonly", true);
             }
-
-            if($data[0].manual_input == "0"){
+            
+            if(data[0].manual_input == "0"){
               row.find('input[name="valben[]"]').prop("readonly", true);
             }
             updateDisabledField(element);
@@ -493,6 +493,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
       var member2 = row.find('input[name="member2[]"]').val();
       var member3 = row.find('input[name="member3[]"]').val();
 
+      handleInput(row.find('input[name="valben[]"]'));
       var disabledField2 = row.find('input[name="valben[]"]');
       var defaultvalue = row.find('input[name="valuedefault[]"]').val();
 
@@ -675,41 +676,77 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
       });
   });
 
-
-  function formatAndValidate(input, alokasi) {
+  function formatAndValidate(input, alokasi, row) {
     var cleanedInput = input.replace(/[^0-9]/g, '');
+    var number = parseFloat(cleanedInput) || 0;
 
-    var number = parseFloat(cleanedInput);
+    // Get member values from the row
+    var member1 = parseInt(row.find('input[name="member[]"]').val()) || 0;
+    var member2 = parseInt(row.find('input[name="member2[]"]').val()) || 0;
+    var member3 = parseInt(row.find('input[name="member3[]"]').val()) || 0;
 
-    if (number > alokasi * 0.15) {
-        alert('Nilai tidak boleh lebih dari 15% dari alokasi.');
-        return '';
+    let total_member1 = member1 * number;
+    let total_member2 = member2 * number;
+    let total_member3 = member3 * number;
+
+    let max_alokasi = alokasi * 0.15
+
+    if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
+      alert('Total nilai tidak boleh lebih dari 15% dari alokasi.');
+      return '0';
     }
+
     var formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
 
-    return formatted;
+    return number;
   }
 
-  // Event saat nilai input berubah
-  $(document).on('input', 'input[name="valben[]"]', function(event) {
-      var row = $(this).closest('tr');
-      var rowId = row.attr('id');
-      let selected = row.find('select[name="benefit_id[]"]').val()
 
-      var value = $(this).val();
-      let alokasi = <?= $sumalok ?? 0 ?>;
-      if(selected == 72 || selected == 391) {
-        var formattedValue = formatAndValidate(value, alokasi);
-        $(this).val(formattedValue);
-      }else {
+
+  // Event saat nilai input berubah
+  // $(document).on('input', 'input[name="valben[]"]', function(event) {
+  //     var row = $(this).closest('tr');
+  //     var rowId = row.attr('id');
+  //     let selected = row.find('select[name="benefit_id[]"]').val()
+
+  //     var value = $(this).val();
+  //     let alokasi = <?= $sumalok ?? 0 ?>;
+  //     if(selected == 72 || selected == 391) {
+  //       var formattedValue = formatAndValidate(value, alokasi);
+  //       $(this).val(formattedValue);
+  //     }else {
+  //       var cleanedInput = value.replace(/[^0-9]/g, '');
+  //       var number = parseFloat(cleanedInput);
+
+  //       let formated = number.toLocaleString('id-ID', { maximumFractionDigits: 2 })
+  //       $(this).val(formated);
+  //     }
+     
+  // });
+
+  $(document).on('input', 'input[name="valben[]"]', function(event) {
+    handleInput($(this));
+  });
+
+  function handleInput(inputElement) {
+    var row = inputElement.closest('tr');
+    let selected = row.find('select[name="benefit_id[]"]').val();
+
+    var value = inputElement.val();
+    let alokasi = <?= $sumalok ?? 0 ?>;
+
+    if (selected == 72 || selected == 391) {
+        var formattedValue = formatAndValidate(value, alokasi, row);
+        inputElement.val(formattedValue);
+    } else {
         var cleanedInput = value.replace(/[^0-9]/g, '');
         var number = parseFloat(cleanedInput);
 
-        let formated = number.toLocaleString('id-ID', { maximumFractionDigits: 2 })
-        $(this).val(formated);
-      }
-     
-  });
+        let formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
+        inputElement.val(formatted);
+    }
+  }
+
 
 </script>
 <?php include 'footer.php'; ?>
