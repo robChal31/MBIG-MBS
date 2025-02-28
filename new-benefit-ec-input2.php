@@ -698,7 +698,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
 
       var value = $(this).val();
       let alokasi = <?= $sumalok ?? 0 ?>;
-      if(selected == 72) {
+      if(selected == 72 || selected == 391) {
         var formattedValue = formatAndValidate(value, alokasi);
         $(this).val(formattedValue);
       }else {
