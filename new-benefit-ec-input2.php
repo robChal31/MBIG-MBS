@@ -201,7 +201,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
                                   <textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea>
                                 </td>
                                 <td>
-                                  <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="" value="" readonly onchange="updateDisabledField(this)">
+                                  <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="" value="0" readonly onchange="updateDisabledField(this)">
                                 </td>
 
                                 <!-- <td  class="benefit-ket">
