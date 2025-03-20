@@ -50,7 +50,7 @@
                             LEFT JOIN pk p ON p.benefit_id = db.id_draft
                             LEFT JOIN schools sc ON sc.id = db.school_name
                             LEFT JOIN user ec ON ec.id_user = db.id_ec
-                            WHERE db.verified = 1 AND p.expired_at > NOW()
+                            WHERE db.verified = 1
                             $query_selected_type
                             $query_role
                         ) AS tab $query_selected_usage_year;";
@@ -97,8 +97,9 @@
                                     $benefit['qty2'] = $benefit['qty'];
                                     $benefit['qty3'] = $benefit['qty'];
                                 }
+                                $is_expired = strtotime($benefit['expired_at']) < time() ? 'bg-danger text-white' : '';
                         ?>
-                                <tr class="<?= !$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info  text-white' : '' ?>" >
+                                <tr class="<?= $is_expired ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
                                     <td><?= strtoupper($benefit['program']) ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
