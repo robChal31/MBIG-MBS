@@ -50,7 +50,7 @@
                             LEFT JOIN pk p ON p.benefit_id = db.id_draft
                             LEFT JOIN schools sc ON sc.id = db.school_name
                             LEFT JOIN user ec ON ec.id_user = db.id_ec
-                            WHERE db.verified = 1
+                            WHERE db.verified = 1 AND p.expired_at > NOW()
                             $query_selected_type
                             $query_role
                         ) AS tab $query_selected_usage_year;";
