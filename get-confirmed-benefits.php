@@ -97,7 +97,7 @@
                                     $benefit['qty2'] = $benefit['qty'];
                                     $benefit['qty3'] = $benefit['qty'];
                                 }
-                                $is_expired = strtotime($benefit['expired_at']) < time() ? 'bg-danger text-white' : '';
+                                $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time())
                         ?>
                                 <tr class="<?= $is_expired ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
