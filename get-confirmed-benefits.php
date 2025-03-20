@@ -99,7 +99,7 @@
                                 }
                                 $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time())
                         ?>
-                                <tr class="<?= $is_expired ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" >
+                                <tr class="<?= $is_expired ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" title="<?= $is_expired ? "Benefit Expired" : '' ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
                                     <td><?= strtoupper($benefit['program']) ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
