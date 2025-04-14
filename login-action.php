@@ -9,10 +9,10 @@ $username = $_POST['uname'];
 $password = md5($_POST['psw']);
 
 $stmt = $conn->prepare('select * from user where username=? and password=?');
- $stmt->bind_param('ss', $username, $password);
+$stmt->bind_param('ss', $username, $password);
 
- $stmt->execute();
- $result = $stmt->get_result();
+$stmt->execute();
+$result = $stmt->get_result();
 
 $log=0;
  while ($row = $result->fetch_assoc()) {

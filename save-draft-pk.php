@@ -34,7 +34,7 @@
             $mail->Username   = $config['smtp_username'];
             $mail->Password   = $config['smtp_password']; 
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = 465;
+            $mail->Port       = $config['port'] ?? 465;
     
             //Recipients
             $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');

@@ -82,7 +82,7 @@
         $mail->Username   = 'benefit@mentarigroups.com';                     //SMTP username
         $mail->Password   = 'BenefitMentari2023';                               //SMTP password
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
-        $mail->Port       = 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
+        $mail->Port       = $config['port'] ?? 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
     
         //Recipients
         $mail->setFrom('benefit@mentarigroups.com', 'Benefit Auto Mailer');

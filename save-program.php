@@ -35,6 +35,7 @@ $code                   = trim($code);
 $is_pk                  = $_POST['is_pk'];
 $program_category_id    = $_POST['program_category_id'] ?? NULL;
 $is_classified          = $_POST['is_classified'] ?? 1;
+$is_dynamic             = $_POST['is_dynamic'] ?? 1;
 
 if (preg_match('/\s/', $code)) {
     error_json('Program code cannot contain spaces.');
@@ -81,7 +82,8 @@ try {
                         is_pk = '$is_pk', 
                         updated_at = NOW(), 
                         is_classified = '$is_classified', 
-                        program_category_id = $program_category_id_sql
+                        program_category_id = $program_category_id_sql,
+                        is_dynamic = '$is_dynamic'
                 WHERE id = '$id_program'";
         
         if (!$conn->query($sql)) {
@@ -125,8 +127,8 @@ try {
         if ($is_program_code_exist_exec->num_rows > 0) {
             error_json('Program code already exists.');
         }
-        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id) VALUES (
-            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id)";
+        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id, is_dynamic) VALUES (
+            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id, $is_dynamic)";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

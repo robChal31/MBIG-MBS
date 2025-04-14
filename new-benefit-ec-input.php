@@ -29,7 +29,7 @@
                           <td style="width:5px">:</td>
                           <td><?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"></td>
                         </tr>
-                        <?php if($_SESSION['username'] == 'putri@mentarigroups.com') : ?>
+                        <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
                           <tr>
                             <td>Nama EC</td>
                             <td>:</td>

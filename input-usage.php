@@ -8,11 +8,21 @@ $program = $_POST['program'] ?? '';
 
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT
-            dbl.*, dtb.redeemable,
+            dbl.*, dtb.redeemable, db.ref_id, db.year,
+            CASE 
+                WHEN EXISTS (
+                    SELECT 1 
+                    FROM draft_benefit AS ref 
+                    WHERE ref.ref_id = db.id_draft
+                    AND ref.confirmed = 1
+                ) THEN 1 
+                ELSE 0 
+            END AS has_ref_usage,
             SUM(COALESCE(bu.qty1, 0)) AS tot_usage1,
             SUM(COALESCE(bu.qty2, 0)) AS tot_usage2,
             SUM(COALESCE(bu.qty3, 0)) AS tot_usage3
         FROM draft_benefit_list AS dbl
+        LEFT JOIN draft_benefit AS db on db.id_draft = dbl.id_draft
         LEFT JOIN benefit_usages AS bu ON dbl.id_benefit_list = bu.id_benefit_list
         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
         WHERE dbl.id_benefit_list = $id_benefit_list";

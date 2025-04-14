@@ -13,9 +13,14 @@
                     <div class="bg-whites rounded h-100 p-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">Draft Benefit</h6>
-                            <a href="new-benefit-ec-input.php">
-                                <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
-                            </a>
+                           <div class="d-flex align-items-center">
+                                <a href="update-benefit-ec-input.php">
+                                    <button type="button" class="btn btn-success m-2 btn-sm"><i class="fas fa-file me-2"></i>Update Program</button>    
+                                </a>
+                                <a href="new-benefit-ec-input.php">
+                                    <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
+                                </a>
+                           </div>
                         </div>
                         
 
@@ -37,20 +42,6 @@
                                 <tbody>
                                     <?php
 
-                                        $programs = [];
-                                        $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";
-                                        $program_names = false;
-                                        $exec_program = mysqli_query($conn, $query_program);
-                                        if (mysqli_num_rows($exec_program) > 0) {
-                                            $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);
-                                            $program_names = array_map(function($item) {
-                                                return strtoupper($item['name']);
-                                            }, $programs);
-                                        }
-
-                                        $program_names = $program_names ? ("'" . implode("', '", $program_names) . "'") : false;
-
-                                        $query_filter_pk = $program_names ? " AND a.program NOT IN ($program_names)" : '';
                                         $id_user = $_SESSION['id_user'];
 
                                         $order_by = ' ORDER BY a.date ASC';
@@ -58,8 +49,9 @@
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                                 LEFT JOIN user b on a.id_ec = b.id_user
-                                                WHERE a.deleted_at is null
-                                                $query_filter_pk"; 
+                                                LEFT JOIN programs as prog ON prog.name = a.program
+                                                WHERE a.deleted_at IS NULL
+                                                AND prog.is_active = 1 AND prog.is_pk = 0"; 
                                         if($_SESSION['role'] == 'ec'){
                                             $sql.=" AND (a.id_ec = $id_user or b.leadId = $id_user or b.leadId2 = $id_user or b.leadId3 = $id_user)";
                                         }

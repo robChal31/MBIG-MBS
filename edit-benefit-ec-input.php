@@ -10,9 +10,9 @@
       font-size: .9rem !important;
   }
 </style>
-<?php include 'header.php'; ?>
 
 <?php
+include 'header.php';
 
 $id_draft = $_GET['id_draft'];
 $sql      = "SELECT * 
@@ -75,200 +75,198 @@ if ($exec_list_book->num_rows > 0) {
 
   <!-- Content Start -->
   <div class="content">
-      <?php include 'navbar.php'; ?>
+    <?php include 'navbar.php'; ?>
 
-      <div class="container-fluid p-4">
+    <div class="container-fluid p-4">
 
-        <div class="row">
-            <div class="col-12">
-                <div class="bg-whites rounded h-100 p-4">
-                  <h6 class="mb-4">Update Draft Benefit</h6>
-                  <form method="POST" action="new-benefit-ec-input-action1.php" enctype="multipart/form-data" id="draft_form">
-                    <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
-                    <table class="table table-striped">
-                      <tr>
-                        <td style="width: 15%">Inputter</td>
-                        <td style="width:5px">:</td>
-                        <td><?= $_SESSION['username'] ?? $username ?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?? $id_user ?>"></td>
-                      </tr>
-                      <?php if($_SESSION['username'] == 'putri@mentarigroups.com') : ?>
-                        <tr>
-                          <td>Nama EC</td>
-                          <td>:</td>
-                          <td>
-                            <select name="inputEC" id="inputEC" class="form-select form-select-sm">
-                                <?php 
-                                  $sql = "SELECT * from user where role='ec' order by generalname ASC"; $resultsd1 = mysqli_query($conn, $sql);
-                                  while ($row = mysqli_fetch_assoc($resultsd1)){ ?>
-                                    <option value="<?= $row['id_user'] ?>" <?= $id_user == $row['id_user'] ? 'selected' : '' ?> ><?= $row['generalname'] ?></option>
-                                <?php } ?>
-                            </select>
-                          </td>
-                        </tr>
-                      <?php else : ?> 
-                        <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?> "> 
-                      <?php endif; ?>
-                      <tr>
-                        <td>Nama Sekolah</td>
-                        <td>:</td>
-                        <td>
-                            <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
-                            </select>
-                        </td>
-                      </tr>
-                      <tr>
-                          <td>Segment Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="segment" class="form-select form-select-sm" required>
-                              <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
-                              <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?> >National Plus</option>
-                              <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
-                            </select>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Jenjang Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="level" class="form-select form-select-sm" required>
-                              <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
-                              <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
-                              <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
-                              <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
-                              <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
-                              <option value="other" <?= $level2 != '' ? 'selected' : '' ?>>Lainnya (isi sendiri)</option>
-                            </select>
-                            <div class="my-1" id='other_level' style="display: <?= $level2 != '' ? 'block' : 'none'; ?>">
-                              <input type="text" name="level2" value="<?= $level2 ?>" placeholder="Jenjang..." class="form-control form-control-sm">
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Wilayah Sekolah</td>
-                          <td>:</td>
-                          <td><input type="text" name="wilayah" value="<?= $wilayah ?>" placeholder="Wilayah..." class="form-control form-control-sm" required></td>
-                        </tr>
-                      <tr>
-                        <td>Program</td>
-                        <td>:</td>
-                        <td>
-                          <select name="program" class="form-select form-select-sm" required>
-                            <?php
-                                $programs = [];
-                                $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0";
+      <div class="row">
+        <div class="col-12">
+          <div class="bg-whites rounded h-100 p-4">
+            <h6 class="mb-4">Update Draft Benefit</h6>
+            <form method="POST" action="new-benefit-ec-input-action1.php" enctype="multipart/form-data" id="draft_form">
+              <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
+              <table class="table table-striped">
+                <tr>
+                  <td style="width: 15%">Inputter</td>
+                  <td style="width:5px">:</td>
+                  <td><?= $_SESSION['username'] ?? $username ?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?? $id_user ?>"></td>
+                </tr>
+                <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
+                  <tr>
+                    <td>Nama EC</td>
+                    <td>:</td>
+                    <td>
+                      <select name="inputEC" id="inputEC" class="form-select form-select-sm">
+                          <?php 
+                            $sql = "SELECT * from user where role='ec' order by generalname ASC"; $resultsd1 = mysqli_query($conn, $sql);
+                            while ($row = mysqli_fetch_assoc($resultsd1)){ ?>
+                              <option value="<?= $row['id_user'] ?>" <?= $id_user == $row['id_user'] ? 'selected' : '' ?> ><?= $row['generalname'] ?></option>
+                          <?php } ?>
+                      </select>
+                    </td>
+                  </tr>
+                <?php else : ?> 
+                  <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?> "> 
+                <?php endif; ?>
+                <tr>
+                  <td>Nama Sekolah</td>
+                  <td>:</td>
+                  <td>
+                      <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
+                      </select>
+                  </td>
+                </tr>
+                <tr>
+                    <td>Segment Sekolah</td>
+                    <td>:</td>
+                    <td>
+                      <select name="segment" class="form-select form-select-sm" required>
+                        <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
+                        <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?> >National Plus</option>
+                        <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
+                      </select>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Jenjang Sekolah</td>
+                    <td>:</td>
+                    <td>
+                      <select name="level" class="form-select form-select-sm" required>
+                        <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
+                        <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
+                        <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
+                        <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
+                        <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
+                        <option value="other" <?= $level2 != '' ? 'selected' : '' ?>>Lainnya (isi sendiri)</option>
+                      </select>
+                      <div class="my-1" id='other_level' style="display: <?= $level2 != '' ? 'block' : 'none'; ?>">
+                        <input type="text" name="level2" value="<?= $level2 ?>" placeholder="Jenjang..." class="form-control form-control-sm">
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td>Wilayah Sekolah</td>
+                    <td>:</td>
+                    <td><input type="text" name="wilayah" value="<?= $wilayah ?>" placeholder="Wilayah..." class="form-control form-control-sm" required></td>
+                  </tr>
+                <tr>
+                  <td>Program</td>
+                  <td>:</td>
+                  <td>
+                    <select name="program" class="form-select form-select-sm" required>
+                      <?php
+                          $programs = [];
+                          $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0";
 
-                                $exec_program = mysqli_query($conn, $query_program);
-                                if (mysqli_num_rows($exec_program) > 0) {
-                                    $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
-                                }
+                          $exec_program = mysqli_query($conn, $query_program);
+                          if (mysqli_num_rows($exec_program) > 0) {
+                              $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
+                          }
 
-                                foreach($programs as $prog) : ?>
-                                  <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
-                            <?php endforeach; ?>
-                          </select>
-                        </td>
-                      </tr>
-                    </table>
+                          foreach($programs as $prog) : ?>
+                            <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  </td>
+                </tr>
+              </table>
 
-                    <div class="table-responsive mt-4">
-                      <table class="table table-bordered dataTable no-footer" id="input_form">
-                          <thead>
-                              <th>Judul Buku</th>
-                              <th style="width: 10%">Level</th>
-                              <th style="width: 8%">Jenis Buku</th>
-                              <th>Jumlah Siswa</th>
-                              <th>Usulan Harga Program</th>
-                              <th>Harga Buku Normal</th>
-                              <th>Standard Discount</th>
-                              <th>Harga Setelah Diskon</th>
-                              <th>Revenue Harga Program</th>
-                              <th>Revenue Harga Normal</th>
-                              <th>Alokasi pengembangan sekolah</th>
-                              <th>Action</th>
-                          </thead>
-                          <tbody>
+              <div class="table-responsive mt-4">
+                <table class="table table-bordered dataTable no-footer" id="input_form">
+                    <thead>
+                        <th>Judul Buku</th>
+                        <th style="width: 10%">Level</th>
+                        <th style="width: 8%">Jenis Buku</th>
+                        <th>Jumlah Siswa</th>
+                        <th>Usulan Harga Program</th>
+                        <th>Harga Buku Normal</th>
+                        <th>Standard Discount</th>
+                        <th>Harga Setelah Diskon</th>
+                        <th>Revenue Harga Program</th>
+                        <th>Revenue Harga Normal</th>
+                        <th>Alokasi pengembangan sekolah</th>
+                        <th>Action</th>
+                    </thead>
+                    <tbody>
+                      <?php
+                        $row = 1;
+                        while ($data = $exec_query->fetch_assoc()){ 
+                          $book = explode(' | ', $data['book_title']);  
+                          
+                        ?>
+                          <tr id="row<?= $row ?>">
+                            <td>
+                              <select name="titles[]" class="book form-select form-select-sm">
+                                <?php foreach($options as $option) : ?>
+                                  <option value="<?= $option ?>" <?= $book[0] == $option ? 'selected' : '' ?>><?= $option ?></option>
+                                <?php endforeach; ?>
+                              </select>
+                            </td>
+                            <td>
+                              <select name="levels[]" class="level form-select form-select-sm">
+                                <option value="Level Starter" <?= $book[1] == 'Level Starter' ? 'selected' : '' ?>>Level Starter</option>
+                                <option value="Level 1" <?= $book[1] == 'Level 1' ? 'selected' : '' ?>>Level 1</option>
+                                <option value="Level 2" <?= $book[1] == 'Level 2' ? 'selected' : '' ?>>Level 2</option>
+                                <option value="Level 3" <?= $book[1] == 'Level 3' ? 'selected' : '' ?>>Level 3</option>
+                                <option value="Level 4" <?= $book[1] == 'Level 4' ? 'selected' : '' ?>>Level 4</option>
+                                <option value="Level 5" <?= $book[1] == 'Level 5' ? 'selected' : '' ?>>Level 5</option>
+                                <option value="Level 6" <?= $book[1] == 'Level 6' ? 'selected' : '' ?>>Level 6</option>
+                              </select>
+                            </td>
+                            <td>
+                              <select name="booktype[]" class="booktype form-select form-select-sm">
+                                <option value="Textbook" <?= $book[2] == 'Textbook' ? 'selected' : '' ?>>Textbook</option>
+                                <option value="Workbook" <?= $book[2] == 'Workbook' ? 'selected' : '' ?>>Workbook</option>
+                              </select>
+                            </td>
+                            <td>
+                              <input type="text" name="jumlahsiswa[]" value="<?= number_format($data['qty'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Jumlah Siswa..." onchange="updateDisabledField(this)">
+                            </td>
+                            <td>
+                              <input type="text" name="usulanharga[]" value="<?= number_format($data['usulan_harga'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Usulan Harga..." onchange="updateDisabledField(this)">
+                            </td>
+                            <td>
+                              <input type="text" name="harganormal[]" value="<?= number_format($data['normalprice'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Harga Buku Normal..." onchange="updateDisabledField(this)">
+                            </td>
+                            <td>
+                              <input type="text" name="diskon[]" value="<?= number_format($data['discount'], '0', ',', '.') ?>" max="30" class="form-control only_number form-control-sm" placeholder="Standard Discount..." onchange="updateDisabledField(this)">
+                            </td>
+                            <td><input type="text" class="aftd form-control form-control-sm" name="aftd[]" placeholder="0" readonly></td>
+                            <td><input type="text" class="afto form-control form-control-sm" name="afto[]" placeholder="0" readonly></td>
+                            <td><input type="text" class="befo form-control form-control-sm" name="befo[]" placeholder="0" readonly></td>
+                            <td><input type="text" class="alok form-control form-control-sm" name="alokasi[]" placeholder="0" readonly></td>
+                            
+                            <td>
                               <?php
-                                $row = 1;
-                                while ($data = $exec_query->fetch_assoc()){ 
-                                  $book = explode(' | ', $data['book_title']);  
-                                  
-                                ?>
-                                  <tr id="row<?= $row ?>">
-                                      <td>
-                                        <select name="titles[]" class="book form-select form-select-sm">
-                                          <?php foreach($options as $option) : ?>
-                                            <option value="<?= $option ?>" <?= $book[0] == $option ? 'selected' : '' ?>><?= $option ?></option>
-                                          <?php endforeach; ?>
-                                        </select>
-                                      </td>
-                                      <td>
-                                        <select name="levels[]" class="level form-select form-select-sm">
-                                          <option value="Level Starter" <?= $book[1] == 'Level Starter' ? 'selected' : '' ?>>Level Starter</option>
-                                          <option value="Level 1" <?= $book[1] == 'Level 1' ? 'selected' : '' ?>>Level 1</option>
-                                          <option value="Level 2" <?= $book[1] == 'Level 2' ? 'selected' : '' ?>>Level 2</option>
-                                          <option value="Level 3" <?= $book[1] == 'Level 3' ? 'selected' : '' ?>>Level 3</option>
-                                          <option value="Level 4" <?= $book[1] == 'Level 4' ? 'selected' : '' ?>>Level 4</option>
-                                          <option value="Level 5" <?= $book[1] == 'Level 5' ? 'selected' : '' ?>>Level 5</option>
-                                          <option value="Level 6" <?= $book[1] == 'Level 6' ? 'selected' : '' ?>>Level 6</option>
-                                        </select>
-                                      </td>
-                                      <td>
-                                        <select name="booktype[]" class="booktype form-select form-select-sm">
-                                          <option value="Textbook" <?= $book[2] == 'Textbook' ? 'selected' : '' ?>>Textbook</option>
-                                          <option value="Workbook" <?= $book[2] == 'Workbook' ? 'selected' : '' ?>>Workbook</option>
-                                        </select>
-                                      </td>
-                                      <td>
-                                        <input type="text" name="jumlahsiswa[]" value="<?= number_format($data['qty'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Jumlah Siswa..." onchange="updateDisabledField(this)">
-                                      </td>
-                                      <td>
-                                        <input type="text" name="usulanharga[]" value="<?= number_format($data['usulan_harga'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Usulan Harga..." onchange="updateDisabledField(this)">
-                                      </td>
-                                      <td>
-                                        <input type="text" name="harganormal[]" value="<?= number_format($data['normalprice'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Harga Buku Normal..." onchange="updateDisabledField(this)">
-                                      </td>
-                                      <td>
-                                        <input type="text" name="diskon[]" value="<?= number_format($data['discount'], '0', ',', '.') ?>" max="30" class="form-control only_number form-control-sm" placeholder="Standard Discount..." onchange="updateDisabledField(this)">
-                                      </td>
-                                      <td><input type="text" class="aftd form-control form-control-sm" name="aftd[]" placeholder="0" readonly></td>
-                                      <td><input type="text" class="afto form-control form-control-sm" name="afto[]" placeholder="0" readonly></td>
-                                      <td><input type="text" class="befo form-control form-control-sm" name="befo[]" placeholder="0" readonly></td>
-                                      <td><input type="text" class="alok form-control form-control-sm" name="alokasi[]" placeholder="0" readonly></td>
-                                      
-                                      <td>
-                                        <?php
-                                          if($row == 1) {?>
-                                          <button type='button' class="add-button btn btn-success" id='add_row'>
-                                            <i class="fas fa-plus"></i>
-                                        </button>
-                                      <?php } else {?>
-                                        <button type="button" class="btn_remove btn btn-danger" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
-                                      <?php } ?>
-                                      </td>
-                                  </tr>
-                              <?php $row++; } ?>
-                          </tbody>
-                      </table> 
-                    </div>  
-                    
-                    <!-- <button type="button" class="btn btn-success mt-4" id="add_row">Add Row</button> -->
+                                if($row == 1) {?>
+                                <button type='button' class="add-button btn btn-success" id='add_row'>
+                                  <i class="fas fa-plus"></i>
+                              </button>
+                            <?php } else {?>
+                              <button type="button" class="btn_remove btn btn-danger" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
+                            <?php } ?>
+                            </td>
+                          </tr>
+                      <?php $row++; } ?>
+                    </tbody>
+                </table> 
+              </div>  
+              
+              <!-- <button type="button" class="btn btn-success mt-4" id="add_row">Add Row</button> -->
 
-                    <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
-                      <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?= $id_draft ?>" class="btn btn-warning me-2 fw-bold">Back</a>
-                      <button type="submit" class="btn btn-primary fw-bold" id="submt">Submit</button>
-                    </div>
-                  </form>
-                  <h4>Total Alokasi Benefit: <span id="accumulated_values"></span></h4>
-                </div>
-            </div>
+              <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
+                <a href="new-benefit-ec-input2.php?edit=edit&id_draft=<?= $id_draft ?>" class="btn btn-warning me-2 fw-bold">Back</a>
+                <button type="submit" class="btn btn-primary fw-bold" id="submt">Submit</button>
+              </div>
+            </form>
+            <h4>Total Alokasi Benefit: <span id="accumulated_values"></span></h4>
+          </div>
         </div>
-
       </div>
-      <!-- Form End -->
 
-      
-
+    </div>
+    
+    <!-- Form End -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
@@ -316,7 +314,6 @@ if ($exec_list_book->num_rows > 0) {
         }
     });
 
-
     // Remove row
     $('#input_form').on('click', '.btn_remove', function(){
       var rowId = $(this).data('row');
@@ -355,7 +352,6 @@ if ($exec_list_book->num_rows > 0) {
       
     })
 
-
     // Populate dropdown options
     function populateDropdown(rowId) {
       $.ajax({
@@ -384,17 +380,17 @@ if ($exec_list_book->num_rows > 0) {
 <script type="text/javascript">
 
   function removeNonDigits(numberString) {
-      let nonDigitRegex = /[^\d-]/g;
-      let result = numberString.replace(nonDigitRegex, '');
+    let nonDigitRegex = /[^\d-]/g;
+    let result = numberString.replace(nonDigitRegex, '');
 
-      return result;
+    return result;
   }
 
   function initializeUpdateDisabledFields() {
-      var elements = document.querySelectorAll('input[name="jumlahsiswa[]"]');
-      elements.forEach(function(element) {
-          updateDisabledField(element); 
-      });
+    var elements = document.querySelectorAll('input[name="jumlahsiswa[]"]');
+    elements.forEach(function(element) {
+        updateDisabledField(element); 
+    });
   }
   
   function updateDisabledField(element) {
@@ -468,7 +464,6 @@ if ($exec_list_book->num_rows > 0) {
         return formattedIntegerPart;
     }
   }
-
 
 </script>
 <?php include 'footer.php'; ?>

@@ -22,6 +22,8 @@ if($_GET['edit'] == 'edit'){
       $total_benefit            = $data['total_benefit'];
       $school_name              = $data['school_name2'];
       $selisih_benefit          = $data['selisih_benefit'];
+      $year                     = $data['year'];
+      $ref_id                   = $data['ref_id'];
 
       $_SESSION['program']      = $program;
       $_SESSION['sumalok']      = $sumalok;
@@ -62,6 +64,14 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
   $_SESSION['toast_msg'] = $msg;
   header('Location: ./draft-benefit.php');
   exit();
+}
+
+$sql = "SELECT id_template_benefit FROM draft_template_benefit WHERE benefit_name LIKE '%dana pengembangan%'";
+$result = mysqli_query($conn, $sql);
+
+$make_max_ids = [];
+while ($row = mysqli_fetch_assoc($result)) {
+    $make_max_ids[] = (int)$row['id_template_benefit'];
 }
 
 ?>
@@ -158,6 +168,8 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
                     <div style="width: 135%">
                       <input type="hidden" value="<?= $sumalok ?>" name="sumalok">
                       <input type="hidden" value="<?= $program ?>" name="program">
+                      <input type="hidden" value="<?= $year ?>" name="year">
+                      <input type="hidden" value="<?= $ref_id ?>" name="ref_id">
                       <table class="border table table-striped table-bordered dataTable no-footer" id="input_form">
                         <thead>
                           <tr>
@@ -209,13 +221,13 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
                                 </td> -->
                                 <input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan">
                                 <td>
-                                  <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="Quantity Tahun 1" value="0" min="0" onchange="updateDisabledField(this)">
+                                  <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="Quantity Tahun 1" value="0" min="0" onchange="updateDisabledField(this)" <?php if($year == 2 || $year == 3){echo "readonly";} ?> />
                                 </td>
                                 <td>
-                                  <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="Quantity Tahun 2" value="0" min="0"  onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "readonly";} ?>>
+                                  <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="Quantity Tahun 2" value="0" min="0"  onchange="updateDisabledField(this)" <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp' || $year == 3){echo "readonly";} ?> />
                                 </td>
                                 <td> 
-                                  <input type="number" class="form-control form-control-sm tah3" id="member3" name="member3[]" placeholder="Quantity Tahun 3" value="0" min="0"  onchange="updateDisabledField(this)"  <?php if($program=='cbls1'|| $program=='cbls3' || $program=='bsp'){echo "readonly";} ?>>
+                                  <input type="number" class="form-control form-control-sm tah3" id="member3" name="member3[]" placeholder="Quantity Tahun 3" value="0" min="0"  onchange="updateDisabledField(this)" <?php if($program=='cbls1'|| $program=='cbls3' || $program=='bsp'){echo "readonly";} ?>>
                                 </td>
                                 <td>
                                   <input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]" placeholder="0" value="0" readonly>
@@ -265,10 +277,10 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
                                   </td> -->
                                   <input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan" value="<?= $data['keterangan'] ?>">
                                   <td>
-                                    <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="Quantity Tahun 1" value="<?= $data['qty'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($data['editable_qty'] == '0'){echo "readonly";} ?>>
+                                    <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="Quantity Tahun 1" value="<?= $data['qty'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($data['editable_qty'] == '0' || $year == 2 || $year == 3){echo "readonly";} ?>>
                                   </td>
                                   <td>
-                                    <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="Quantity Tahun 2" value="<?= $data['qty2'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| $program=='cbls3' || $program=='bsp' || $data['editable_qty'] == '0'){echo "readonly";} ?> >
+                                    <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="Quantity Tahun 2" value="<?= $data['qty2'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| $program=='cbls3' || $program=='bsp' || $data['editable_qty'] == '0' || $year == 3){echo "readonly";} ?> >
                                   </td>
                                   <td>
                                     <input type="number" class="form-control form-control-sm tah3" id="member3" name="member3[]" placeholder="Quantity Tahun 3" value="<?= $data['qty3'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| $program=='cbls3' || $program=='bsp' || $data['editable_qty'] == '0'){echo "readonly";} ?>>
@@ -527,7 +539,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
     $('#add_row').click(function(){
       if(x < maxRows){
         x++;
-        var newRow = '<tr id="row'+x+'"><td><span class="benefit">Benefit</span><input type="hidden" name="benefit[]" value=""><input type="hidden" name="id_templates[]" value=""></td><td><span class="subbenefit">Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="text-area-cont"><textarea id="description" name="description[]" cols="16" class="form-control form-control-sm txt-area"></textarea></td><td><textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)"></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp'){echo "readonly";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "readonly";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
+        var newRow = '<tr id="row'+x+'"><td><span class="benefit">Benefit</span><input type="hidden" name="benefit[]" value=""><input type="hidden" name="id_templates[]" value=""></td><td><span class="subbenefit">Subbenefit</span><input type="hidden" name="subbenefit[]" value=""></td><td><select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select></td><input type="hidden" name="benefit_name[]" value=""><td class="text-area-cont"><textarea id="description" name="description[]" cols="16" class="form-control form-control-sm txt-area"></textarea></td><td><textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea></td><td><input type="text" class="form-control form-control-sm" id="valben" name="valben[]"  onchange="updateDisabledField(this)"  placeholder="0" value="0" readonly></td><input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan"><td><input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" min="0" placeholder="Quantity Tahun 1" value="0" onchange="updateDisabledField(this)" <?php if($year == 2 || $year == 3){echo "readonly";} ?> /></td><td><input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" min="0" placeholder="Quantity Tahun 2" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' || $program=='bsp' || $year == 3){echo "readonly";} ?>></td><td><input type="number" class="form-control form-control-sm tah3" id="member3" min="0" name="member3[]" placeholder="Quantity Tahun 3" value="0" onchange="updateDisabledField(this)"  <?php if($program=='cbls1' || $program=='cbls3' ||$program=='bsp'){echo "readonly";} ?>></td><td><input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]"  placeholder="0" value="0" readonly><input type="text" class="form-control form-control-sm usage" value="0" name="manval[]" style="display:none;" onchange="updateDisabledField(this)" placeholder="Input nilai"></td><input type="hidden" name="valuedefault[]" value=""><td class="action-row" data-action-row="row'+x+'"><button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row'+x+'"><i class="fas fa-trash"></i></button></td></tr>';
         $('#input_form').append(newRow); 
         populateDropdown('row'+x);
       }
@@ -675,7 +687,7 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
         }
       });
   });
-
+  
   function formatAndValidate(input, alokasi, row) {
     var cleanedInput = input.replace(/[^0-9]/g, '');
     var number = parseFloat(cleanedInput) || 0;
@@ -728,14 +740,15 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
     handleInput($(this));
   });
 
+  const makeMaxIds = <?= json_encode($make_max_ids) ?>;
+
   function handleInput(inputElement) {
     var row = inputElement.closest('tr');
     let selected = row.find('select[name="benefit_id[]"]').val();
 
     var value = inputElement.val();
     let alokasi = <?= $sumalok ?? 0 ?>;
-
-    if (selected == 72 || selected == 391) {
+    if (makeMaxIds.includes(parseInt(selected))) {
         var formattedValue = formatAndValidate(value, alokasi, row);
         inputElement.val(formattedValue);
     } else {

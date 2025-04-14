@@ -8,7 +8,7 @@
         exit();
     }
 
-    $id_draft        = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
+    $id_draft       = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
 
     $id_user        = $_POST['id_user'];
     $school_name    = $_POST['nama_sekolah'];
@@ -24,10 +24,8 @@
     $row_length     = count($book_titles);
 
     $level          = ($level == 'other') ? $level2 : $level;
-
-    $alokasi = 0;
-
-    $id_school = $school_name;
+    $alokasi        = 0;
+    $id_school      = $school_name;
 
     for($i = 0; $i < $row_length; $i++){
         $alokasi += preg_replace("/[^0-9-]/", "", $aloks[$i]); 

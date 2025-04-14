@@ -62,6 +62,9 @@
 
     $save_as_draft = ISSET($_POST["save_as_draft"]) ? true : false;
 
+    $ref_id         = ISSET($_POST["ref_id"]) ? $_POST["ref_id"] : NULL;
+    $program_year   = ISSET($_POST["year"]) ? $_POST["year"] : NULL;
+
     $benefits       = $_POST["benefit"];
     $subbenefits    = $_POST["subbenefit"];
     $benefitIds     = ISSET($_POST["benefit_id"]) ? $_POST["benefit_id"] : NULL;
@@ -94,7 +97,6 @@
             exit();
         }
     }
-
     
     $leng = count($benefits);
     
@@ -115,16 +117,30 @@
             mysqli_query($conn,$sql);
         }
     }
+
+    $ec_query = "SELECT ec.*
+                        FROM draft_benefit as db
+                    LEFT JOIN user as ec on ec.id_user = db.id_ec
+                    WHERE db.id_draft = $id_draft
+                    ";
+
+    $ec_result = mysqli_query($conn, $ec_query);
+    $ec_row = mysqli_fetch_assoc($ec_result);
+
+    $ec_name = $ec_row['generalname'] ?? 'EC';
+    $id_ec_r = $ec_row['id_user'] ?? $_SESSION['id_user'];
+    $ec_email = $ec_row['username'] ?? $_SESSION['username'];
     
     //create excel
     if(!$save_as_draft) {
+        
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setCellValue('A2', 'PERHITUNGAN HARGA DAN BENEFIT');
         // $sheet->setCellValue('A2', 'FORM PERHITUNGAN HARGA DAN BENEFIT');
         $sheet->mergeCells('A2:J2');
         // $sheet->setCellValue('A3', 'PROGRAM COMPETENCY BASED LEARNING SOLUTION (CBLS ) 2023');
-        $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program));
+        $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program) . ($program_year != 1 ? ($program_year == 2 ? " II" : " III") : " I"));
         $sheet->mergeCells('A3:J3');
         $sheet->setCellValue('A4', 'TAHUN AJARAN');
         $sheet->mergeCells('A4:J4');
@@ -132,7 +148,7 @@
         $sheet->setCellValue('A5', 'Nama Sekolah');
         $sheet->setCellValue('B5', ': '.$school_name);
         $sheet->setCellValue('A6', 'Nama EC');
-        $sheet->setCellValue('B6', ': '.$_SESSION['generalname']);
+        $sheet->setCellValue('B6', ': '.$ec_name);
         $sheet->setCellValue('A7', 'Program');
         $sheet->setCellValue('B7', ': '. strtoupper($program));
         $sheet->setCellValue('A8', 'Segment');
@@ -379,7 +395,7 @@
         $writer = new Xlsx($spreadsheet);
         $pattern = '/[^a-zA-Z0-9\s]/';
         $school_name_file = preg_replace($pattern, '', $school_name);
-        $fileName = "Draft Benefit - ".$school_name_file."-".$_SESSION['generalname'].'-'.date('Ymd');
+        $fileName = "Draft Benefit - ".$school_name_file."-".$ec_name.'-'.date('Ymd');
         $fileName = addslashes($fileName);
     
         $excelFile = 'draft-benefit/'.$fileName.'.xlsx';
@@ -392,7 +408,7 @@
          
         //get Leader ID;
         $leaderId   = null;
-        $sql        = "Select * from user where id_user='".$_SESSION['id_user']."';";
+        $sql        = "Select * from user where id_user='$id_ec_r';";
         $ress       = mysqli_query($conn,$sql);
         $leaderId1  = null;
         $leaderId2  = null;
@@ -419,9 +435,11 @@
     
         $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leaderId."', '0');";
         mysqli_query($conn,$sql);
+
+        $previous_year = $program_year - 1;
+        $is_adendum = $program_year != 1 ? ", formulir ini adalah perubahan pada tahun ke $program_year dan adalah perubahan dari tahun sebelumnya yaitu tahun ke $previous_year, " : "";
     
         $mail = new PHPMailer(true);
-        $ec_name = $_SESSION['generalname'];
 
         $message = "
                         <style>
@@ -436,7 +454,7 @@
 
                         <div class='container'>
                             <p>
-                                $ec_name! Telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
+                                $ec_name! Telah mengajukan formulir <strong>$uc_program</strong>$is_adendum untuk <strong>$school_name</strong> 
                             </p>
                             <p>Ayo, cepat-cepat dicek agar bisa segera diajukan ke Top Leader! Sukses untuk kita bersama! 👍😊</p>
                             <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
@@ -468,7 +486,7 @@
 
                         <div class='container'>
                             <p>
-                                $ecname telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
+                                $ecname telah mengajukan formulir <strong>$uc_program</strong>$is_adendum untuk <strong>$school_name</strong> 
                             </p>
                             <p>Wah, seru banget nih! $ecname sudah menunggu kamu untuk memeriksa formulir $uc_program di $school_name. Jika ada beberapa hal yang belum disetujui, berikan arahan dan masukan dengan baik dan konstruktif untuk membantu tim meningkatkan formulirnya.</p>
                             <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
@@ -486,7 +504,6 @@
                         </div>
                     ";
         }
-
             
         try {
     
@@ -496,21 +513,19 @@
             $mail->Username   = $config['smtp_username'];
             $mail->Password   = $config['smtp_password'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = 465;
+            $mail->Port       = $config['port'] ?? 465;
         
             //Recipients
             $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
             
-            $mail->addAddress($leaderEmail,$leaderName);
+            $mail->addAddress($leaderEmail, $leaderName);
             $mail->addAttachment($excelFile,$fileName);
             //Content
             $mail->isHTML(true);
             $uc_program = strtoupper($program);
-            $mail->Subject = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
+            $mail->Subject = 'Keren, '.$ec_name.' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
             $mail->Body    = $message;
             $mail->send();
-    
-    
             
         } catch (Exception $e) {
             echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
@@ -525,12 +540,12 @@
             $mail->Username   = $config['smtp_username'];
             $mail->Password   = $config['smtp_password'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-            $mail->Port       = 465; 
+            $mail->Port       = $config['port'] ?? 465; 
         
             //Recipients
             $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
             
-            $mail->addAddress($_SESSION['username'],$_SESSION['generalname']);
+            $mail->addAddress($ec_email, $ec_name);
             $mail->addAttachment($excelFile,$fileName);
             //Content
             $mail->isHTML(true);

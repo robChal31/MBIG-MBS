@@ -97,6 +97,7 @@
                                   <th scope="col">Name</th>
                                   <th scope="col">Category</th>
                                   <th scope="col">Is PK</th>
+                                  <th scope="col">Is Dynamic</th>
                                   <th scope="col">Created at</th>
                                   <th scope="col">Updated at</th>
                                   <th scope="col">Action</th>
@@ -110,6 +111,7 @@
                                     <td class="text-start"><?= $program['name'] ?></td>
                                     <td class="text-start"><?= $program['category'] ?? 'None' ?></td>
                                     <td class="text-start"><?= $program['is_pk'] ? "<span><i class='fa fa-check'></i></span>" : '' ?></td>
+                                    <td class="text-start"><?= $program['is_dynamic'] ? "<span><i class='fa fa-check'></i></span>" : '' ?></td>
                                     <td class="text-start"><?= $program['created_at'] ?></td>
                                     <td class="text-start"><?= $program['updated_at'] ?></td>
                                     <td class="text-center">

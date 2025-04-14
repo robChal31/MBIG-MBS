@@ -31,7 +31,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $mail->Username   = $config['smtp_username'];
         $mail->Password   = $config['smtp_password']; 
         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = 465;
+        $mail->Port       = $config['port'] ?? 465;
 
         //Recipients
         $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
@@ -294,9 +294,61 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             mysqli_query($conn, $sql);       
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '5', '0');";
             mysqli_query($conn,$sql);
+
+            $subject = "Program $program di $school_name Telah Berhasil diverifikasi";
+            $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil diverifikasi oleh Marketing Secretary.</p>
+                        <p> Mohon untuk segera mengecek dan konfirmasi program tersebut.</p>
+    
+                        <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
+    
+    
+            sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
         }else if($approver_id == 5) {
             $sql = "UPDATE draft_benefit set confirmed = 1 where id_draft = '$id_draft';";
             mysqli_query($conn, $sql);
+
+            $sql = "SELECT 
+                        dbl.id_benefit_list AS target_benefit_list, -- current draft
+                        dbl2.id_benefit_list AS source_benefit_list, -- from ref_id
+                        bu.user_id,
+                        bu.description,
+                        bu.qty1,
+                        bu.qty2,
+                        bu.qty3,
+                        bu.used_at,
+                        bu.redeem_code
+                    FROM draft_benefit db
+                    LEFT JOIN draft_benefit_list dbl ON dbl.id_draft = db.id_draft
+                    LEFT JOIN draft_benefit_list dbl2 ON dbl2.id_draft = db.ref_id AND dbl.id_template = dbl2.id_template
+                    LEFT JOIN benefit_usages bu ON bu.id_benefit_list = dbl2.id_benefit_list
+                    WHERE db.confirmed = 1
+                    AND db.id_draft = $id_draft
+                    AND bu.id_benefit_list IS NOT NULL
+                ";
+
+            $result = mysqli_query($conn, $sql);
+
+            if (!$result) {
+                die("Query failed: " . mysqli_error($conn));
+            }
+
+            while ($row = mysqli_fetch_assoc($result)) {
+                $target_id = $row['target_benefit_list'];
+                $user_id = $row['user_id'];
+                $description = mysqli_real_escape_string($conn, $row['description']);
+                $qty1 = $row['qty1'] ?? 0;
+                $qty2 = $row['qty2'] ?? 0;
+                $qty3 = $row['qty3'] ?? 0;
+                $used_at = $row['used_at'] ?? date('Y-m-d H:i:s');
+                $redeem_code = mysqli_real_escape_string($conn, $row['redeem_code']);
+
+                $insert = "INSERT INTO benefit_usages (id, id_benefit_list, user_id, description, qty1, qty2, qty3, used_at, redeem_code) 
+                            VALUES (NULL, $target_id, '$user_id', '$description', '$qty1', '$qty2', '$qty3', '$used_at', '$redeem_code')
+                        ";
+                        
+                mysqli_query($conn, $insert);
+            }
+
     
             $sql = "SELECT 
                         db.*, 

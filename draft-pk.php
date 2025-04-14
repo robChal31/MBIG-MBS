@@ -37,33 +37,19 @@
                                 <tbody>
                                     <?php
 
-                                        $programs = [];
-                                        $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 1";
-                                        $program_names = false;
-                                        $exec_program = mysqli_query($conn, $query_program);
-                                        if (mysqli_num_rows($exec_program) > 0) {
-                                            $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);
-                                            $program_names = array_map(function($item) {
-                                                return strtoupper($item['name']);
-                                            }, $programs);
-                                        }
-
-                                        $program_names = $program_names ? ("'" . implode("', '", $program_names) . "'") : false;
-
-                                        $query_filter_pk = $program_names ? " AND a.program IN ($program_names)" : '';
-
                                         $order_by = ' ORDER BY a.date ASC';
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                                 LEFT JOIN user b on a.id_ec = b.id_user
-                                                WHERE a.deleted_at is null
-                                                $query_filter_pk"; 
+                                                LEFT JOIN programs as prog ON prog.name = a.program
+                                                WHERE a.deleted_at IS NULL
+                                                AND prog.is_active = 1 AND prog.is_pk = 1
+                                                "; 
                                         if($_SESSION['role'] == 'ec'){
                                             $sql.=" AND (a.id_user=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."')";
                                         }
                                         $sql .= $order_by;
-                                        
                                         $result = mysqli_query($conn, $sql);
                                         setlocale(LC_MONETARY,"id_ID");
                                         if (mysqli_num_rows($result) > 0) {

@@ -18,6 +18,7 @@ if (mysqli_num_rows($draft_exec) > 0) {
 $program = $programs[0] ?? [];
 $is_pk = $program['is_pk'] ?? 1;
 $is_classified = $program['is_classified'] ?? 1;
+$is_dynamic = $program['is_dynamic'] ?? 0;
 
 $program_categories = [];
 $program_categories_q = "SELECT * FROM program_categories AS program WHERE program.deleted_at IS NULL";
@@ -65,6 +66,15 @@ if (mysqli_num_rows($program_categories_exec) > 0) {
                         <?php foreach($program_categories as $pc) { ?>
                             <option value="<?= $pc['id'] ?>" <?= $pc['id'] == ($program['program_category_id'] ?? '') ? 'selected' : '' ?>><?= $pc['name'] ?></option>
                         <?php } ; ?>
+                    </select>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Is Dynamic</label>
+                    <select name="is_dynamic" id="is_dynamic" class="form-control form-control-sm" required>
+                        <option value="" disabled selected>Select Type</option>
+                        <option value="1" <?= $is_dynamic == 1 ? 'selected' : '' ?>>Yes</option>
+                        <option value="0" <?= $is_dynamic == 0 ? 'selected' : '' ?>>No</option>
                     </select>
                 </div>
 

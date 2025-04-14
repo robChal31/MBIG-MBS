@@ -34,7 +34,16 @@
                                 IFNULL(sc.name, db.school_name) AS school_name2,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
-                                bu.tot_usage3
+                                bu.tot_usage3,
+                                CASE 
+                                    WHEN EXISTS (
+                                        SELECT 1 
+                                        FROM draft_benefit AS ref 
+                                        WHERE ref.ref_id = db.id_draft
+                                        AND ref.confirmed = 1
+                                    ) THEN 1 
+                                    ELSE 0 
+                                END AS has_ref_usage
                             FROM draft_benefit db
                             LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
                             LEFT JOIN (
@@ -50,13 +59,13 @@
                             LEFT JOIN pk p ON p.benefit_id = db.id_draft
                             LEFT JOIN schools sc ON sc.id = db.school_name
                             LEFT JOIN user ec ON ec.id_user = db.id_ec
-                            WHERE db.verified = 1
+                            WHERE db.confirmed = 1
                             $query_selected_type
                             $query_role
                         ) AS tab $query_selected_usage_year;";
 
     $exec_benefits = mysqli_query($conn, $query_benefits);
-
+    // var_dump($query_benefits);
     if (mysqli_num_rows($exec_benefits) > 0) {
         $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);    
     }
@@ -90,16 +99,13 @@
                     <tbody>
                         <?php
                             foreach($benefits as $loop => $benefit) {
-                                
-                                $status_class = $benefit['verified'] == 1 ? 'bg-success' :  'bg-primary';
-                                $status_msg = ($benefit['verified'] == 1 ? 'Verified' : 'Waiting Verification');
                                 if(strtolower($benefit['program']) == 'cbls3') {
                                     $benefit['qty2'] = $benefit['qty'];
                                     $benefit['qty3'] = $benefit['qty'];
                                 }
                                 $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time())
                         ?>
-                                <tr class="<?= $is_expired ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" title="<?= $is_expired ? "Benefit Expired" : '' ?>" >
+                                <tr class="<?= $is_expired || $benefit['has_ref_usage'] ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" title="<?= $is_expired ? "Benefit Expired" : '' ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
                                     <td><?= strtoupper($benefit['program']) ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
@@ -121,7 +127,7 @@
                                             <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
                                             
                                             <?php if($benefit['confirmed'] == 1) : ?>
-                                                <?php if(($_SESSION['role'] == "ec" && $benefit['redeemable'] == 1) || $_SESSION['role'] != "ec") : ?>
+                                                <?php if(($_SESSION['role'] == "ec" && $benefit['redeemable'] == 1) || $_SESSION['role'] != "ec" && !$benefit['has_ref_usage']) : ?>
                                                     <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
                                                 <?php endif; ?>
 
