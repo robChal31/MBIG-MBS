@@ -14,9 +14,9 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">Draft Benefit</h6>
                            <div class="d-flex align-items-center">
-                                <!-- <a href="update-benefit-ec-input.php">
+                                <a href="update-benefit-ec-input.php">
                                     <button type="button" class="btn btn-success m-2 btn-sm"><i class="fas fa-file me-2"></i>Update Program</button>    
-                                </a> -->
+                                </a>
                                 <a href="new-benefit-ec-input.php">
                                     <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
                                 </a>
