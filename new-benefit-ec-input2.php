@@ -67,10 +67,10 @@ if($data_status && $data_status['status'] != 2 && $data_status['status'] != null
 }
 
 $sql = "SELECT id_template_benefit FROM draft_template_benefit WHERE benefit_name LIKE '%dana pengembangan%'";
-$result = mysqli_query($conn, $sql);
+$check_result = mysqli_query($conn, $sql);
 
 $make_max_ids = [];
-while ($row = mysqli_fetch_assoc($result)) {
+while ($row = mysqli_fetch_assoc($check_result)) {
     $make_max_ids[] = (int)$row['id_template_benefit'];
 }
 

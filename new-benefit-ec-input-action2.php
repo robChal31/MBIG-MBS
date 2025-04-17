@@ -209,7 +209,8 @@
         $sheet->setCellValue('A'.$row, 'Manfaat/fasilitas pengembangan sekolah');
         $sheet->mergeCells('A'.$row.':F'.$row);
         $sheet->setCellValue('G'.$row, 'Harga satuan per unit');
-        $sheet->mergeCells('G'.$row.':H'.$row);
+        $sheet->setCellValue('H'.$row, 'Satuan');
+        // $sheet->mergeCells('G'.$row.':H'.$row);
         $sheet->setCellValue('I'.$row, 'Usulan Total (durasi/guru/ siswa)');
         $sheet->setCellValue('J'.$row, 'Total Tahun 1');
         if($program == 'prestasi'){
