@@ -15,11 +15,11 @@ try {
     $school_id = $_POST['school_id'];
     $programs = [];
 
-    $query = "
-        SELECT prog.*
+    $query = "SELECT prog.*
         FROM programs AS prog
         LEFT JOIN program_schools AS ps ON ps.program_id = prog.id
         WHERE (ps.school_id = '$school_id' OR ps.program_id IS NULL)
+        AND prog.is_active = 1 AND prog.is_pk = 0 AND prog.code NOT IN ('cbls1', 'cbls3')
         AND prog.is_pk = 0
     ";
 
