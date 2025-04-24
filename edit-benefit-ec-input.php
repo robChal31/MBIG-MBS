@@ -50,12 +50,12 @@ if(mysqli_num_rows($result) < 1){
   $current_row  = mysqli_num_rows($result);
 
   $program_code = mysqli_real_escape_string($conn, $program);
-  $sql = "SELECT id FROM programs WHERE code = '$program_code' LIMIT 1";
+  $sql = "SELECT code FROM programs WHERE code = '$program_code' LIMIT 1";
   $result = mysqli_query($conn, $sql);
   
   $program_id = null;
   if ($row = mysqli_fetch_assoc($result)) {
-      $program_id = $row['id'];
+      $program_id = $row['code'];
   }
   
 }
@@ -314,7 +314,7 @@ if ($exec_list_book->num_rows > 0) {
         }
     });
     
-    let programId = <?= $program_id ?>;
+    let programId = '<?= $program_id ?>';
     let schoolId = "<?= $school_name ?>";
 
     function loadPrograms(schoolId, programId = false) {
@@ -329,8 +329,8 @@ if ($exec_list_book->num_rows > 0) {
                 success: function(response) {
                     let options = '<option value="" disabled>Select a program</option>';
                     response.map((data) => {
-                        const selected = programId ? (data.id == programId ? 'selected' : '') : '';
-                        options += `<option value="${data.id}" ${selected}>${data.name}</option>`;
+                        const selected = programId ? (data.code == programId ? 'selected' : '') : '';
+                        options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
                     });
 
                     $('#program').html(options).select2();
