@@ -302,10 +302,10 @@
     var usulan = !isNaN(removeNonDigits(row.find('input[name="usulanharga[]"').val())) ? removeNonDigits(row.find('input[name="usulanharga[]"').val()) : 0;
     var normal = !isNaN(removeNonDigits(row.find('input[name="harganormal[]"').val())) ? removeNonDigits(row.find('input[name="harganormal[]"').val()) : 0;
     var diskon = !isNaN(removeNonDigits(row.find('input[name="diskon[]"').val())) ? removeNonDigits(row.find('input[name="diskon[]"').val()) : 0;
-    if(diskon > 25){
-      diskon = 25;
+    if(diskon > 30){
+      diskon = 30;
       alert("Diskon melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih");
-      row.find('input[name="diskon[]"').val(25);
+      row.find('input[name="diskon[]"').val(30);
     }  
     
     var setelahDiskon = normal -  (diskon/100 * normal);
