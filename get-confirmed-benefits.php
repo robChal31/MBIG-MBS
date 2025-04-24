@@ -30,7 +30,7 @@
     $query_benefits = "SELECT * 
                         FROM (
                             SELECT 
-                                db.*, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
+                                db.*, db.year as prog_year, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
                                 IFNULL(sc.name, db.school_name) AS school_name2,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
@@ -61,7 +61,11 @@
                             LEFT JOIN user ec ON ec.id_user = db.id_ec
                             WHERE db.confirmed = 1
                             $query_selected_type
-                            $query_role
+                            $query_role 
+                            AND NOT EXISTS (
+                                SELECT 1 FROM draft_benefit ref 
+                                WHERE ref.ref_id = db.id_draft AND ref.confirmed = 1
+                            )
                         ) AS tab $query_selected_usage_year;";
 
     $exec_benefits = mysqli_query($conn, $query_benefits);
@@ -103,11 +107,12 @@
                                     $benefit['qty2'] = $benefit['qty'];
                                     $benefit['qty3'] = $benefit['qty'];
                                 }
+                                $programe_name = $benefit['prog_year'] == 1 ? $benefit['program'] : ($benefit['program'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
                                 $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time())
                         ?>
                                 <tr class="<?= $is_expired || $benefit['has_ref_usage'] ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" title="<?= $is_expired ? "Benefit Expired" : '' ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
-                                    <td><?= strtoupper($benefit['program']) ?></td>
+                                    <td><?= strtoupper($programe_name) ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
                                     <td><?= $benefit['generalname'] ?></td>
                                     <td><?= $benefit['benefit'] ?></td>

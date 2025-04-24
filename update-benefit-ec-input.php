@@ -96,269 +96,269 @@ if($posts && $posts['program_reffered']) {
     <div class="container-fluid p-4">
 
       <div class="row">
-      <div class="bg-whites rounded h-100 p-4">
-        <div class="col-12">
-          <h4>Update Draft Benefit</h4>
-          <?php
-            if(ISSET($id_draft)) { ?>
-              <form class="mt-4" method="POST" action="new-benefit-ec-input-action3.php" enctype="multipart/form-data" id="input_form_benefit">
-                  
+        <div class="bg-whites rounded h-100 p-4">
+          <div class="col-12">
+            <h4>Update Draft Benefit</h4>
+            <?php
+              if(ISSET($id_draft)) { ?>
+                <form class="mt-4" method="POST" action="new-benefit-ec-input-action3.php" enctype="multipart/form-data" id="input_form_benefit">
+                    
+                  <table class="table table-striped">
+                    <tr>
+                      <td style="width: 15%">Proram Year</td>
+                      <td style="width:5px">:</td>
+                      <td>
+                        <input type="text" value="Year <?= $program_year ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="program_year" value="<?= $program_year ?>" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="width: 15%">Program Reffered</td>
+                      <td style="width:5px">:</td>
+                      <td>
+                        <input type="text" value="<?= $program_reffered ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="program_reffered" value="<?= $id_draft ?>" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td style="width: 15%">Inputter</td>
+                      <td style="width:5px">:</td>
+                      <td>
+                        <input type="text" value="<?= $ec_name ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="id_user" value="<?= $id_ec ?>">
+                        <input type="hidden" name="inputEC" value="<?= $inputEC ?>">
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Nama Sekolah</td>
+                      <td>:</td>
+                      <td>
+                        <input type="text" value="<?= $school_name ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="nama_sekolah" value="<?= $school_id ?>" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Segment Sekolah</td>
+                      <td>:</td>
+                      <td>
+                        <input type="text" value="<?= $segment ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="segment" value="<?= $segment ?>" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Jenjang Sekolah</td>
+                      <td>:</td>
+                      <td>
+                        <input type="text" value="<?= $level ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="level" value="<?= $level ?>" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Wilayah Sekolah</td>
+                      <td>:</td>
+                      <td>
+                        <input type="text" value="<?= $wilayah ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="wilayah" value="<?= $wilayah ?>" />
+                      </td>
+                    </tr>
+                    <tr>
+                      <td>Program</td>
+                      <td>:</td>
+                      <td>
+                        <input type="text" value="<?= $program_name ?>" class="form-control form-control-sm" required readonly />
+                        <input type="hidden" name="program" value="<?= $program ?>" />
+                      </td>
+                    </tr>
+                  </table>
+
+                  <div class="table-responsive mt-4">
+                    <table class="table table-bordered dataTable no-footer" id="input_form">
+                        <thead>
+                            <th>Judul Buku</th>
+                            <th style="width: 10%">Level</th>
+                            <th style="width: 8%">Jenis Buku</th>
+                            <th>Jumlah Siswa</th>
+                            <th>Usulan Harga Program</th>
+                            <th>Harga Buku Normal</th>
+                            <th>Standard Discount</th>
+                            <th>Harga Setelah Diskon</th>
+                            <th>Revenue Harga Program</th>
+                            <th>Revenue Harga Normal</th>
+                            <th>Alokasi pengembangan sekolah</th>
+                            <th>Action</th>
+                        </thead>
+                        <tbody>
+                          <?php
+                            $row = 1;
+                            while ($data = $exec_query->fetch_assoc()){ 
+                              $book = explode(' | ', $data['book_title']);  
+                              
+                            ?>
+                              <tr id="row<?= $row ?>">
+                                <td>
+                                  <select name="titles[]" class="book form-select form-select-sm">
+                                    <?php foreach($options as $option) : ?>
+                                      <option value="<?= $option ?>" <?= $book[0] == $option ? 'selected' : '' ?>><?= $option ?></option>
+                                    <?php endforeach; ?>
+                                  </select>
+                                </td>
+                                <td>
+                                  <select name="levels[]" class="level form-select form-select-sm">
+                                    <option value="Level Starter" <?= $book[1] == 'Level Starter' ? 'selected' : '' ?>>Level Starter</option>
+                                    <option value="Level 1" <?= $book[1] == 'Level 1' ? 'selected' : '' ?>>Level 1</option>
+                                    <option value="Level 2" <?= $book[1] == 'Level 2' ? 'selected' : '' ?>>Level 2</option>
+                                    <option value="Level 3" <?= $book[1] == 'Level 3' ? 'selected' : '' ?>>Level 3</option>
+                                    <option value="Level 4" <?= $book[1] == 'Level 4' ? 'selected' : '' ?>>Level 4</option>
+                                    <option value="Level 5" <?= $book[1] == 'Level 5' ? 'selected' : '' ?>>Level 5</option>
+                                    <option value="Level 6" <?= $book[1] == 'Level 6' ? 'selected' : '' ?>>Level 6</option>
+                                  </select>
+                                </td>
+                                <td>
+                                  <select name="booktype[]" class="booktype form-select form-select-sm">
+                                    <option value="Textbook" <?= $book[2] == 'Textbook' ? 'selected' : '' ?>>Textbook</option>
+                                    <option value="Workbook" <?= $book[2] == 'Workbook' ? 'selected' : '' ?>>Workbook</option>
+                                  </select>
+                                </td>
+                                <td>
+                                  <input type="text" name="jumlahsiswa[]" value="<?= number_format($data['qty'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Jumlah Siswa..." onchange="updateDisabledField(this)">
+                                </td>
+                                <td>
+                                  <input type="text" name="usulanharga[]" value="<?= number_format($data['usulan_harga'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Usulan Harga..." onchange="updateDisabledField(this)">
+                                </td>
+                                <td>
+                                  <input type="text" name="harganormal[]" value="<?= number_format($data['normalprice'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Harga Buku Normal..." onchange="updateDisabledField(this)">
+                                </td>
+                                <td>
+                                  <input type="text" name="diskon[]" value="<?= number_format($data['discount'], '0', ',', '.') ?>" max="30" class="form-control only_number form-control-sm" placeholder="Standard Discount..." onchange="updateDisabledField(this)">
+                                </td>
+                                <td><input type="text" class="aftd form-control form-control-sm" name="aftd[]" placeholder="0" readonly></td>
+                                <td><input type="text" class="afto form-control form-control-sm" name="afto[]" placeholder="0" readonly></td>
+                                <td><input type="text" class="befo form-control form-control-sm" name="befo[]" placeholder="0" readonly></td>
+                                <td><input type="text" class="alok form-control form-control-sm" name="alokasi[]" placeholder="0" readonly></td>
+                                
+                                <td>
+                                  <?php
+                                    if($row == 1) {?>
+                                    <button type='button' class="add-button btn btn-success" id='add_row'>
+                                      <i class="fas fa-plus"></i>
+                                  </button>
+                                <?php } else {?>
+                                  <button type="button" class="btn_remove btn btn-danger" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
+                                <?php } ?>
+                                </td>
+                              </tr>
+                          <?php $row++; } ?>
+                        </tbody>
+                    </table> 
+                  </div>  
+
+                  <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
+                    <button type="submit" class="btn btn-primary m-2 fw-bold" id="submt">Submit</button>
+                  </div>
+                </form>
+                <h4>Total Alokasi Benefit: <span id="accumulated_values"></span></h4>
+            <?php }else { ?>
+              <h6 class="mb-4" style="font-weight: 200" >Select Year and Program to proceed updating benefit</h6>
+              <form method="POST" enctype="multipart/form-data" id="input_form_benefit">
+                    
                 <table class="table table-striped">
                   <tr>
                     <td style="width: 15%">Proram Year</td>
                     <td style="width:5px">:</td>
                     <td>
-                      <input type="text" value="Year <?= $program_year ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="program_year" value="<?= $program_year ?>" />
+                      <select name="program_year" id="program_year" class="form-select form-select-sm">
+                        <option value="">Select Year</option>
+                        <option value="2">Year 2</option>
+                        <option value="3">Year 3</option>
+                      </select>
                     </td>
                   </tr>
                   <tr>
                     <td style="width: 15%">Program Reffered</td>
                     <td style="width:5px">:</td>
                     <td>
-                      <input type="text" value="<?= $program_reffered ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="program_reffered" value="<?= $id_draft ?>" />
+                      <select name="program_reffered" id="program_reffered" class="form-select form-select-sm w-full">
+                        <option value=''>Select Program</option>
+                      </select>
                     </td>
                   </tr>
                   <tr>
                     <td style="width: 15%">Inputter</td>
                     <td style="width:5px">:</td>
                     <td>
-                      <input type="text" value="<?= $ec_name ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="id_user" value="<?= $id_ec ?>">
-                      <input type="hidden" name="inputEC" value="<?= $inputEC ?>">
+                      <input class="form-control form-control-sm" value="<?= $_SESSION['username'] ?>" disabled>
+                      <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
                     </td>
                   </tr>
+                  <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
+                    <tr>
+                      <td>Nama EC</td>
+                      <td>:</td>
+                      <td>
+                        <select name="inputEC" id="inputEC" class="form-select form-select-sm" required>
+                          <option value=''>Select EC</option>
+                          <?php 
+                            $emp_sql    = "SELECT * from user where role='ec' order by generalname ASC"; 
+                            $resultsd1  = mysqli_query($conn, $emp_sql);
+                            while ($row = mysqli_fetch_assoc($resultsd1)){
+                              echo "<option value='".$row['id_user']."'>".$row['generalname']."</option>";
+                            } 
+                          ?>
+                        </select>
+                      </td>
+                    </tr>
+                  <?php else : ?> 
+                    <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?> "> 
+                  <?php endif; ?>
                   <tr>
                     <td>Nama Sekolah</td>
                     <td>:</td>
                     <td>
-                      <input type="text" value="<?= $school_name ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="nama_sekolah" value="<?= $school_id ?>" />
+                      <input type="text" id="select_school_label" class="form-control form-control-sm"  readonly required />
+                      <input type="hidden" id="select_school" name="nama_sekolah" class="form-control form-control-sm" />
                     </td>
                   </tr>
                   <tr>
                     <td>Segment Sekolah</td>
                     <td>:</td>
                     <td>
-                      <input type="text" value="<?= $segment ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="segment" value="<?= $segment ?>" />
+                      <input type="text" name="segment" id="segment" class="form-control form-control-sm" required readonly />
                     </td>
                   </tr>
                   <tr>
                     <td>Jenjang Sekolah</td>
                     <td>:</td>
                     <td>
-                      <input type="text" value="<?= $level ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="level" value="<?= $level ?>" />
+                      <input type="text" name="level" id="level" class="form-control form-control-sm" required readonly />
                     </td>
                   </tr>
                   <tr>
                     <td>Wilayah Sekolah</td>
                     <td>:</td>
                     <td>
-                      <input type="text" value="<?= $wilayah ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="wilayah" value="<?= $wilayah ?>" />
+                      <input type="text" name="wilayah" id="wilayah" class="form-control form-control-sm" required readonly />
                     </td>
                   </tr>
                   <tr>
                     <td>Program</td>
                     <td>:</td>
                     <td>
-                      <input type="text" value="<?= $program_name ?>" class="form-control form-control-sm" required readonly />
-                      <input type="hidden" name="program" value="<?= $program ?>" />
+                      <input type="text" id="program_label" class="form-control form-control-sm" required readonly />
+                      <input type="hidden" name="program" id="program" class="form-control form-control-sm" />
                     </td>
                   </tr>
                 </table>
 
-                <div class="table-responsive mt-4">
-                  <table class="table table-bordered dataTable no-footer" id="input_form">
-                      <thead>
-                          <th>Judul Buku</th>
-                          <th style="width: 10%">Level</th>
-                          <th style="width: 8%">Jenis Buku</th>
-                          <th>Jumlah Siswa</th>
-                          <th>Usulan Harga Program</th>
-                          <th>Harga Buku Normal</th>
-                          <th>Standard Discount</th>
-                          <th>Harga Setelah Diskon</th>
-                          <th>Revenue Harga Program</th>
-                          <th>Revenue Harga Normal</th>
-                          <th>Alokasi pengembangan sekolah</th>
-                          <th>Action</th>
-                      </thead>
-                      <tbody>
-                        <?php
-                          $row = 1;
-                          while ($data = $exec_query->fetch_assoc()){ 
-                            $book = explode(' | ', $data['book_title']);  
-                            
-                          ?>
-                            <tr id="row<?= $row ?>">
-                              <td>
-                                <select name="titles[]" class="book form-select form-select-sm">
-                                  <?php foreach($options as $option) : ?>
-                                    <option value="<?= $option ?>" <?= $book[0] == $option ? 'selected' : '' ?>><?= $option ?></option>
-                                  <?php endforeach; ?>
-                                </select>
-                              </td>
-                              <td>
-                                <select name="levels[]" class="level form-select form-select-sm">
-                                  <option value="Level Starter" <?= $book[1] == 'Level Starter' ? 'selected' : '' ?>>Level Starter</option>
-                                  <option value="Level 1" <?= $book[1] == 'Level 1' ? 'selected' : '' ?>>Level 1</option>
-                                  <option value="Level 2" <?= $book[1] == 'Level 2' ? 'selected' : '' ?>>Level 2</option>
-                                  <option value="Level 3" <?= $book[1] == 'Level 3' ? 'selected' : '' ?>>Level 3</option>
-                                  <option value="Level 4" <?= $book[1] == 'Level 4' ? 'selected' : '' ?>>Level 4</option>
-                                  <option value="Level 5" <?= $book[1] == 'Level 5' ? 'selected' : '' ?>>Level 5</option>
-                                  <option value="Level 6" <?= $book[1] == 'Level 6' ? 'selected' : '' ?>>Level 6</option>
-                                </select>
-                              </td>
-                              <td>
-                                <select name="booktype[]" class="booktype form-select form-select-sm">
-                                  <option value="Textbook" <?= $book[2] == 'Textbook' ? 'selected' : '' ?>>Textbook</option>
-                                  <option value="Workbook" <?= $book[2] == 'Workbook' ? 'selected' : '' ?>>Workbook</option>
-                                </select>
-                              </td>
-                              <td>
-                                <input type="text" name="jumlahsiswa[]" value="<?= number_format($data['qty'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Jumlah Siswa..." onchange="updateDisabledField(this)">
-                              </td>
-                              <td>
-                                <input type="text" name="usulanharga[]" value="<?= number_format($data['usulan_harga'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Usulan Harga..." onchange="updateDisabledField(this)">
-                              </td>
-                              <td>
-                                <input type="text" name="harganormal[]" value="<?= number_format($data['normalprice'], '0', ',', '.') ?>" class="form-control only_number form-control-sm" placeholder="Harga Buku Normal..." onchange="updateDisabledField(this)">
-                              </td>
-                              <td>
-                                <input type="text" name="diskon[]" value="<?= number_format($data['discount'], '0', ',', '.') ?>" max="30" class="form-control only_number form-control-sm" placeholder="Standard Discount..." onchange="updateDisabledField(this)">
-                              </td>
-                              <td><input type="text" class="aftd form-control form-control-sm" name="aftd[]" placeholder="0" readonly></td>
-                              <td><input type="text" class="afto form-control form-control-sm" name="afto[]" placeholder="0" readonly></td>
-                              <td><input type="text" class="befo form-control form-control-sm" name="befo[]" placeholder="0" readonly></td>
-                              <td><input type="text" class="alok form-control form-control-sm" name="alokasi[]" placeholder="0" readonly></td>
-                              
-                              <td>
-                                <?php
-                                  if($row == 1) {?>
-                                  <button type='button' class="add-button btn btn-success" id='add_row'>
-                                    <i class="fas fa-plus"></i>
-                                </button>
-                              <?php } else {?>
-                                <button type="button" class="btn_remove btn btn-danger" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
-                              <?php } ?>
-                              </td>
-                            </tr>
-                        <?php $row++; } ?>
-                      </tbody>
-                  </table> 
-                </div>  
-
                 <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
-                  <button type="submit" class="btn btn-primary m-2 fw-bold" id="submt">Submit</button>
+                  <button type="submit" class="btn btn-primary m-2 fw-bold" id="proceed" disabled>Proceed</button>
                 </div>
               </form>
-              <h4>Total Alokasi Benefit: <span id="accumulated_values"></span></h4>
-          <?php }else { ?>
-            <h6 class="mb-4" style="font-weight: 200" >Select Year and Program to proceed updating benefit</h6>
-            <form method="POST" enctype="multipart/form-data" id="input_form_benefit">
-                  
-              <table class="table table-striped">
-                <tr>
-                  <td style="width: 15%">Proram Year</td>
-                  <td style="width:5px">:</td>
-                  <td>
-                    <select name="program_year" id="program_year" class="form-select form-select-sm">
-                      <option value="">Select Year</option>
-                      <option value="2">Year 2</option>
-                      <option value="3">Year 3</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="width: 15%">Program Reffered</td>
-                  <td style="width:5px">:</td>
-                  <td>
-                    <select name="program_reffered" id="program_reffered" class="form-select form-select-sm w-full">
-                      <option value=''>Select Program</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td style="width: 15%">Inputter</td>
-                  <td style="width:5px">:</td>
-                  <td>
-                    <input class="form-control form-control-sm" value="<?= $_SESSION['username'] ?>" disabled>
-                    <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
-                  </td>
-                </tr>
-                <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
-                  <tr>
-                    <td>Nama EC</td>
-                    <td>:</td>
-                    <td>
-                      <select name="inputEC" id="inputEC" class="form-select form-select-sm" required>
-                        <option value=''>Select EC</option>
-                        <?php 
-                          $emp_sql    = "SELECT * from user where role='ec' order by generalname ASC"; 
-                          $resultsd1  = mysqli_query($conn, $emp_sql);
-                          while ($row = mysqli_fetch_assoc($resultsd1)){
-                            echo "<option value='".$row['id_user']."'>".$row['generalname']."</option>";
-                          } 
-                        ?>
-                      </select>
-                    </td>
-                  </tr>
-                <?php else : ?> 
-                  <input type='hidden' name='inputEC' value="<?= $_SESSION['id_user'] ?> "> 
-                <?php endif; ?>
-                <tr>
-                  <td>Nama Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" id="select_school_label" class="form-control form-control-sm"  readonly required />
-                    <input type="hidden" id="select_school" name="nama_sekolah" class="form-control form-control-sm" />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Segment Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" name="segment" id="segment" class="form-control form-control-sm" required readonly />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Jenjang Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" name="level" id="level" class="form-control form-control-sm" required readonly />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Wilayah Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" name="wilayah" id="wilayah" class="form-control form-control-sm" required readonly />
-                  </td>
-                </tr>
-                <tr>
-                  <td>Program</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" id="program_label" class="form-control form-control-sm" required readonly />
-                    <input type="hidden" name="program" id="program" class="form-control form-control-sm" />
-                  </td>
-                </tr>
-              </table>
-
-              <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
-                <button type="submit" class="btn btn-primary m-2 fw-bold" id="proceed" disabled>Proceed</button>
-              </div>
-            </form>
-          <?php } ?>
+            <?php } ?>
+            </div>
           </div>
         </div>
-      </div>
 
-    </div>
+      </div>
     
     <!-- Form End -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

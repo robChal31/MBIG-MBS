@@ -92,8 +92,8 @@
                           <td>Program</td>
                           <td>:</td>
                           <td>
-                            <select name="program" class="form-select form-select-sm" required>
-                              <?php
+                            <select name="program" id="program" class="form-select form-select-sm select2" required>
+                              <!-- <?php
                                   $programs = [];
                                   $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0 AND code NOT IN ('cbls1', 'cbls3')";
 
@@ -104,7 +104,7 @@
 
                                   foreach($programs as $prog) : ?>
                                     <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
-                              <?php endforeach; ?>
+                              <?php endforeach; ?> -->
                             </select>
                           </td>
                         </tr>
@@ -167,6 +167,7 @@
 
 <script>
   $(document).ready(function(){
+    $('.select2').select2();
     var maxRows = 75; // Maximum rows allowed
     var x = 1; // Initial row counter
 
@@ -211,7 +212,7 @@
         type: 'GET', 
         dataType: 'json', 
         success: function(response) {
-            let options = '';
+          let options = '<option value="" disabled selected>Select a school</option>';
             response.map((data) => {
                 options += `<option value="${data.id}">${data.name}</option>`
             }) 
@@ -221,6 +222,36 @@
         },
         error: function(jqXHR, textStatus, errorThrown) {
             $('#select_school').html('Error: ' + textStatus);
+        }
+    });
+
+    $('#select_school').on('change', function() {
+        var schoolId = $(this).val();
+
+        if (schoolId) {
+            $.ajax({
+                url: 'get-school-program.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    school_id: schoolId,
+                },
+                success: function(response) {
+                  let options = '<option value="" disabled selected>Select a program</option>';
+                  response.map((data) => {
+                      options += `<option value="${data.id}">${data.name}</option>`
+                  }) 
+
+                  $('#program').html(options);
+                  $('#program').select2();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('Error:', textStatus, errorThrown);
+                    alert("Failed to get program")
+                }
+            });
+        } else {
+            alert('No school selected');
         }
     });
 

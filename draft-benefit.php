@@ -14,9 +14,9 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">Draft Benefit</h6>
                            <div class="d-flex align-items-center">
-                                <a href="update-benefit-ec-input.php">
+                                <!-- <a href="update-benefit-ec-input-term.php">
                                     <button type="button" class="btn btn-success m-2 btn-sm"><i class="fas fa-file me-2"></i>Update Program</button>    
-                                </a>
+                                </a> -->
                                 <a href="new-benefit-ec-input.php">
                                     <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
                                 </a>
@@ -45,7 +45,7 @@
                                         $id_user = $_SESSION['id_user'];
 
                                         $order_by = ' ORDER BY a.date ASC';
-                                        $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
+                                        $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at, a.year
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                                 LEFT JOIN user b on a.id_ec = b.id_user
@@ -70,12 +70,13 @@
                                                 $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
                                                 $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
                                                 $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
+                                                $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
                                     ?>
                                                 <tr>
                                                     <td><?= $row['generalname'] ?></td>
                                                     <td><?= $row['school_name2'] ?></td>
                                                     <td><?= ucfirst($row['segment']) ?></td>
-                                                    <td><?= $row['program'] ?></td>
+                                                    <td><?= strtoupper($programe_name) ?></td>
                                                     <td><?= $row['date'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
                                                     <!-- <td><?= $row['deleted_at'] ?></td> -->

@@ -48,6 +48,16 @@ if(mysqli_num_rows($result) < 1){
                     WHERE a.id_draft = '$id_draft'";
   $result       = mysqli_query($conn,$sql);
   $current_row  = mysqli_num_rows($result);
+
+  $program_code = mysqli_real_escape_string($conn, $program);
+  $sql = "SELECT id FROM programs WHERE code = '$program_code' LIMIT 1";
+  $result = mysqli_query($conn, $sql);
+  
+  $program_id = null;
+  if ($row = mysqli_fetch_assoc($result)) {
+      $program_id = $row['id'];
+  }
+  
 }
 
 $book_list_query  = "SELECT * 
@@ -153,8 +163,8 @@ if ($exec_list_book->num_rows > 0) {
                   <td>Program</td>
                   <td>:</td>
                   <td>
-                    <select name="program" class="form-select form-select-sm" required>
-                      <?php
+                    <select name="program" id="program" class="form-select form-select-sm select2" required>
+                      <!-- <?php
                           $programs = [];
                           $query_program = "SELECT * FROM programs WHERE is_active = 1 AND is_pk = 0";
 
@@ -165,7 +175,7 @@ if ($exec_list_book->num_rows > 0) {
 
                           foreach($programs as $prog) : ?>
                             <option value="<?= $prog['name'] ?>"><?= $prog['name'] ?></option>
-                      <?php endforeach; ?>
+                      <?php endforeach; ?> -->
                     </select>
                   </td>
                 </tr>
@@ -271,6 +281,7 @@ if ($exec_list_book->num_rows > 0) {
 
 <script>
   $(document).ready(function(){
+    $('.select2').select2();
     var maxRows = 75; // Maximum rows allowed
     var x = <?= $row ?>; // Initial row counter
     x = x ? parseInt(x) : 1;
@@ -301,6 +312,46 @@ if ($exec_list_book->num_rows > 0) {
         error: function(jqXHR, textStatus, errorThrown) {
             $('#select_school').html('Error: ' + textStatus);
         }
+    });
+    
+    let programId = <?= $program_id ?>;
+    let schoolId = "<?= $school_name ?>";
+
+    function loadPrograms(schoolId, programId = false) {
+        if (schoolId) {
+            $.ajax({
+                url: 'get-school-program.php',
+                type: 'POST',
+                dataType: 'json',
+                data: {
+                    school_id: schoolId,
+                },
+                success: function(response) {
+                    let options = '<option value="" disabled>Select a program</option>';
+                    response.map((data) => {
+                        const selected = programId ? (data.id == programId ? 'selected' : '') : '';
+                        options += `<option value="${data.id}" ${selected}>${data.name}</option>`;
+                    });
+
+                    $('#program').html(options).select2();
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.log('Error:', textStatus, errorThrown);
+                    alert("Failed to get program");
+                }
+            });
+        } else {
+            alert('No school selected');
+        }
+    }
+
+    $(document).ready(function () {
+        loadPrograms(schoolId, programId);
+    });
+
+    $('#select_school').on('change', function () {
+        const newSchoolId = $(this).val();
+        loadPrograms(newSchoolId);
     });
 
     $("select[name='level']").on('change', function() {

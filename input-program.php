@@ -15,10 +15,10 @@ $draft_exec = mysqli_query($conn, $draft_program_q);
 if (mysqli_num_rows($draft_exec) > 0) {
   $programs = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
 }
-$program = $programs[0] ?? [];
-$is_pk = $program['is_pk'] ?? 1;
-$is_classified = $program['is_classified'] ?? 1;
-$is_dynamic = $program['is_dynamic'] ?? 0;
+$program        = $programs[0] ?? [];
+$is_pk          = $program['is_pk'] ?? 1;
+$is_classified  = $program['is_classified'] ?? 1;
+$is_dynamic     = $program['is_dynamic'] ?? 0;
 
 $program_categories = [];
 $program_categories_q = "SELECT * FROM program_categories AS program WHERE program.deleted_at IS NULL";
@@ -27,6 +27,13 @@ if (mysqli_num_rows($program_categories_exec) > 0) {
   $program_categories = mysqli_fetch_all($program_categories_exec, MYSQLI_ASSOC);    
 }
 
+$selected_school_ids = [];
+$result = mysqli_query($conn, "SELECT school_id FROM program_schools WHERE program_id = $id_program");
+
+while ($row = mysqli_fetch_assoc($result)) {
+    $selected_school_ids[] = $row['school_id'];
+}
+$selected_school_ids_js = json_encode($selected_school_ids);
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
@@ -78,6 +85,13 @@ if (mysqli_num_rows($program_categories_exec) > 0) {
                     </select>
                 </div>
 
+                <div class="col-12 mb-3">
+                    <label class="form-label d-flex" style="font-size: .85rem;">Schools</label>
+                    <select name="schools[]" id="select_schools" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple>
+                        
+                    </select>
+                    <span class="text-muted small">Leave it blank if it is for all schools</span>
+                </div>
                 
                 <input type="hidden" name="id_program" value="<?= $id_program == 0 ? '' : $id_program ?>">
             </div>
@@ -93,6 +107,27 @@ if (mysqli_num_rows($program_categories_exec) > 0) {
 <script>
     $(document).ready(function() {
         $('.select2').select2();
+
+        $.ajax({
+            url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>',
+            type: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                let selected_school_ids = <?php echo $selected_school_ids_js; ?>;
+
+                let options = '';
+                response.map((data) => {
+                    let isSelected = selected_school_ids.includes(data.id) ? 'selected' : '';
+                    options += `<option value="${data.id}" ${isSelected}>${data.name}</option>`;
+                });
+
+                $('#select_schools').html(options);
+                $('#select_schools').select2();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $('#select_schools').html('Error: ' + textStatus);
+            }
+        });
 
         $('#form_program').on('submit', function(event) {
             event.preventDefault();

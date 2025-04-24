@@ -140,7 +140,7 @@
         // $sheet->setCellValue('A2', 'FORM PERHITUNGAN HARGA DAN BENEFIT');
         $sheet->mergeCells('A2:J2');
         // $sheet->setCellValue('A3', 'PROGRAM COMPETENCY BASED LEARNING SOLUTION (CBLS ) 2023');
-        $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program) . ($program_year != 1 ? ($program_year == 2 ? " II" : " III") : " I"));
+        $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program) . ($program_year != 1 ? ($program_year == 2 ? " PERUBAHAN TAHUN KE 2" : " PERUBAHAN TAHUN KE 3") : " I"));
         $sheet->mergeCells('A3:J3');
         $sheet->setCellValue('A4', 'TAHUN AJARAN');
         $sheet->mergeCells('A4:J4');

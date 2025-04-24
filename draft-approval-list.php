@@ -41,7 +41,7 @@
                                 $sql_q      = " WHERE ";
                                 $id_user    = $_SESSION['id_user'];
                                 $sql = "SELECT 
-                                            a.id_draft_approval, a.id_draft, a.status, a.token, b.status as draft_status, b.verified,
+                                            a.id_draft_approval, a.id_draft, a.status, a.token, b.status as draft_status, b.verified, b.year,
                                             b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
                                             c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver, b.deleted_at, c.leadId, c.leadid2, c.leadid3
                                         FROM `draft_approval` a 
@@ -71,13 +71,14 @@
                                     while($row = mysqli_fetch_assoc($result)) {
                                         $id_draft = $row['id_draft'];
                                         $token = $row['token'];
+                                        $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
                                         echo "<tr>";
                                             echo "<td>$id_draft</td>";
                                             echo "<td>".$row['generalname']."</td>";
                                             echo "<td>".$row['school_name2']."</td>";
                                             echo "<td>". ucfirst($row['segment'])."</td>";
                                             echo "<td>".$row['date']."</td>";
-                                            echo "<td>".$row['program']."</td>";
+                                            echo "<td>". strtoupper($programe_name) ."</td>";
                                             echo "<td>".$row['leadername']."</td>";
                                             $status_class = $row['draft_status'] == 0 ? 'bg-warning' : ($row['draft_status'] == 1 ? 'bg-success' : 'bg-danger');
                                             $status_msg = $row['draft_status'] == 0 ? 'Waiting Approval' : ($row['draft_status'] == 1 ? 'Approved' : 'Rejected');

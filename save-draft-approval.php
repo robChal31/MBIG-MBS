@@ -104,7 +104,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     if(mysqli_affected_rows($conn) == 1){
         // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
         $sql = "SELECT 
-                    db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, leader.id_user as leader_id, 
+                    db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, leader.id_user as leader_id, db.year,
                     ec.leadid, ec.leadid2, ec.leadid3, IFNULL(sc.name, db.school_name) as school_name, db.program, ec.sa_email, leader.generalname as approver_name
                 FROM draft_approval da 
                 LEFT JOIN draft_benefit db on db.id_draft = da.id_draft
@@ -129,6 +129,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $leadid2                    = $dra['leadid2'];
             $leadid3                    = $dra['leadid3'];
             $id_ec                      = $dra['ec_id_user'];
+            $year                       = $dra['year'];
         }
     }else{
         $_SESSION['toast_status'] = "Error";
@@ -150,7 +151,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             }
 
             // this is for ec mail
-            $subject = "Mantap! Formulir PK $school_name kamu sudah disetujui oleh Leader";
+            $subject = $year ==  1 ? "Mantap! Formulir PK $school_name kamu sudah disetujui oleh Leader" : "Mantap! Formulir Perubahan PK Tahun Ke-$year $school_name kamu sudah disetujui oleh Leader";
             $message = "<p>Mantap! Formulir kamu sudah disetujui oleh Leader, sekarang kita akan ajukan formulir kerja sama $program untuk $school_name ke Leader $leadname.</p><p> Jika ada yang perlu direvisi atau disetujui, kita bakal kasih tau kamu lewat email.</p><p> Terima kasih.</p>";
 
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl);
@@ -159,7 +160,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             mysqli_query($conn,$sql);
 
             // this is for lead ec mail
-            $subject    = "Keren $approver_name telah menyetujui formulir $program untuk $school_name";
+            $subject = $year ==  1 ? "Keren $approver_name telah menyetujui formulir $program untuk $school_name" : "Keren $approver_name telah menyetujui formulir perubahan PK Tahun Ke-$year $program untuk $school_name.";
             $message    = "
                                 <style>
                                     * {
@@ -203,7 +204,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             }
 
             $subject    = 'Mentari Benefit | Formulir '.$school_name.' sudah disetujui oleh leader';
-            $message    = 'Yeay, formulir '.$program.' buat '.$school_name.' sudah disetujui oleh leader! Menunggu persetujuan top leader';
+            $message    = $year == 1 ? "Yeay, formulir $program buat $school_name sudah disetujui oleh leader! Menunggu persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $program buat $school_name sudah disetujui oleh leader! Menunggu persetujuan top leader";
             
             if(ISSET($saemail)) {
                 $sa_name = explode('@', $saemail)[0];
@@ -218,7 +219,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             mysqli_query($conn,$sql);
             
             // this is for top lead mail
-            $subject = 'Mentari Benefit | Formulir '.$school_name.' sedang menunggu persetujuan Anda';
+            $subject = $year == 1 ? "Mentari Benefit | Formulir $school_name sedang menunggu persetujuan Anda" : "Mentari Benefit | Formulir perubahan PK Tahun Ke-$year $school_name sedang menunggu persetujuan Anda";
             $message = "
                         <style>
                             * {
@@ -253,7 +254,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
         }else if($leadid3 == $approver_id) {
             //mail for ec
-            $subject = "Yeay, formulir $school_name sudah disetujui!";
+            $subject = $year == 1 ? "Yeay, formulir $school_name sudah disetujui!" : "Yeay, formulir perubahan PK Tahun Ke-$year $school_name sudah disetujui!";
             $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>";
             
             $cc = [];
@@ -295,7 +296,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '5', '0');";
             mysqli_query($conn,$sql);
 
-            $subject = "Program $program di $school_name Telah Berhasil diverifikasi";
+            $subject = $year == 1 ? "Program $program di $school_name Telah Berhasil diverifikasi" : "Program perubahan PK Tahun Ke-$year di $school_name Telah Berhasil diverifikasi";
             $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil diverifikasi oleh Marketing Secretary.</p>
                         <p> Mohon untuk segera mengecek dan konfirmasi program tersebut.</p>
     
@@ -409,7 +410,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $email = 'secretary@mentaribooks.com';
             $name = 'Putri';
     
-            $subject = "Program $program di $school_name Telah Berhasil Dikonfirmasi";
+            $subject = $year == 1 ? "Program $program di $school_name Telah Berhasil Dikonfirmasi" : "Program perubahan PK Tahun Ke-$year di $school_name Telah Berhasil Dikonfirmasi";
             $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil dikonfirmasi oleh Head of Sales Admin.</p>
                         <p> Namun, untuk manfaat PDMTA, Beasiswa S2, Studi Banding dan Assessment, Admin wajib melakukan konfirmasi ulang kepada AR/ACCT terkait dengan ketentuan pembayaran sekolah.</p>
     
@@ -425,7 +426,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $mail = new PHPMailer(true);
 
         // this is for ec mail when rejected
-        $subject = "Pengajuan $uc_program $school_name BELUM DISETUJUI";
+        $subject = $year == 1 ? "Pengajuan $uc_program $school_name BELUM DISETUJUI" : "Pengajuan perubahan PK Tahun Ke-$year $school_name BELUM DISETUJUI";
         $message = 'Wah, sedikit lagi nih! Formulir yang kamu ajukan masih perlu diperbaiki. SEGERA Lakukan revisi sesuai notes dari Leader kamu dan ajukan kembali ke Top Leader. Kamu pasti bisa, semangat ya!';
         $approver_query = "SELECT u.generalname as name, u.username as email 
                             FROM `draft_approval` AS da 

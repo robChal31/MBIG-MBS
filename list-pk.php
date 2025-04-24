@@ -16,8 +16,8 @@
 <?php 
     $role = $_SESSION['role'];
     $selected_program = $_POST['programs'] ?? NULL;
-    $start_date = $_POST['start_date'] ?? date('Y-m-d', strtotime('-1 year'));
-    $end_date = $_POST['end_date'] ?? date('Y-m-d');
+    $start_date = $_POST['start_date'] ?? date('Y-m-d', strtotime('-3 year'));
+    $end_date = $_POST['end_date'] ?? date('Y-m-d', strtotime('+3 year'));
 
     $selected_programs_q = $selected_program ? implode("', '", $selected_program) : 'all';
 
@@ -45,13 +45,13 @@
                             <div class="row">
                                 <div class="col-md-2 col-12">
                                     <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">Start Date</label>
+                                        <label for="dateFilter" class="form-label">Active From</label>
                                         <input type="text" class="form-control dateFilter" name="start_date" placeholder="Select Date" value="<?= $start_date ?>">
                                     </div>
                                 </div>
                                 <div class="col-md-2 col-12">
                                     <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">End Date</label>
+                                        <label for="dateFilter" class="form-label">Expired At</label>
                                         <input type="text" class="form-control dateFilter" name="end_date" placeholder="Select Date" value="<?= $end_date ?>">
                                     </div>
                                 </div>
@@ -113,8 +113,8 @@
                                 $id_user = $_SESSION['id_user'];
 
                                 $sql = "SELECT 
-                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2, b.alokasi,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, pk.no_pk, pk.start_at, pk.expired_at, pk.created_at, b.confirmed, b.jenis_pk, c.leadId
+                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2, b.alokasi, b.year, c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, 
+                                            pk.no_pk, pk.start_at, pk.expired_at, pk.created_at, b.confirmed, b.jenis_pk, c.leadId
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
@@ -127,8 +127,8 @@
 
                                 $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.confirmed = 1 AND b.deleted_at IS NULL ";
                                 $sql .= $selected_program ? " AND b.program IN ('$selected_programs_q') " : '';
-                                $sql .= $start_date ? " AND b.date >= '$start_date' " : '';
-                                $sql .= $end_date ? " AND b.date <= '$end_date' " : '';        
+                                $sql .= $start_date ? " AND pk.start_at >= '$start_date' " : '';
+                                $sql .= $end_date ? " AND pk.expired_at <= '$end_date' " : '';        
                                 $sql .= " ORDER BY b.date DESC";
 
 
@@ -143,13 +143,14 @@
                                             $status_class = $row['confirmed'] == 1 ? 'bg-success' :  'bg-primary';
                                             $status_msg = ($row['confirmed'] == 1 ? 'Confirmed' : 'Waiting Confirmation');
                                         }
+                                        $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
                                 ?>
                                         <tr>
                                             <td><?= $id_draft ?></td>
                                             <td><?= $row['generalname'] ?></td>
                                             <td><?= $row['school_name2'] ?></td>
                                             <td><?= ucfirst($row['segment']) ?></td>
-                                            <td><?= strtoupper($row['program']) ?></td>
+                                            <td><?= strtoupper($programe_name) ?></td>
                                             <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
                                             <td><?= number_format($row['alokasi'], 0, ',', '.') ?></td>
                                             <td><?= $row['no_pk'] ?></td>
