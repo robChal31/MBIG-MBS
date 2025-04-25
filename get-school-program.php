@@ -33,7 +33,7 @@ try {
 
     while ($row = mysqli_fetch_assoc($result)) {
         $programs[] = [
-            'code' => $row['code'],
+            'code' => $row['name'],
             'name' => $row['name']
         ];
     }

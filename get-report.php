@@ -77,6 +77,7 @@
                                     <th scope="col" style="width: 10%">Nama EC</th>
                                     <th scope="col" style="width: 20%">Nama Sekolah</th>
                                     <th scope="col">Segment</th>
+                                    <th scope="col">Program Category</th>
                                     <th scope="col">Program</th>
                                     <th scope="col">Level</th>
                                     <th scope="col">Start From</th>
@@ -88,9 +89,12 @@
                             <tbody>
                                 <?php
                                     $query_program = " AND a.program IN ('$selected_programs') ";
-                                    $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at, pk.start_at, pk.expired_at
+                                    $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, 
+                                                a.deleted_at, pk.start_at, pk.expired_at, cat.name as program_category
                                                 FROM draft_benefit a
                                             LEFT JOIN schools as sc on sc.id = a.school_name
+                                            LEFT JOIN programs as prog on prog.name = a.program
+                                            LEFT JOIN program_categories as cat on cat.id = prog.program_category_id
                                             LEFT JOIN user b on a.id_ec = b.id_user
                                             LEFT JOIN pk as pk on pk.benefit_id = a.id_draft
                                             WHERE a.deleted_at IS NULL AND a.status IN ($selected_status) 
@@ -124,6 +128,7 @@
                                             <td><?= $row['generalname'] ?></td>
                                             <td><?= $row['school_name2'] ?></td>
                                             <td><?= ucfirst($row['segment']) ?></td>
+                                            <td><?= $row['program_category'] ? $row['program_category'] : 'Belum dilengkapi' ?></td>
                                             <td><?= $row['program'] ?></td>
                                             <td><?= strtoupper($row['level']) ?></td>
                                             <td><?= $row['start_at'] ?></td>
