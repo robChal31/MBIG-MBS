@@ -68,13 +68,13 @@
                             <div class="row mb-2">
                                 <div class="col-3">
                                     <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">Start Date</label>
+                                        <label for="dateFilter" class="form-label">Start From</label>
                                         <input type="text" class="form-control dateFilter" name="start_date" value="<?= $default_start_date ?>" placeholder="Start Date">
                                     </div>
                                 </div>
                                 <div class="col-3">
                                     <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">End Date</label>
+                                        <label for="dateFilter" class="form-label">Expired at</label>
                                         <input type="text" class="form-control dateFilter" name="end_date" value="<?= $default_end_date ?>" placeholder="End Date">
                                     </div>
                                 </div>

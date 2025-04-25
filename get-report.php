@@ -79,6 +79,8 @@
                                     <th scope="col">Segment</th>
                                     <th scope="col">Program</th>
                                     <th scope="col">Level</th>
+                                    <th scope="col">Start From</th>
+                                    <th scope="col">Expired At</th>
                                     <th scope="col">Created at</th>
                                     <th scope="col" style="width: 13%">Status</th>
                                 </tr>
@@ -86,17 +88,30 @@
                             <tbody>
                                 <?php
                                     $query_program = " AND a.program IN ('$selected_programs') ";
-                                    $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
+                                    $sql2 = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at, pk.start_at, pk.expired_at
                                                 FROM draft_benefit a
                                             LEFT JOIN schools as sc on sc.id = a.school_name
                                             LEFT JOIN user b on a.id_ec = b.id_user
+                                            LEFT JOIN pk as pk on pk.benefit_id = a.id_draft
                                             WHERE a.deleted_at IS NULL AND a.status IN ($selected_status) 
+                                            AND confirmed = 1
                                             $query_program 
-                                            AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' 
+                                            -- AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' 
+                                            AND DATE_FORMAT(pk.expired_at, '%Y-%m') >= '$endDate'
+                                            -- AND (
+                                            --     pk.start_at IS NOT NULL AND
+                                            --     pk.expired_at IS NOT NULL AND
+                                            --     DATE_FORMAT(pk.start_at, '%Y-%m') <= '$endDate' AND
+                                            --     DATE_FORMAT(pk.expired_at, '%Y-%m') >= '$startDate'
+                                            -- )
                                             ORDER BY a.date ASC";
                                     
-
                                     $result = mysqli_query($conn, $sql2);
+                                    $result = mysqli_query($conn, $sql2);
+                                    if (!$result) {
+                                        die("MySQL Error: " . mysqli_error($conn));
+                                    }
+
                                     setlocale(LC_MONETARY,"id_ID");
                                     if (mysqli_num_rows($result) > 0) {
                                         while($row = mysqli_fetch_assoc($result)) {
@@ -111,6 +126,8 @@
                                             <td><?= ucfirst($row['segment']) ?></td>
                                             <td><?= $row['program'] ?></td>
                                             <td><?= strtoupper($row['level']) ?></td>
+                                            <td><?= $row['start_at'] ?></td>
+                                            <td><?= $row['expired_at'] ?></td>
                                             <td><?= $row['date'] ?></td>
                                             <td><?= $stat ?></td>
                                         </tr>
