@@ -70,9 +70,11 @@
                                     FROM draft_benefit a
                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                 LEFT JOIN user b on a.id_ec = b.id_user
+                                LEFT JOIN pk as pk on pk.benefit_id = a.id_draft
                                 WHERE a.deleted_at IS NULL AND a.status IN ($selectedStatus2) 
                                 $query_program 
-                                AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate2' AND '$endDate2' 
+                                -- AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate2' AND '$endDate2'
+                                AND DATE_FORMAT(pk.expired_at, '%Y-%m') >= '$endDate'
                                 ORDER BY a.date ASC";
                         
 

@@ -16,7 +16,7 @@
                         FROM (
                             SELECT COUNT(db.id_draft) as total_draft, program, prog.code, prog.is_pk, prog.is_active 
                             FROM draft_benefit db 
-                            left join programs as prog on prog.name = db.program
+                            LEFT JOIN programs as prog on prog.name = db.program
                             $query_filter_draft db.status IN ($selected_status) AND db.program IN ('$selected_programs') AND DATE_FORMAT(db.date, '%Y-%m') BETWEEN '$startDate' AND '$endDate' AND db.deleted_at IS NULL
                             group by prog.code
                         ) AS prog
