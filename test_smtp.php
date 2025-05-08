@@ -9,7 +9,7 @@ $config = require 'config.php';
 
 try {
     $mail->isSMTP();
-    $mail->Host = 'smtp.gmail.com';
+    $mail->Host = $config['host'];
     $mail->SMTPAuth = true;
     $mail->Username   = $config['smtp_username'];
     $mail->Password   = $config['smtp_password']; 

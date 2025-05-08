@@ -51,15 +51,14 @@
     if($status == 1){
         $mail = new PHPMailer(true);
         try {
-            //Server settings                     //Enable verbose debug output
-            $mail->isSMTP();                                            //Send using SMTP
-            $mail->Host       = 'smtp.gmail.com';                    //Set the SMTP server to send through
-            $mail->SMTPAuth   = true;                                   //Enable SMTP authentication
-            $mail->Username   = $config['smtp_username'];            //SMTP username
-            $mail->Password   = $config['smtp_password'];                   //SMTP password
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;            //Enable implicit TLS encryption
-            $mail->Port       = $config['port'] ?? 465;                                    //TCP port to connect to; use 587 if you have set `SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS`
-            //Recipients
+            $mail->isSMTP();
+            $mail->Host       = $config['host'];
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $config['smtp_username'];
+            $mail->Password   = $config['smtp_password'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = $config['port'] ?? 465;
+
             $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
             $mail->addAttachment('draft-benefit/'.$fileUrl.'.xlsx',$fileUrl.'.xlsx');
             $mail->addAddress($email,$ecname);
@@ -81,7 +80,7 @@
             //Server settings
                    //Enable verbose debug output
             $mail->isSMTP();                                        //Send using SMTP
-            $mail->Host       = 'smtp.gmail.com';                   //Set the SMTP server to send through
+            $mail->Host       = $config['host'];;                   //Set the SMTP server to send through
             $mail->SMTPAuth   = true;                               //Enable SMTP authentication
             $mail->Username   = $config['smtp_username'];    //SMTP username
             $mail->Password   = $config['smtp_password'];                  //SMTP password

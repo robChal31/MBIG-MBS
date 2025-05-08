@@ -40,7 +40,17 @@
                                             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
                                             c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed, b.jenis_pk, c.leadid, c.leadid2, c.leadid3
                                         FROM draft_benefit b
-                                        LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
+                                        LEFT JOIN (
+                                            SELECT *
+                                            FROM draft_approval da
+                                            WHERE da.id_user_approver = $id_user
+                                            AND da.date = (
+                                                SELECT MAX(date)
+                                                FROM draft_approval
+                                                WHERE id_draft = da.id_draft
+                                                AND id_user_approver = $id_user
+                                            )
+                                        ) a ON a.id_draft = b.id_draft
                                         LEFT JOIN schools sc on sc.id = b.school_name
                                         LEFT JOIN user c on c.id_user = b.id_ec 
                                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";

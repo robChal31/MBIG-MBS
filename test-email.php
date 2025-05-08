@@ -9,10 +9,10 @@
     use PHPMailer\PHPMailer\PHPMailer;
 
     $config = require 'config.php';
-    var_dump($config);
+
     $mail = new PHPMailer(true);
     $mail->isSMTP(); 
-    $mail->Host       = 'smtp.gmail.com';
+    $mail->Host       = $config['host'];
     $mail->SMTPAuth   = true;
     $mail->Username   = $config['smtp_username'];
     $mail->Password   = $config['smtp_password'];

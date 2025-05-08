@@ -28,6 +28,7 @@
                             <table class="table table-striped table-bordered" id="table_draft">
                                 <thead>
                                     <tr>
+                                        <th scope="col">ID</th>
                                         <th scope="col" style="width: 10%">Nama EC</th>
                                         <th scope="col" style="width: 20%">Nama Sekolah</th>
                                         <th scope="col">Segment</th>
@@ -73,6 +74,7 @@
                                                 $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
                                     ?>
                                                 <tr>
+                                                    <td><?= $row['id_draft'] ?></td>
                                                     <td><?= $row['generalname'] ?></td>
                                                     <td><?= $row['school_name2'] ?></td>
                                                     <td><?= ucfirst($row['segment']) ?></td>
