@@ -104,7 +104,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     if(mysqli_affected_rows($conn) == 1){
         // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
         $sql = "SELECT 
-                    db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, leader.id_user as leader_id, db.year, da.verified, da.status,
+                    db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, leader.id_user as leader_id, db.year,
                     ec.leadid, ec.leadid2, ec.leadid3, IFNULL(sc.name, db.school_name) as school_name, db.program, ec.sa_email, leader.generalname as approver_name
                 FROM draft_approval da 
                 LEFT JOIN draft_benefit db on db.id_draft = da.id_draft
@@ -130,8 +130,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $leadid3                    = $dra['leadid3'];
             $id_ec                      = $dra['ec_id_user'];
             $year                       = $dra['year'];
-            $verified                   = $dra['verified'];
-            $draft_status               = $dra['status'];
         }
     }else{
         $_SESSION['toast_status'] = "Error";
@@ -198,38 +196,15 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             $mail = new PHPMailer(true);
             
         }else if(($leadid2 == $approver_id) || ($leadid == $approver_id && !$leadid2)) {
-            $cc = [];
-            $leademail  = 'secretary@mentaribooks.com';
-            $leadname   = 'Putri';
-
             $sql = "SELECT * from user where id_user = $leadid3";
             $result = mysqli_query($conn,$sql);
             while ($dra = $result->fetch_assoc()){
-                $cc[] = [
-                    'email' => $dra['username'],
-                    'name' => $dra['generalname']
-                ];
-            }
-            
-            $cc[] = [
-                'email' => "kelly@mentarigroups.com",
-                'name' => "Kelly"
-            ];
-
-            if($leadid3 == 16) {
-                $cc[] = [
-                    'email' => "santo@mentaribooks.com",
-                    'name' => "Santo"
-                ];
-            }else {
-                $cc[] = [
-                    'email' => "dwinanto@mentaribooks.com",
-                    'name' => "Dwinanto"
-                ];
+                $leademail  = $dra['username'];
+                $leadname   = $dra['generalname'];   
             }
 
             $subject    = 'Mentari Benefit | Formulir '.$school_name.' sudah disetujui oleh leader';
-            $message    = $year == 1 ? "Yeay, formulir $program buat $school_name sudah disetujui oleh leader! Menunggu pengecekan dari secretary dan persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $program buat $school_name sudah disetujui oleh leader! Menunggu pengecekan dari secretary dan persetujuan top leader";
+            $message    = $year == 1 ? "Yeay, formulir $program buat $school_name sudah disetujui oleh leader! Menunggu persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $program buat $school_name sudah disetujui oleh leader! Menunggu persetujuan top leader";
             
             if(ISSET($saemail)) {
                 $sa_name = explode('@', $saemail)[0];
@@ -240,11 +215,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             }
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
     
-            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
+            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid3."', '0');";
             mysqli_query($conn,$sql);
             
             // this is for top lead mail
-            $subject = $year == 1 ? "Mentari Benefit | Formulir $school_name sedang menunggu pengecekan dan persetujuan Anda" : "Mentari Benefit | Formulir perubahan PK Tahun Ke-$year $school_name sedang menunggu persetujuan Anda";
+            $subject = $year == 1 ? "Mentari Benefit | Formulir $school_name sedang menunggu persetujuan Anda" : "Mentari Benefit | Formulir perubahan PK Tahun Ke-$year $school_name sedang menunggu persetujuan Anda";
             $message = "
                         <style>
                             * {
@@ -315,7 +290,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $sql            = "UPDATE draft_benefit set status = '$choosen_status' where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
 
-        if(($approver_id == 70 || $approver_id == 15) && $draft_status == 1) {
+        if($approver_id == 70 || $approver_id == 15) {
             $sql = "UPDATE draft_benefit set verified = 1 where id_draft = '$id_draft';";
             mysqli_query($conn, $sql);       
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '5', '0');";
@@ -329,63 +304,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     
     
             sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
-        }else if(($approver_id == 70 || $approver_id == 15) && $draft_status == 0) {
-            $sql = "SELECT * from user where id_user = $leadid3";
-            $result = mysqli_query($conn,$sql);
-            while ($dra = $result->fetch_assoc()){
-                $leademail  = $dra['username'];
-                $leadname   = $dra['generalname'];   
-            }
-
-            $subject    = 'Mentari Benefit | Formulir '.$school_name.' sudah diperiksa oleh secretary';
-            $message    = $year == 1 ? "Yeay, formulir $program buat $school_name sudah diperiksa oleh secretary! Menunggu persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $program buat $school_name sudah diperiksa oleh secretary! Menunggu persetujuan top leader";
-            
-            if(ISSET($saemail)) {
-                $sa_name = explode('@', $saemail)[0];
-                $cc[] = [
-                    'email' => $saemail,
-                    'name' => $sa_name
-                ];
-            }
-            sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
-    
-            $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid3."', '0');";
-            mysqli_query($conn,$sql);
-            
-            // this is for top lead mail
-            $subject = $year == 1 ? "Mentari Benefit | Formulir $school_name sedang menunggu persetujuan Anda" : "Mentari Benefit | Formulir perubahan PK Tahun Ke-$year $school_name sedang menunggu persetujuan Anda";
-            $message = "
-                        <style>
-                            * {
-                                font-family: Helvetica, sans-serif;
-                            }
-                            .container {
-                                width: 80%;
-                                margin: auto;
-                            }
-                        </style>
-
-                        <div class='container'>
-                            <p>
-                                $ecname telah mengajukan formulir <strong>$uc_program</strong> untuk <strong>$school_name</strong> 
-                            </p>
-                            <p>Wah, seru banget nih! $ecname sudah menunggu kamu untuk memeriksa formulir $uc_program di $school_name. Jika ada beberapa hal yang belum disetujui, berikan arahan dan masukan dengan baik dan konstruktif untuk membantu tim meningkatkan formulirnya.</p>
-                            <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
-                            <p style='margin: 20px 0px;'>
-                                <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
-                                    Redirect me!
-                                </a>
-                            </p>
-                            <div style='border-bottom: 1px solid #ddd;'></div>
-                            <p>Jika tombol tidak berfungsi dengan benar, silakan salin tautan berikut dan tambahkan ke peramban Anda </p>
-                            <p style='color: #0096c7'>https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader</p>
-                            <div style='text-align: center; margin-top: 35px;'>
-                                <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
-                            </div>
-                        </div>
-                    ";
-
-            sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
         }else if($approver_id == 5) {
             $sql = "UPDATE draft_benefit set confirmed = 1 where id_draft = '$id_draft';";
             mysqli_query($conn, $sql);

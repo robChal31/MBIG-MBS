@@ -143,7 +143,7 @@
                         (
                             select COUNT(db.id_draft) as total_draft
                             from draft_benefit as db 
-                            where db.id_ec = 139
+                            where db.id_ec = $id_user
                         ) as total_draft
                         FROM user as user 
                         LEFT JOIN approval_reject_history AS arh on arh.id_user = user.id_user
@@ -178,6 +178,4 @@
         }
     }
 
-    
-        
-    ?>
+?>
