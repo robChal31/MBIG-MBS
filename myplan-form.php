@@ -14,8 +14,38 @@
 <?php 
   include 'header.php'; 
 
+  $id_plan  = ISSET($_GET['plan_id']) ? $_GET['plan_id'] : NULL;
   $username = $_SESSION['username'];
   $id_user  = $_SESSION['id_user'];
+  $levels = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
+
+  $segment = '';
+  $school_id = '';
+  $program = '';
+  $wilayah = '';
+  $level = '';
+  $student_projection;
+  $omset_projection;
+  $user_id;
+
+  if($id_plan){
+    $sql    = "SELECT * from myplan where id = $id_plan";
+    $result = mysqli_query($conn, $sql);
+    $row    = mysqli_fetch_assoc($result);
+
+    $segment             = $row['segment'];
+    $user_id             = $row['user_id'];
+    $school_id           = $row['school_id'];
+    $program             = $row['program'];
+    $wilayah             = $row['wilayah'];
+    $student_projection  = $row['student_projection'];
+    $omset_projection    = $row['omset_projection'];
+    $level               = $row['level'];
+    $selected_lv         = array_filter($levels, function($lv) use($level) {
+                                  return $lv == $level;
+                                });
+    $level2              = count($selected_lv) < 1 ? $level : '';
+  }
 
 ?>
   <!-- Content Start -->
@@ -39,10 +69,9 @@
                         <?php 
                           $sql = "SELECT * from user where role='ec' order by generalname ASC"; 
                           $resultsd1 = mysqli_query($conn, $sql);
-                          while ($row = mysqli_fetch_assoc($resultsd1)){
-                            echo "<option value='".$row['id_user']."'>".$row['generalname']."</option>";
-                          } 
-                        ?>
+                          while ($row = mysqli_fetch_assoc($resultsd1)) { ?>
+                           <option value="<?= $row['id_user'] ?>" <?= $user_id == $row['id_user'] ? 'selected' : '' ?>><?= $row['generalname'] ?></option>
+                        <?php } ?>
                       </select>
                     </td>
                   </tr>
@@ -68,9 +97,9 @@
                   <td>:</td>
                   <td>
                     <select name="segment" class="form-select form-select-sm" required>
-                      <option value="national">National</option>
-                      <option value="national plus" >National Plus</option>
-                      <option value="internasional/spk">International/SPK</option>
+                      <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
+                      <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?> >National Plus</option>
+                      <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
                     </select>
                   </td>
                 </tr>
@@ -79,15 +108,15 @@
                   <td>:</td>
                   <td>
                     <select name="level" class="form-select form-select-sm" required>
-                      <option value="tk">TK</option>
-                      <option value="sd">SD</option>
-                      <option value="smp">SMP</option>
-                      <option value="sma">SMA</option>
-                      <option value="yayasan">Yayasan</option>
-                      <option value="other" id='level_manual_input'>Lainnya (isi sendiri)</option>
+                      <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
+                      <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
+                      <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
+                      <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
+                      <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
+                      <option value="other" <?= $level2 != '' ? 'selected' : '' ?> id='level_manual_input'>Lainnya (isi sendiri)</option>
                     </select>
                     <div class="my-1" id='other_level' style="display: none;">
-                      <input type="text" name="level2" value="" placeholder="Jenjang..." class="form-control form-control-sm">
+                      <input type="text" name="level2" value="<?= $level2 ?>" placeholder="Jenjang..." class="form-control form-control-sm">
                     </div>
                   </td>
                 </tr>
@@ -133,6 +162,9 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
+  let school_id = "<?= $school_id ?? '0' ?>";
+  let program = "<?= $program ?? '' ?>";
+
   $(document).ready(function(){
     $('.select2').select2();
 
@@ -148,13 +180,13 @@
     });
 
     $.ajax({
-        url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>', 
+        url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $username ?>', 
         type: 'GET', 
         dataType: 'json', 
         success: function(response) {
           let options = '<option value="" disabled selected>Select a school</option>';
             response.map((data) => {
-                options += `<option value="${data.id}">${data.name}</option>`
+                options += `<option value="${data.id}" ${data.id == school_id ? 'selected' : ''}>${data.name}</option>`
             }) 
 
             $('#select_school').html(options);
@@ -178,7 +210,7 @@
           success: function(response) {
             let options = '<option value="" disabled selected>Select a program</option>';
             response.map((data) => {
-                options += `<option value="${data.code}">${data.name}</option>`
+                options += `<option value="${data.code}" ${data.code == program ? 'selected' : ''}>${data.name}</option>`
             }) 
 
             $('#program').html(options);

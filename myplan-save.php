@@ -8,21 +8,21 @@
         exit();
     }
 
-    $plan_id        = ISSET($_POST['plan_id']) ? $_POST['plan_id'] : null;
-
-    $id_user        = $_POST['id_user'];
-    $school_name    = $_POST['nama_sekolah'];
-    $segment        = $_POST['segment'];
-    $wilayah        = $_POST['wilayah'];
-    $program        = $_POST['program'];
-    $level          = $_POST['level'];
-    $level2         = $_POST['level2'];
-    $student_proj   = $_POST['student_projection'];
-    $omset_proj     = $_POST['omset_projection'];
-    $level          = ($level == 'other') ? $level2 : $level;
-    $id_school      = $school_name;
-
     try {
+        $plan_id        = ISSET($_POST['plan_id']) ? $_POST['plan_id'] : null;
+
+        $id_user        = $_POST['id_user'];
+        $school_name    = $_POST['nama_sekolah'];
+        $segment        = $_POST['segment'];
+        $wilayah        = $_POST['wilayah'];
+        $program        = $_POST['program'];
+        $level          = $_POST['level'];
+        $level2         = $_POST['level2'];
+        $student_proj   = $_POST['student_projection'];
+        $omset_proj     = $_POST['omset_projection'];
+        $level          = ($level == 'other') ? $level2 : $level;
+        $id_school      = $school_name;
+
         $url = "https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=$id_school";
 
         $curl = curl_init($url);
@@ -61,7 +61,7 @@
             }
         }
 
-        if($plan_id){
+        if($plan_id) {
             $sql = "UPDATE myplan SET 
                         user_id = '$id_user',
                         school_id = '$id_school',
@@ -74,19 +74,25 @@
                         updated_at = current_timestamp()
                     WHERE id = $plan_id";
 
-            mysqli_query($conn, $sql);
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception("Error: " . mysqli_error($conn));
+            }
+
         }else {
-            $sql = "INSERT INTO `myplan` (`id`, `user_id`, `school_id`, `segment`, `program`, `created_at`, `student_projection`, `omset_projection`, `wilayah`, `level`) VALUES (NULL, '$id_user', '$id_school', '$segment', '$program', current_timestamp(), '$student_proj', '$omset_proj', '$wilayah', '$level');";
+            $sql = "INSERT INTO `myplan` (`user_id`, `school_id`, `segment`, `program`, `created_at`, `student_projection`, `omset_projection`, `wilayah`, `level`) VALUES ('$id_user', '$id_school', '$segment', '$program', current_timestamp(), '$student_proj', '$omset_proj', '$wilayah', '$level');";
 
-            mysqli_query($conn,$sql);
-            $id_draft = mysqli_insert_id($conn);
+            if (mysqli_query($conn, $sql)) {
+                $plan_id = mysqli_insert_id($conn);
+            } else {
+                throw new Exception("Error: " . mysqli_error($conn));
+            }
+            
         }
-
 
         $_SESSION['toast_status'] = 'Success';
         $_SESSION['toast_msg'] = 'Berhasil Menyimpan My Plan';
         
-        $location = 'Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft; 
+        $location = 'Location: ./myplan.php'; 
         mysqli_close($conn);
         header($location);
         exit();
@@ -94,7 +100,7 @@
         $_SESSION['toast_status'] = 'Error';
         $_SESSION['toast_msg'] = 'Gagal Menyimpan My Plan ' . $th->getMessage();
         
-        $location = 'Location: ./draft-benefit.php'; 
+        $location = 'Location: ./myplan.php'; 
         mysqli_close($conn);
         header($location);
         exit();

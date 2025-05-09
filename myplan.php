@@ -37,7 +37,6 @@
                                         <th scope="col">Proyeksi Omset</th>
                                         <th scope="col">Created at</th>
                                         <th scope="col">Updated at</th>
-                                        <th scope="col" style="width: 13%">Status</th>
                                         <th scope="col">Action</th>
                                     </tr>
                                 </thead>
@@ -73,10 +72,7 @@
                                                     <td><?= $row['created_at'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
                                                     <td>
-                                                        
-                                                    </td>
-                                                    <td>
-                                                        
+                                                        <a href="myplan-form.php?plan_id=<?=$row['id']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                     </td>
                                                 </tr>
                                             
