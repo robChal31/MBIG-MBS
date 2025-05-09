@@ -61,25 +61,25 @@
             <div class="bg-whites rounded h-100 p-4 mb-4">
                 <h6 style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
                 <div class="row p-4">
-                    <div class="col-12 mb-4">
+                    <div class="col-12 mb-4 <?= $role == 'ec' ? 'd-none' : '' ?> ">
                         <label for="type">Benefit Type</label>
-                        <select class="form-select form-select-sm select2" name="type[]" aria-label="Default select example" multiple>
+                        <select class="form-select form-select-sm select2" name="type[]" multiple>
                             <?php foreach($types as $type) : ?>
-                                <?php if($role == 'ec') : ?>
+                                <!-- <?php if($role == 'ec') : ?>
                                     <?php 
                                         $match_found = array_filter($matched_ec_default_benefits, fn($benefit) => stripos($type['subbenefit'], $benefit) !== false);
                                     ?>
                                     <option value="<?= $type['id_templates'] ?>" <?= $match_found ? 'selected' : '' ?> ><?= $type['subbenefit'] ?></option>
                                 <?php else : ?>
                                     <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
-                                <?php endif; ?>
+                                <?php endif; ?> -->
+                                <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
                             <?php endforeach; ?>
                         </select>
-                       
                     </div>
                     <div class="col-md-5 col-12 mb-4">
                         <label for="type">Usage Year</label>
-                        <select class="form-select form-select-sm select2" name="usage_year[]" aria-label="Default select example" multiple>
+                        <select class="form-select form-select-sm select2" name="usage_year[]" multiple>
                             <option value="1">Year 1</option>
                             <option value="2">Year 2</option>
                             <option value="3">Year 3</option>

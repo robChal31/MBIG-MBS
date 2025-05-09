@@ -24,6 +24,7 @@ $last_path_with_query;
 
         <div class="navbar-nav w-100" style="font-size: .8rem;">
             <a href="main.php" class="nav-item nav-link <?= $last_path_with_query == 'main.php' ? "active" : '' ?>"><i class="fa fa-tachometer-alt"></i>Dashboard</a>
+            <!-- <a href="myplan.php" class="nav-item nav-link <?= $last_path_with_query == 'myplan.php' ? "active" : '' ?>"><i class="fas fa-tasks"></i>My Plan</a> -->
             <a href="draft-benefit.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-benefit.php' ? "active" : '' ?>"><i class="fas fa-ruler"></i>Draft Benefit</a>
             <a href="draft-pk.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-pk.php' ? "active" : '' ?>"><i class="fas fa-file-contract"></i>Draft PK</a>
             <a href="draft-approval-list.php" class="nav-item nav-link <?= $last_path_with_query == 'draft-approval-list.php' ? "active" : '' ?>"><i class="fas fa-fingerprint"></i>Draft Approval List</a>
