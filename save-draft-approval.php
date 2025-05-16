@@ -293,9 +293,10 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                         'name' => $sa_name
                     ];
                 }
+
                 $cc[] = [
-                        'email' => "novitasari@mentaribooks.com",
-                        'name' => "Novi / Mentaribooks"
+                    'email' => "novitasari@mentaribooks.com",
+                    'name' => "Novi / Mentaribooks"
                 ];
                 
                 $cc[] = [
@@ -349,6 +350,22 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                         'name' => $sa_name
                     ];
                 }
+
+                $cc[] = [
+                    'email' => 'kelly@mentarigroups.com',
+                    'name' => 'Kelly'
+                ];
+
+                $cc[] = [
+                    'email' => 'dwinanto@mentaribooks.com',
+                    'name' => 'Dwinanto'
+                ];
+                
+                $cc[] = [
+                    'email' => 'santo@mentaribooks.com',
+                    'name' => 'Santo'
+                ];
+
                 sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
         
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid3."', '0');";

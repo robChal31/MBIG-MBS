@@ -32,6 +32,7 @@
                                         <th scope="col" style="width: 10%">Nama EC</th>
                                         <th scope="col" style="width: 20%">Nama Sekolah</th>
                                         <th scope="col">Segment</th>
+                                        <th scope="col">Periode</th>
                                         <th scope="col">Program</th>
                                         <th scope="col">Proyeksi Siswa</th>
                                         <th scope="col">Proyeksi Omset</th>
@@ -44,7 +45,7 @@
                                     <?php
 
                                         $sql = "SELECT mp.*, user.*, sc.name as school_name
-                                                FROM myplan AS mp
+                                                    FROM myplan AS mp
                                                 LEFT JOIN schools AS sc ON sc.id = mp.school_id
                                                 LEFT JOIN user ON mp.user_id = user.id_user
                                                 LEFT JOIN programs AS prog ON prog.name = mp.program
@@ -60,19 +61,34 @@
                                         setlocale(LC_MONETARY,"id_ID");
                                         if (mysqli_num_rows($result) > 0) {
                                             while($row = mysqli_fetch_assoc($result)) {
+                                                $rawPeriode = $row['periode'];
+                                                $periode = '';
+                                                if (!empty($rawPeriode) && $rawPeriode !== '0000-00-00' && strtotime($rawPeriode) && date('Y', strtotime($rawPeriode)) > 2000) {
+                                                    $periode = date("F Y", strtotime($rawPeriode));
+                                                } else {
+                                                    $periode = '-';
+                                                }
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['user_id'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
                                     ?>
                                                 <tr>
                                                     <td><?= $row['id'] ?></td>
                                                     <td><?= $row['generalname'] ?></td>
                                                     <td><?= $row['school_name'] ?></td>
                                                     <td><?= ucfirst($row['segment']) ?></td>
+                                                    <td><?= ($periode) ?></td>
                                                     <td><?= strtoupper($row['program']) ?></td>
                                                     <td><?= $row['student_projection'] ?></td>
                                                     <td><?= $row['omset_projection'] ?></td>
                                                     <td><?= $row['created_at'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
                                                     <td>
+                                                        <a href="myplan-updates.php?plan_id=<?=$row['id']?>" class="text-primary me-1"><i class="fa fa-calendar" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Update Plan"></i></a>
                                                         <a href="myplan-form.php?plan_id=<?=$row['id']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
+                                                        <?php
+                                                            if($is_ec_the_creator || $_SESSION['role'] == 'admin'){ ?>
+                                                                <a href='#' data-id="<?= $row['id'] ?>" class='delete-btn text-danger me-1' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
+                                                        <?php } ?>
+
                                                     </td>
                                                 </tr>
                                             
@@ -128,10 +144,10 @@
     });
 
     $('.delete-btn').click(function() {
-        let idDraft = $(this).data('id');
+        let id = $(this).data('id');
         Swal.fire({
             title: "Are you sure?",
-            text: "You will delete this draft!",
+            text: "You will delete this plan!",
             icon: "warning",
             showCancelButton: true,
             confirmButtonColor: "#3085d6",
@@ -141,10 +157,10 @@
             if (result.isConfirmed) {
                 
                 $.ajax({
-                    url: 'delete-benefit.php',
+                    url: 'delete-plan.php',
                     type: 'POST',
                     data: {
-                        id_draft: idDraft
+                        id: id
                     },
                     beforeSend: function() {
                         Swal.fire({

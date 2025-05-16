@@ -14,6 +14,7 @@
         $id_user        = $_POST['id_user'];
         $school_name    = $_POST['nama_sekolah'];
         $segment        = $_POST['segment'];
+        $periode        = $_POST['periode'] . '-01';
         $wilayah        = $_POST['wilayah'];
         $program        = $_POST['program'];
         $level          = $_POST['level'];
@@ -66,6 +67,7 @@
                         user_id = '$id_user',
                         school_id = '$id_school',
                         segment = '$segment',
+                        periode = '$periode',
                         program = '$program',
                         level   = '$level',
                         wilayah = '$wilayah',
@@ -79,7 +81,7 @@
             }
 
         }else {
-            $sql = "INSERT INTO `myplan` (`user_id`, `school_id`, `segment`, `program`, `created_at`, `student_projection`, `omset_projection`, `wilayah`, `level`) VALUES ('$id_user', '$id_school', '$segment', '$program', current_timestamp(), '$student_proj', '$omset_proj', '$wilayah', '$level');";
+            $sql = "INSERT INTO `myplan` (`user_id`, `school_id`, `segment`, `periode`, `program`, `created_at`, `student_projection`, `omset_projection`, `wilayah`, `level`) VALUES ('$id_user', '$id_school', '$segment', '$periode', '$program', current_timestamp(), '$student_proj', '$omset_proj', '$wilayah', '$level');";
 
             if (mysqli_query($conn, $sql)) {
                 $plan_id = mysqli_insert_id($conn);

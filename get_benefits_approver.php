@@ -45,11 +45,11 @@ if ($result->num_rows > 0) {
                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                 $status_msg = $row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected');
                 if($row['approver'] == 70 || $row['approver'] == 15) {
-                  $status_msg = $draft_status == 0 ? ($row['verified'] == 1 && $status_msg == 'Approved' ? 'Verified' : ($row['verified'] == 0 ? 'Waiting Verification' : $status_msg)) : $status_msg;    
+                  $status_msg = $row['draft_status'] == 1 ? ($row['verified'] == 1 && $row['status'] == 1 ? 'Verified' : ($row['verified'] == 0 ? 'Waiting Verification' : $status_msg)) : $status_msg;    
                 }
 
                 if($row['approver'] == 5) {
-                  $status_msg = $row['confirmed'] == 1 && $status_msg == 'Approved' ? 'Confirmed' : ($row['confirmed'] == 0 ? 'Waiting Confirmation' : $status_msg);    
+                  $status_msg = $row['confirmed'] == 1 && $row['status'] == 1 ? 'Confirmed' : ($row['confirmed'] == 0 ? 'Waiting Confirmation' : $status_msg);    
                 }
 
                 $is_pk = in_array($row['program'], $program_names);

@@ -19,14 +19,15 @@
   $id_user  = $_SESSION['id_user'];
   $levels = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
 
-  $segment = '';
-  $school_id = '';
-  $program = '';
-  $wilayah = '';
-  $level = '';
-  $student_projection;
-  $omset_projection;
-  $user_id;
+  $segment = NULL;
+  $periode = NULL;
+  $school_id = NULL;
+  $program = NULL;
+  $wilayah = NULL;
+  $level = NULL;
+  $student_projection = NULL;
+  $omset_projection = NULL;
+  $user_id = NULL;
 
   if($id_plan){
     $sql    = "SELECT * from myplan where id = $id_plan";
@@ -34,6 +35,7 @@
     $row    = mysqli_fetch_assoc($result);
 
     $segment             = $row['segment'];
+    $periode             = $row['periode'];
     $user_id             = $row['user_id'];
     $school_id           = $row['school_id'];
     $program             = $row['program'];
@@ -58,7 +60,11 @@
           <div class="bg-whites rounded h-100 p-4">
             <h6 class="mb-4">Create Plan</h6>
             <form method="POST" action="myplan-save.php" enctype="multipart/form-data" id="myplan-form">
-                
+              <?php
+                if($id_plan) : ?>
+                <Input type='hidden' value="<?= $id_plan ?>" name="plan_id" /> 
+              <?php endif; ?>
+
               <table class="table table-striped">
                 <?php if($id_user == 70) : ?>
                   <tr>
@@ -70,7 +76,7 @@
                           $sql = "SELECT * from user where role='ec' order by generalname ASC"; 
                           $resultsd1 = mysqli_query($conn, $sql);
                           while ($row = mysqli_fetch_assoc($resultsd1)) { ?>
-                           <option value="<?= $row['id_user'] ?>" <?= $user_id == $row['id_user'] ? 'selected' : '' ?>><?= $row['generalname'] ?></option>
+                           <option value="<?= $row['id_user'] ?>" <?= ($user_id == $row['id_user']) ? 'selected' : '' ?>><?= $row['generalname'] ?></option>
                         <?php } ?>
                       </select>
                     </td>
@@ -90,6 +96,13 @@
                   <td>
                     <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
                     </select>
+                  </td>
+                </tr>
+                <tr>
+                  <td>Periode</td>
+                  <td>:</td>
+                  <td>
+                    <input type="text" class="form-control dateFilter" name="periode" value="<?= $periode ?>" placeholder="Pick the date" required>
                   </td>
                 </tr>
                 <tr>
@@ -131,20 +144,20 @@
                 <tr>
                   <td>Wilayah Sekolah</td>
                   <td>:</td>
-                  <td><input type="text" name="wilayah" placeholder="Wilayah" class="form-control form-control-sm" required></td>
+                  <td><input type="text" name="wilayah" value="<?= $wilayah ?>" placeholder="Wilayah" class="form-control form-control-sm" required></td>
                 </tr>
                 <tr>
                   <td>Proyeksi Siswa</td>
                   <td>:</td>
                   <td>
-                    <input type="number" name="student_projection" placeholder="Proyeksi Siswa" class="form-control form-control-sm" required>
+                    <input type="number" name="student_projection" value="<?= $student_projection ?>" placeholder="Proyeksi Siswa" class="form-control form-control-sm" required>
                   </td>
                 </tr>
                 <tr>
                   <td>Proyeksi Omset</td>
                   <td>:</td>
                   <td>
-                    <input type="number" name="omset_projection" placeholder="Proyeksi Omset" class="form-control form-control-sm" required>
+                    <input type="number" name="omset_projection" value="<?= $omset_projection ?>" placeholder="Proyeksi Omset" class="form-control form-control-sm" required>
                   </td>
                 </tr>
               </table>
@@ -162,7 +175,13 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
-  let school_id = "<?= $school_id ?? '0' ?>";
+  flatpickr(".dateFilter", {
+    dateFormat: "Y-m",
+    allowInput: true,
+  });
+  
+  let school_id = "<?= $school_id ?>";
+  school_id = school_id.trim();
   let program = "<?= $program ?? '' ?>";
 
   $(document).ready(function(){
@@ -197,39 +216,48 @@
         }
     });
 
-    $('#select_school').on('change', function() {
-      var schoolId = $(this).val();
-      if (schoolId) {
+    function loadPrograms(schoolId, programId = false) {
+      if (schoolId !== '' && schoolId !== null) {
         $.ajax({
-          url: 'get-school-program.php',
-          type: 'POST',
-          dataType: 'json',
-          data: {
-              school_id: schoolId,
-          },
-          success: function(response) {
-            let options = '<option value="" disabled selected>Select a program</option>';
-            response.map((data) => {
-                options += `<option value="${data.code}" ${data.code == program ? 'selected' : ''}>${data.name}</option>`
-            }) 
+            url: 'get-school-program.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                school_id: schoolId,
+            },
+            success: function(response) {
+                let options = '<option value="" disabled>Select a program</option>';
+                response.map((data) => {
+                    const selected = programId ? (data.code == programId ? 'selected' : '') : '';
+                    options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
+                });
 
-            $('#program').html(options);
-            $('#program').select2();
-          },
-          error: function(jqXHR, textStatus, errorThrown) {
-              console.log('Error:', textStatus, errorThrown);
-              alert("Failed to get program")
-          }
+                $('#program').html(options).select2();
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.log('Error:', textStatus, errorThrown);
+                alert("Failed to get program");
+            }
         });
       } else {
-          alert('No school selected');
+        alert('No school selected');
       }
+    }
+
+    if(school_id !== '' && school_id !== null) {
+      loadPrograms(school_id, program);
+    }
+
+    $('#select_school').on('change', function () {
+        const newSchoolId = $(this).val();
+        console.log('newSchool: ', newSchoolId);
+        loadPrograms(newSchoolId);
     });
 
-    $('#submt').click(function(){
-      $('#submt').prop('disabled',true);
-      $('#myplan-form').submit();
-    });
+    // $('#submt').click(function(){
+    //   $('#submt').prop('disabled',true);
+    //   $('#myplan-form').submit();
+    // });
     
   });
 </script>

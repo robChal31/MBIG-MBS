@@ -318,31 +318,31 @@ if ($exec_list_book->num_rows > 0) {
     let schoolId = "<?= $school_name ?>";
 
     function loadPrograms(schoolId, programId = false) {
-        if (schoolId) {
-            $.ajax({
-                url: 'get-school-program.php',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    school_id: schoolId,
-                },
-                success: function(response) {
-                    let options = '<option value="" disabled>Select a program</option>';
-                    response.map((data) => {
-                        const selected = programId ? (data.code == programId ? 'selected' : '') : '';
-                        options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
-                    });
+      if (schoolId) {
+          $.ajax({
+              url: 'get-school-program.php',
+              type: 'POST',
+              dataType: 'json',
+              data: {
+                  school_id: schoolId,
+              },
+              success: function(response) {
+                  let options = '<option value="" disabled>Select a program</option>';
+                  response.map((data) => {
+                      const selected = programId ? (data.code == programId ? 'selected' : '') : '';
+                      options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
+                  });
 
-                    $('#program').html(options).select2();
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log('Error:', textStatus, errorThrown);
-                    alert("Failed to get program");
-                }
-            });
-        } else {
-            alert('No school selected');
-        }
+                  $('#program').html(options).select2();
+              },
+              error: function(jqXHR, textStatus, errorThrown) {
+                  console.log('Error:', textStatus, errorThrown);
+                  alert("Failed to get program");
+              }
+          });
+      } else {
+          alert('No school selected');
+      }
     }
 
     $(document).ready(function () {

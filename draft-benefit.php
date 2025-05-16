@@ -14,9 +14,9 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">Draft Benefit</h6>
                            <div class="d-flex align-items-center">
-                                <!-- <a href="update-benefit-ec-input-term.php">
+                                <a href="update-benefit-ec-input-term.php">
                                     <button type="button" class="btn btn-success m-2 btn-sm"><i class="fas fa-file me-2"></i>Update Program</button>    
-                                </a> -->
+                                </a>
                                 <a href="new-benefit-ec-input.php">
                                     <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
                                 </a>
@@ -69,7 +69,10 @@
                                                 $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
                                                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                                                 $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
-                                                $stat = $row['verified'] == 1 && $stat == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat);
+
+                                                $stat = ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0) ? 'Waiting Confirmation' : ($row['verified'] == 0 && $row['status'] == 1 ? 'Waiting Verification' : $stat);
+
+
                                                 $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
                                                 $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
                                     ?>
