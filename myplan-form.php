@@ -25,7 +25,8 @@
   $program = NULL;
   $wilayah = NULL;
   $level = NULL;
-  $student_projection = NULL;
+  $start_timeline = NULL;
+  $end_timeline = NULL;
   $omset_projection = NULL;
   $user_id = NULL;
 
@@ -40,7 +41,8 @@
     $school_id           = $row['school_id'];
     $program             = $row['program'];
     $wilayah             = $row['wilayah'];
-    $student_projection  = $row['student_projection'];
+    $start_timeline      = $row['start_timeline'];
+    $end_timeline        = $row['end_timeline'];
     $omset_projection    = $row['omset_projection'];
     $level               = $row['level'];
     $selected_lv         = array_filter($levels, function($lv) use($level) {
@@ -99,10 +101,10 @@
                   </td>
                 </tr>
                 <tr>
-                  <td>Periode</td>
+                  <td>Start Timeline Penyelesaian</td>
                   <td>:</td>
                   <td>
-                    <input type="text" class="form-control dateFilter" name="periode" value="<?= $periode ?>" placeholder="Pick the date" required>
+                    <input type="text" class="form-control dateFilter" name="start_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
                   </td>
                 </tr>
                 <tr>
@@ -147,13 +149,6 @@
                   <td><input type="text" name="wilayah" value="<?= $wilayah ?>" placeholder="Wilayah" class="form-control form-control-sm" required></td>
                 </tr>
                 <tr>
-                  <td>Proyeksi Siswa</td>
-                  <td>:</td>
-                  <td>
-                    <input type="number" name="student_projection" value="<?= $student_projection ?>" placeholder="Proyeksi Siswa" class="form-control form-control-sm" required>
-                  </td>
-                </tr>
-                <tr>
                   <td>Proyeksi Omset</td>
                   <td>:</td>
                   <td>
@@ -176,7 +171,7 @@
 
 <script>
   flatpickr(".dateFilter", {
-    dateFormat: "Y-m",
+    dateFormat: "Y-m-d",
     allowInput: true,
   });
   

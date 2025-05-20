@@ -17,9 +17,12 @@
                     <div class="bg-whites rounded h-100 p-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">Update My Plan</h6>
-                            <div class="d-flex align-items-center">
-                                <span style="cursor: pointer;" data-bs-toggle='modal' data-bs-target='#createModal' class="bg-primary fw-bold py-1 px-2 text-white rounded"><i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top" title="Add"></i> Add</span>
-                            </div>
+                            <?php
+                                if($role == 'admin' || $role == 'ec') { ?>
+                                    <div class="d-flex align-items-center">
+                                        <span style="cursor: pointer;" data-bs-toggle='modal' data-bs-target='#createModal' class="bg-primary fw-bold py-1 px-2 text-white rounded"><i class="fas fa-plus" data-bs-toggle="tooltip" data-bs-placement="top" title="Add"></i> Add</span>
+                                    </div>
+                            <?php } ?>
                         </div>
 
                         <div class="table-responsive">
@@ -156,6 +159,7 @@
 
     $('.close').click(function() {
         $('#createModal').modal('hide');
+        $('#feedbackModal').modal('hide');
     });
 
     $(document).ready(function() {

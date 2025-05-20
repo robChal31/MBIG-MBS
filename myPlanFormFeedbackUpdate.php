@@ -3,6 +3,7 @@
 session_start();
 include 'db_con.php';
 
+$role = $_SESSION['role'];
 $myplan_id          = $_POST['myplan_id'];
 $myplan_update_id   = ISSET($_POST['myplan_update_id']) ? $_POST['myplan_update_id'] : '';
 $role               = $_SESSION['role'];
@@ -120,8 +121,11 @@ if ($result->num_rows > 0) {
             </div>
           </div>
           <div class="d-flex justify-content-end">
-              <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
-              <button class="btn btn-primary btn-sm" id="submit_btn">Save</button>
+                <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
+                <?php
+                    if($role == 'admin' || $role == 'ec') { ?>
+                        <button class="btn btn-primary btn-sm" id="submit_btn">Save</button>
+                <?php } ?>
           </div>
         </form>
     </div>

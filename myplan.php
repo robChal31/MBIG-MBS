@@ -16,11 +16,14 @@
                     <div class="bg-whites rounded h-100 p-4">
                         <div class="d-flex justify-content-between align-items-center">
                             <h6 class="mb-4">My Plan</h6>
-                            <div class="d-flex align-items-center">
-                                <a href="myplan-form.php">
-                                    <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Plan</button>    
-                                </a>
-                            </div>
+                            <?php
+                                if($role == 'admin' || $role == 'ec') { ?>
+                                    <div class="d-flex align-items-center">
+                                        <a href="myplan-form.php">
+                                            <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Plan</button>    
+                                        </a>
+                                    </div>
+                            <?php } ?>
                         </div>
                         
 
@@ -32,9 +35,9 @@
                                         <th scope="col" style="width: 10%">Nama EC</th>
                                         <th scope="col" style="width: 20%">Nama Sekolah</th>
                                         <th scope="col">Segment</th>
-                                        <th scope="col">Periode</th>
+                                        <th scope="col">Start Timeline Penyelesaian</th>
+                                        <th scope="col">End Timeline Penyelesaian</th>
                                         <th scope="col">Program</th>
-                                        <th scope="col">Proyeksi Siswa</th>
                                         <th scope="col">Proyeksi Omset</th>
                                         <th scope="col">Created at</th>
                                         <th scope="col">Updated at</th>
@@ -61,13 +64,6 @@
                                         setlocale(LC_MONETARY,"id_ID");
                                         if (mysqli_num_rows($result) > 0) {
                                             while($row = mysqli_fetch_assoc($result)) {
-                                                $rawPeriode = $row['periode'];
-                                                $periode = '';
-                                                if (!empty($rawPeriode) && $rawPeriode !== '0000-00-00' && strtotime($rawPeriode) && date('Y', strtotime($rawPeriode)) > 2000) {
-                                                    $periode = date("F Y", strtotime($rawPeriode));
-                                                } else {
-                                                    $periode = '-';
-                                                }
                                                 $is_ec_the_creator = $_SESSION['id_user'] == $row['user_id'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
                                     ?>
                                                 <tr>
@@ -75,20 +71,21 @@
                                                     <td><?= $row['generalname'] ?></td>
                                                     <td><?= $row['school_name'] ?></td>
                                                     <td><?= ucfirst($row['segment']) ?></td>
-                                                    <td><?= ($periode) ?></td>
+                                                    <td><?= ($row['start_timeline']) ?></td>
+                                                    <td><?= ($row['end_timeline']) ?></td>
                                                     <td><?= strtoupper($row['program']) ?></td>
-                                                    <td><?= $row['student_projection'] ?></td>
-                                                    <td><?= $row['omset_projection'] ?></td>
+                                                    <td><?= number_format($row['omset_projection']) ?></td>
                                                     <td><?= $row['created_at'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
                                                     <td>
-                                                        <a href="myplan-updates.php?plan_id=<?=$row['id']?>" class="text-primary me-1"><i class="fa fa-calendar" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Update Plan"></i></a>
-                                                        <a href="myplan-form.php?plan_id=<?=$row['id']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                         <?php
                                                             if($is_ec_the_creator || $_SESSION['role'] == 'admin'){ ?>
+                                                                <a href="myplan-updates.php?plan_id=<?=$row['id']?>" class="text-primary me-1"><i class="fa fa-calendar" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Update Plan"></i></a>
+                                                                <a href="myplan-form.php?plan_id=<?=$row['id']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
                                                                 <a href='#' data-id="<?= $row['id'] ?>" class='delete-btn text-danger me-1' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
+                                                        <?php }else { ?>
+                                                            <a href="myplan-updates.php?plan_id=<?=$row['id']?>" class="text-primary me-1"><i class="fa fa-search" data-bs-toggle="tooltip" data-bs-placement="top" title="View Update Plan"></i></a>
                                                         <?php } ?>
-
                                                     </td>
                                                 </tr>
                                             

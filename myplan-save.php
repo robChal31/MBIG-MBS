@@ -19,7 +19,8 @@
         $program        = $_POST['program'];
         $level          = $_POST['level'];
         $level2         = $_POST['level2'];
-        $student_proj   = $_POST['student_projection'];
+        $start_timeline = $_POST['start_timeline'];
+        $end_timeline   = $_POST['end_timeline'];
         $omset_proj     = $_POST['omset_projection'];
         $level          = ($level == 'other') ? $level2 : $level;
         $id_school      = $school_name;
@@ -71,7 +72,8 @@
                         program = '$program',
                         level   = '$level',
                         wilayah = '$wilayah',
-                        student_projection = '$student_proj',
+                        start_timeline = '$start_timeline',
+                        end_timeline = '$end_timeline',
                         omset_projection = '$omset_proj',
                         updated_at = current_timestamp()
                     WHERE id = $plan_id";
@@ -81,7 +83,7 @@
             }
 
         }else {
-            $sql = "INSERT INTO `myplan` (`user_id`, `school_id`, `segment`, `periode`, `program`, `created_at`, `student_projection`, `omset_projection`, `wilayah`, `level`) VALUES ('$id_user', '$id_school', '$segment', '$periode', '$program', current_timestamp(), '$student_proj', '$omset_proj', '$wilayah', '$level');";
+            $sql = "INSERT INTO `myplan` (`user_id`, `school_id`, `segment`, `periode`, `program`, `created_at`, `start_timeline`, `end_timeline`, `omset_projection`, `wilayah`, `level`) VALUES ('$id_user', '$id_school', '$segment', '$periode', '$program', current_timestamp(), '$start_timeline', '$end_timeline', '$omset_proj', '$wilayah', '$level');";
 
             if (mysqli_query($conn, $sql)) {
                 $plan_id = mysqli_insert_id($conn);
