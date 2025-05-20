@@ -20,7 +20,6 @@
   $levels = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
 
   $segment = NULL;
-  $periode = NULL;
   $school_id = NULL;
   $program = NULL;
   $wilayah = NULL;
@@ -36,7 +35,6 @@
     $row    = mysqli_fetch_assoc($result);
 
     $segment             = $row['segment'];
-    $periode             = $row['periode'];
     $user_id             = $row['user_id'];
     $school_id           = $row['school_id'];
     $program             = $row['program'];
@@ -105,6 +103,13 @@
                   <td>:</td>
                   <td>
                     <input type="text" class="form-control dateFilter" name="start_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
+                  </td>
+                </tr>
+                <tr>
+                  <td>End Timeline Penyelesaian</td>
+                  <td>:</td>
+                  <td>
+                    <input type="text" class="form-control dateFilter" name="end_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
                   </td>
                 </tr>
                 <tr>
