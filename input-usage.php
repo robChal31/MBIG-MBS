@@ -35,6 +35,7 @@ if ($result->num_rows > 0) {
     //     $usages['qty2'] = $usages['qty'];
     //     $usages['qty3'] = $usages['qty'];
     // }
+    var_dump($usages);
 ?>
     <div class="p-2">
         <h6>Benefit Usage</h6>
