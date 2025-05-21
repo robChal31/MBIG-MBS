@@ -7,7 +7,7 @@ $id_benefit_list = $_POST['id_benefit_list'];
 
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT
-            dbl.*, dtb.redeemable, db.ref_id, db.year, db.program
+            dbl.*, dtb.redeemable, db.ref_id, db.year, db.program,
             CASE 
                 WHEN EXISTS (
                     SELECT 1 
