@@ -31,10 +31,10 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
     $usages = $usages[0];  
-    if(strtolower($program) == 'cbls3') {
-        $usages['qty2'] = $usages['qty'];
-        $usages['qty3'] = $usages['qty'];
-    }
+    // if(strtolower($program) == 'cbls3') {
+    //     $usages['qty2'] = $usages['qty'];
+    //     $usages['qty3'] = $usages['qty'];
+    // }
 ?>
     <div class="p-2">
         <h6>Benefit Usage</h6>
