@@ -31,11 +31,19 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
     $usages = $usages[0];  
-    // if(strtolower($program) == 'cbls3') {
-    //     $usages['qty2'] = $usages['qty'];
-    //     $usages['qty3'] = $usages['qty'];
-    // }
-    var_dump($usages);
+    if(strtolower($program) == 'cbls3') {
+        $usages['qty2'] = $usages['qty'];
+        $usages['qty3'] = $usages['qty'];
+            var_dump($usages);
+    }
+echo $usages['qty2'];
+echo '<br />';
+echo $usages['qty3'];
+echo '<br />';
+echo $usages['tot_usage2'];
+echo '<br />';
+echo $usages['tot_usage3'];
+echo '<br />';
 ?>
     <div class="p-2">
         <h6>Benefit Usage</h6>
