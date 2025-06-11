@@ -39,6 +39,7 @@
                                         <th scope="col">End Timeline Penyelesaian</th>
                                         <th scope="col">Program</th>
                                         <th scope="col">Proyeksi Omset</th>
+                                        <th scope="col">Status</th>
                                         <th scope="col">Created at</th>
                                         <th scope="col">Updated at</th>
                                         <th scope="col">Action</th>
@@ -47,9 +48,10 @@
                                 <tbody>
                                     <?php
 
-                                        $sql = "SELECT mp.*, user.*, sc.name as school_name
+                                        $sql = "SELECT mp.*, user.*, sc.name as school_name, db.id_draft as id_draft, db.fileUrl, db.status, db.verified, db.confirmed
                                                     FROM myplan AS mp
                                                 LEFT JOIN schools AS sc ON sc.id = mp.school_id
+                                                LEFT JOIN draft_benefit AS db ON mp.id = db.myplan_id
                                                 LEFT JOIN user ON mp.user_id = user.id_user
                                                 LEFT JOIN programs AS prog ON prog.name = mp.program
                                                 WHERE mp.deleted_at IS NULL";
@@ -64,6 +66,12 @@
                                         setlocale(LC_MONETARY,"id_ID");
                                         if (mysqli_num_rows($result) > 0) {
                                             while($row = mysqli_fetch_assoc($result)) {
+                                                $stat = ($row['status'] == 0 && $row['fileUrl']) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
+                                                $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
+                                                $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
+                                                $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
+
+                                                $stat = ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0) ? 'Waiting Confirmation' : ($row['verified'] == 0 && $row['status'] == 1 ? 'Waiting Verification' : $stat);
                                                 $is_ec_the_creator = $_SESSION['id_user'] == $row['user_id'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
                                     ?>
                                                 <tr>
@@ -75,6 +83,9 @@
                                                     <td><?= ($row['end_timeline']) ?></td>
                                                     <td><?= strtoupper($row['program']) ?></td>
                                                     <td><?= number_format($row['omset_projection']) ?></td>
+                                                    <td>
+                                                        <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>
+                                                    </td>
                                                     <td><?= $row['created_at'] ?></td>
                                                     <td><?= $row['updated_at'] ?></td>
                                                     <td>
@@ -97,7 +108,6 @@
                 </div>
             </div>
         </div>
-        <!-- Sale & Revenue End -->
 
         <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">

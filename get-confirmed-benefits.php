@@ -137,6 +137,8 @@
                                                 <?php endif; ?>
 
                                                 <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+
+                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='note' data-bs-toggle='modal' data-bs-target='#noteUsageModal' class='btn btn-outline-secondary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Note Usage'><i class='fa fa-sticky-note'></i></span>
                                             <?php endif; ?>
                                        </div>
                                     </td>

@@ -34,7 +34,7 @@
                             <td>Nama EC</td>
                             <td>:</td>
                             <td>
-                              <select name="inputEC" id="inputEC" class="form-select form-select-sm">
+                              <select name="inputEC" id="inputEC" class="form-select form-select-sm select2">
                                   <?php 
                                     $sql = "SELECT * from user where role='ec' order by generalname ASC"; $resultsd1 = mysqli_query($conn, $sql);
                                     while ($row = mysqli_fetch_assoc($resultsd1)){
@@ -52,6 +52,14 @@
                           <td>:</td>
                           <td>
                             <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
+                            </select>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>My Plan Ref</td>
+                          <td>:</td>
+                          <td>
+                            <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2">
                             </select>
                           </td>
                         </tr>
@@ -225,6 +233,10 @@
         }
     });
 
+    $('#inputEC').on('change', function() {
+        getMyPlanRef();
+    });
+
     $('#select_school').on('change', function() {
         var schoolId = $(this).val();
 
@@ -250,10 +262,42 @@
                     alert("Failed to get program")
                 }
             });
+            
+            getMyPlanRef();
+
         } else {
-            alert('No school selected');
+            alert('No school and ec selected');
         }
     });
+
+    function getMyPlanRef() {
+      const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
+      const schoolId = $('select[name="nama_sekolah"]').val();
+      if(ec && schoolId) {
+        $.ajax({
+          url: 'get-ec-plan.php',
+          type: 'POST',
+          dataType: 'json',
+          data: {
+              school_id: schoolId,
+              ec: ec
+          },
+          success: function(response) {
+            let options = '<option value="" disabled selected>Select a plan</option>';
+            response.map((data) => {
+                options += `<option value="${data.value}">${data.label}</option>`
+            }) 
+
+            $('#myplan_id').html(options);
+            $('#myplan_id').select2();
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              console.log('Error:', textStatus, errorThrown);
+              alert("Failed to get myplan")
+          }
+        });
+      }
+    }
 
     // Populate dropdown options
     function populateDropdown(rowId) {

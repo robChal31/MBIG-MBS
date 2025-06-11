@@ -71,7 +71,7 @@
                     <td>Nama EC</td>
                     <td>:</td>
                     <td>
-                      <select name="id_user" class="form-select form-select-sm">
+                      <select name="id_user" class="form-select form-select-sm select2">
                         <?php 
                           $sql = "SELECT * from user where role='ec' order by generalname ASC"; 
                           $resultsd1 = mysqli_query($conn, $sql);

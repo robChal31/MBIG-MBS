@@ -142,6 +142,22 @@
         </div>
     </div>
 
+    <div class="modal fade" id="noteUsageModal" tabindex="-1" role="dialog" aria-labelledby="noteUsageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteUsageModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="noteUsageModalBody">
+                    Loading...
+                </div>
+            </div> 
+        </div>
+    </div>
+
     <div class="modal fade" id="usageModal" tabindex="-1" role="dialog" aria-labelledby="usageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
@@ -220,6 +236,26 @@
         });
     })
 
+    $('#noteUsageModal').on('show.bs.modal', function (event) {
+        var rowid = event.relatedTarget.getAttribute('data-id')
+        let action = event.relatedTarget.getAttribute('data-action');
+        $('#noteUsageModalBody').html('');
+        $('#noteUsageModalLabel').html("Note Benefit Usage");
+        $.ajax({
+            url: 'input-benefit-note.php',
+            type: 'POST',
+            data: {
+                id_benefit_list : rowid,
+            },
+            success: function(data) {
+                $('#noteUsageModalBody').html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error); 
+            }
+        });
+    })
+
     $(document).ready(function() {
         $('.select2').select2({});
         getBenefit();
@@ -258,5 +294,6 @@
         $('#pkModal').modal('hide');
         $('#usageModal').modal('hide');
         $('#historyUsageModal').modal('hide');
+        $('#noteUsageModal').modal('hide');
     });
 </script>

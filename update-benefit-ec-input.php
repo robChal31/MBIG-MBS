@@ -365,6 +365,7 @@ if($posts && $posts['program_reffered']) {
 
 <script>
   $(document).ready(function(){
+    $('#inputEC').select2();
     var maxRows = 75; // Maximum rows allowed
     var x = <?= $row ?? 0 ?>; // Initial row counter
     x = x ? parseInt(x) : 1;

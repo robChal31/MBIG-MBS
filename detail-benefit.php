@@ -245,7 +245,7 @@ if ($result->num_rows > 0) {
                                         $no = 1;
                                         while($row = mysqli_fetch_assoc($result)) {
                                 ?>
-                                    <tr>
+                                    <tr class="<?= ($row['tot_usage1'] > 0 || $row['tot_usage2'] > 0 || $row['tot_usage3'] > 0) ? 'bg-info text-white' : '' ?>">
                                         <td><?= $no ?></td>
                                         <td><?= $row['type'] ?></td>
                                         <td><?= $row['subbenefit'] ?></td>
@@ -263,10 +263,15 @@ if ($result->num_rows > 0) {
 
 
                                         <td>
-                                            <?php if($confirmed == 1 && $row['redeemable'] == 1) : ?>
-                                                <span data-id="<?= $row['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
-                                            <?php endif; ?>
-                                            <span data-id="<?= $row['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+                                            <div class="d-flex gap-1">                                           
+                                                <?php if($confirmed == 1 && $row['redeemable'] == 1) : ?>
+                                                    <span data-id="<?= $row['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
+                                                <?php endif; ?>
+
+                                                <span data-id="<?= $row['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+
+                                                <span data-id="<?= $row['id_benefit_list'] ?>" data-action='note' data-bs-toggle='modal' data-bs-target='#noteUsageModal' class='btn btn-outline-secondary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Note Usage'><i class='fa fa-sticky-note'></i></span>                                               
+                                            </div>
                                         </td>
  
                                     </tr>
@@ -277,10 +282,89 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
 
+            <div class="bg-whites rounded h-100 p-4">
+                <div class="p-2 mb-2">
+                    <div class="d-flex justify-content-between">
+                        <h6>Benefit Implementation Report </h6>                        
+                        <button type="button" class="btn btn-primary btn-sm" data-id="<?= $id_draft ?>" id="reqReport">
+                            <i class="fa fa-download me-2"></i> Request Report
+                        </button>
+                    </div>                
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Periode</th>
+                                    <th>Status</th>
+                                    <th>File</th>
+                                    <th>Created at</th>
+                                    <th>Updated at</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php 
+                                    $sql = "SELECT * FROM benefit_imp_report
+                                            WHERE id_draft = '$id_draft'";
+                                    $result = mysqli_query($conn, $sql);
+
+                                    if (mysqli_num_rows($result) > 0) {
+                                        $no = 1;
+                                        while($row = mysqli_fetch_assoc($result)) {
+                                            $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
+                                            $status_msg = $row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected');
+                                ?>
+                                    <tr>
+                                        <td><?= $no ?></td>
+                                        <td><?= $row['period'] ?></td>
+                                        <td>
+                                            <span data-id="<?= $row['id'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.55rem'><?= $status_msg  ?></span>
+                                        </td>
+                                        <td>
+                                            <?php if($row['status'] != 1) : ?>
+                                                <span class="badge bg-danger">
+                                                    <i class="fa fa-times"></i> Not Available
+                                                </span>
+                                            <?php else : ?>
+                                                <a href="<?= $row['file'] ?>" target="_blank" class="badge bg-primary"><i class="fa fa-download"></i> Download</a>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td><?= $row['created_at'] ?></td>
+                                        <td><?= $row['updated_at'] ?></td>
+ 
+                                    </tr>
+                                <?php $no++;} } else {?>
+                                    <tr>
+                                        <td colspan="6" class="text-center">Data Not Found</td>
+                                    </tr>
+                                <?php } ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
     <!-- Sale & Revenue End -->
 <?php } ?>
+
+    <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="approvalModalLabel">Modal title</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" id="approvalModalBody">
+                Loading...
+            </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="historyUsageModal" tabindex="-1" role="dialog" aria-labelledby="historyUsageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-xl" role="document">
             <div class="modal-content">
@@ -317,8 +401,41 @@ if ($result->num_rows > 0) {
         </div>
     </div>
 
+    <div class="modal fade" id="noteUsageModal" tabindex="-1" role="dialog" aria-labelledby="noteUsageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="noteUsageModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="noteUsageModalBody">
+                    Loading...
+                </div>
+            </div> 
+        </div>
+    </div>
+
 <?php include 'footer.php';?>
 <script>
+
+    var approvalModal = document.getElementById('approvalModal');
+    approvalModal.addEventListener('show.bs.modal', function (event) {
+        var rowid = event.relatedTarget.getAttribute('data-id')
+        var modalTitle = approvalModal.querySelector('.modal-title')
+        modalTitle.textContent = 'Approval History ' + rowid;
+        $.ajax({
+            url: 'get_rep_approver.php',
+            type: 'POST',
+            data: {
+                id: rowid,
+            },
+            success: function(data) {
+                $('#approvalModalBody').html(data)
+            }
+        });
+    })
 
     $('#usageModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
@@ -361,12 +478,105 @@ if ($result->num_rows > 0) {
         });
     })
 
+    $('#noteUsageModal').on('show.bs.modal', function (event) {
+        var rowid = event.relatedTarget.getAttribute('data-id')
+        let action = event.relatedTarget.getAttribute('data-action');
+        $('#noteUsageModalBody').html('');
+        $('#noteUsageModalLabel').html("Note Benefit Usage");
+        $.ajax({
+            url: 'input-benefit-note.php',
+            type: 'POST',
+            data: {
+                id_benefit_list : rowid,
+            },
+            success: function(data) {
+                $('#noteUsageModalBody').html(data);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error:', error); 
+            }
+        });
+    })
+
+    $('#reqReport').click(function () {
+        var idDraft = $(this).data('id');
+        console.log(idDraft)
+        Swal.fire({
+            title: "You will send request report?",
+            text: "This action will send request report to Top Leader and Secretary.",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, send it!"
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: 'save-req-lap-ben.php',
+                    type: 'POST',
+                    data: {
+                        id_draft: idDraft
+                    },
+                    beforeSend: function() {
+                        Swal.fire({
+                            title: 'Loading...',
+                            html: 'Please wait while we save your data.',
+                            allowOutsideClick: false,
+                            didOpen: () => {
+                                Swal.showLoading()
+                            }
+                        });
+                    },
+                    success: function(data) {
+                        console.log(data)
+                        let resData = JSON.parse(data)
+                        console.log(resData)
+                        Swal.close()
+                        if(resData.status == 'Success') {
+                            Swal.fire({
+                                title: "Success!",
+                                text: resData.message,
+                                icon: "success"
+                            });
+
+                            
+                            
+                        }else {
+                            Swal.fire({
+                                title: "Error!",
+                                text: resData.message,
+                                icon: "error"
+                            });
+                        }
+                        setTimeout(function() {
+                            location.reload();
+                        }, 3000);
+                    },
+                    error: function(data) {
+                        console.log(data)
+                        Swal.close();
+                        let resData = JSON.parse(data)
+                        Swal.fire({
+                            title: "Error!",
+                            text: resData.message,
+                            icon: "error"
+                        });
+                        // location.reload();
+                    }
+                });
+            }
+        });
+        
+    })
+
     $(document).ready(function() {
     
     })
 
     $(document).on('click', '.close', function() {
+        $('#approvalModal').modal('hide');
         $('#usageModal').modal('hide');
         $('#historyUsageModal').modal('hide');
+        $('#noteUsageModal').modal('hide');
     });
 </script>

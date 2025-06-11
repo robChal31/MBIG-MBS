@@ -21,6 +21,7 @@
     $wilayah        = $_POST['wilayah'];
     $level          = $_POST['level'];
     $level2         = $_POST['level2'];
+    $myplan_id      = ISSET($_POST['myplan_id']) && $_POST['myplan_id'] != '' ? $_POST['myplan_id'] : null;
     $row_length     = count($book_titles);
 
     $level          = ($level == 'other') ? $level2 : $level;
@@ -80,6 +81,7 @@
                         program = '$program',
                         wilayah = '$wilayah',
                         level   = '$level',
+                        myplan_id = '$myplan_id',
                         total_benefit = '0',
                         selisih_benefit = '0',
                         fileUrl = '',
@@ -90,7 +92,7 @@
 
             mysqli_query($conn, $sql);
         }else {
-            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$program', current_timestamp(), '0', $alokasi, '$wilayah', '$level');";
+            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `myplan_id`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$program', current_timestamp(), '0', $alokasi, '$wilayah', '$level', $myplan_id);";
 
             mysqli_query($conn,$sql);
             $id_draft = mysqli_insert_id($conn);

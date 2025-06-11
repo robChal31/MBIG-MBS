@@ -129,7 +129,7 @@
                                 $sql .= $selected_program ? " AND b.program IN ('$selected_programs_q') " : '';
                                 $sql .= $start_date ? " AND pk.start_at >= '$start_date' " : '';
                                 $sql .= $end_date ? " AND pk.expired_at <= '$end_date' " : '';        
-                                $sql .= " ORDER BY b.date DESC";
+                                $sql .= "GROUP BY b.id_draft ORDER BY b.date DESC";
 
 
                                 $result = mysqli_query($conn, $sql);

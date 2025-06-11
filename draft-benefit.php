@@ -111,7 +111,6 @@
                 </div>
             </div>
         </div>
-        <!-- Sale & Revenue End -->
 
         <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
