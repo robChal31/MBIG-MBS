@@ -20,7 +20,7 @@
     if(!$token) {
         $_SESSION['toast_status'] = 'Invalid Token';
         $_SESSION['toast_msg'] = "Token tidak valid";
-        header('Location: ./list-pk.php');
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
         exit();
     }else {
         $sql = "SELECT * FROM bir_approval WHERE token = '$token'";
@@ -28,7 +28,7 @@
         if($result->num_rows == 0) {
             $_SESSION['toast_status'] = 'Invalid Token';
             $_SESSION['toast_msg'] = "Token tidak valid";
-            header('Location: ./list-pk.php');
+            header('Location: ' . $_SERVER['HTTP_REFERER']);
             exit();
         }else {
             $row = $result->fetch_assoc();
@@ -38,13 +38,13 @@
             if($id_user != $id_user_approver) {
                 $_SESSION['toast_status'] = 'Unauthorized';
                 $_SESSION['toast_msg'] = "Kamu tidak memiliki akses untuk melakukan approve ini";
-                header('Location: ./list-pk.php');
+                header('Location: ' . $_SERVER['HTTP_REFERER']);
                 exit();
             }
             if($status == 1) {
                 $_SESSION['toast_status'] = 'Unauthorized';
                 $_SESSION['toast_msg'] = "Kamu sudah melakukan approve ini";
-                header('Location: ./list-pk.php');
+                header('Location: ' . $_SERVER['HTTP_REFERER']);
                 exit();
             }
         }

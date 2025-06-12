@@ -300,11 +300,19 @@ if ($result->num_rows > 0) {
                                     <th>File</th>
                                     <th>Created at</th>
                                     <th>Updated at</th>
+                                    <th>Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php 
-                                    $sql = "SELECT * FROM benefit_imp_report
+                                    $id_user = $_SESSION['id_user'];
+                                    $sql = "SELECT * 
+                                                FROM benefit_imp_report AS bir
+                                                LEFT JOIN (
+                                                    SELECT token, bir_id
+                                                    FROM bir_approval
+                                                    WHERE id_user_approver = $id_user
+                                                ) AS bir_a ON bir_a.bir_id = bir.id
                                             WHERE id_draft = '$id_draft'";
                                     $result = mysqli_query($conn, $sql);
 
@@ -331,7 +339,9 @@ if ($result->num_rows > 0) {
                                         </td>
                                         <td><?= $row['created_at'] ?></td>
                                         <td><?= $row['updated_at'] ?></td>
- 
+                                        <td>
+                                            <a href="approve_rep_req.php?token=<?= $row['token'] ?>" class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Approve'><i class='fas fa-fingerprint'></i></a>
+                                        </td>
                                     </tr>
                                 <?php $no++;} } else {?>
                                     <tr>
