@@ -201,7 +201,6 @@ if (mysqli_num_rows($program_exec) > 0) {
                     });
                 },
                 success: function(response) {
-                    console.log((response));
                     Swal.close();
                     if(response.status == 'success') {
                         Swal.fire({

@@ -31,7 +31,7 @@ $note = $dbl['note'] ?? '';
                 <div class="col-12 mb-3">
                     <div class="form-floating">
                         <textarea class="form-control" placeholder="Note" style="height: 200px;" name="note" required><?= $note ?></textarea>
-                        <label for="floatingTextarea">Note <?= $id_benefit_list ?></label>
+                        <label for="floatingTextarea">Note</label>
                     </div>
                 </div>
                 
@@ -72,7 +72,6 @@ $note = $dbl['note'] ?? '';
                     });
                 },
                 success: function(response) {
-                    console.log((response));
                     Swal.close()
                     if(response.status == 'success') {
                         Swal.fire({

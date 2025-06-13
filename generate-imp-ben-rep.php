@@ -48,6 +48,46 @@ while ($datt = mysqli_fetch_assoc($ress)){
         $leaderEmail    = $datt['username'];
     }
 }
+
+function cleanTextForDisplay($text) {
+    // Convert to UTF-8 if not already
+    $encoding = mb_detect_encoding($text, ['UTF-8', 'ISO-8859-1', 'Windows-1252'], true);
+    if ($encoding != 'UTF-8') {
+        $text = mb_convert_encoding($text, 'UTF-8', $encoding);
+    }
+    
+    // Replace common encoding artifacts with their proper characters
+    $replacements = [
+        'â€“' => '-',   // en dash
+        'â€”' => '—',   // em dash
+        'â€˜' => "'",  // left single quote
+        'â€™' => "'",  // right single quote
+        'â€œ' => '"',  // left double quote
+        'â€' => '"',   // right double quote
+        'â€¢' => '•',  // bullet
+        'â€¦' => '…',  // ellipsis
+        'Ã©'  => 'é',   // accented e
+        'Ã±'  => 'ñ',   // n with tilde
+        // Add more replacements as needed
+    ];
+    
+    $text = str_replace(array_keys($replacements), array_values($replacements), $text);
+    
+    // Remove any remaining non-printable characters except basic punctuation
+    $text = preg_replace('/[^\x20-\x7E\xA0-\xFF]/u', '', $text);
+    
+    // Normalize spaces and trim
+    $text = trim(preg_replace('/\s+/', ' ', $text));
+    
+    return $text;
+}
+
+$protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? "https://" : "http://";
+$host = $_SERVER['HTTP_HOST'];
+$scriptDir = rtrim(dirname($_SERVER['SCRIPT_NAME']), '/\\') . '/';
+
+$baseUrl = $protocol . $host . $scriptDir;
+
 ?>
 <!DOCTYPE html>
 <html>
@@ -55,7 +95,7 @@ while ($datt = mysqli_fetch_assoc($ress)){
     <meta charset="UTF-8">
     <title>Laporan Implementasi</title>
     <style>
-        body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; padding: 0px 25px; margin: 0px; }
+        body { font-family: Arial, sans-serif; font-size: 10pt; line-height: 1.5; padding: 0px 25px; margin: 0px; text-align: justify; }
         .header { text-align: center; font-weight: bold; font-size: 13pt; margin-bottom: 30px; }
         .section { margin-bottom: 20px; padding-bottom: 20px; border-bottom: 4px solid #000; }
         
@@ -90,10 +130,10 @@ while ($datt = mysqli_fetch_assoc($ress)){
     <table width="100%" style="margin: 0px; margin-bottom: 10px;">
         <tr>
             <td width="50%">
-                <img src="http://localhost/benefit/img/shield.png" width="100" alt="shield Mentari Group">
+                <img src="<?= $baseUrl ?>img/shield.png" width="100" alt="shield Mentari Group">
             </td>
             <td width="50%" align="right">
-                <img src="http://localhost/benefit/img/comp-logo.png" width="100" alt="Logo Mentari Group">
+                <img src="<?= $baseUrl ?>img/comp-logo.png" width="100" alt="Logo Mentari Group">
             </td>
         </tr>
     </table>
@@ -108,7 +148,7 @@ while ($datt = mysqli_fetch_assoc($ress)){
             <tr>
                 <td width="160"><strong>Nomor PK</strong></td>
                 <td width="10">:</td>
-                <td><?= htmlspecialchars($no_pk) ?></td>
+                <td><?= cleanTextForDisplay(htmlspecialchars($no_pk)) ?></td>
             </tr>
             <tr>
                 <td><strong>Periode Kerja Sama</strong></td>
@@ -132,9 +172,9 @@ while ($datt = mysqli_fetch_assoc($ress)){
         Berikut adalah tabel implementasi manfaat:<br><br>
     </p>
     <p style="text-align: end; font-size: 10px;">
-        PT = Penggunaan Tahun
+        MP = Manfaat Penggunaan
         <br>
-        ST = Sisa Tahun
+        SM = Sisa Manfaat
     </p>
     <table class="table">
         <thead>
@@ -142,17 +182,18 @@ while ($datt = mysqli_fetch_assoc($ress)){
                 <th rowspan="2">No</th>
                 <th rowspan="2">Nama Manfaat</th>
                 <th rowspan="2">Deskripsi</th>
-                <th colspan="8" style="text-align: center;">Riwayat Penggunaan</th>
+                <th colspan="9" style="text-align: center;">Riwayat Penggunaan</th>
             </tr>
             <tr>
                 <th>Digunakan Pada</th>
                 <th>Deskripsi</th>
-                <th>PT1</th>
-                <th>ST1</th>
-                <th>PT2</th>
-                <th>ST2</th>
-                <th>PT3</th>
-                <th>ST3</th>
+                <th>MP1</th>
+                <th>SM1</th>
+                <th>MP2</th>
+                <th>SM2</th>
+                <th>MP3</th>
+                <th>SM3</th>
+                <th>Note</th>
             </tr>
         </thead>
         <tbody>
@@ -169,7 +210,8 @@ while ($datt = mysqli_fetch_assoc($ress)){
                             GROUP BY bu.id_benefit_list
                         ) as bu on bu.id_bl = dbl.id_benefit_list
                         LEFT JOIN draft_template_benefit AS dbt on dbt.id_template_benefit = dbl.id_template
-                        WHERE dbl.id_draft = '$id_draft'";
+                        WHERE dbl.id_draft = '$id_draft'
+                        AND dbl.benefit_name NOT LIKE '%Dana Pengembangan%'";
                 $result = mysqli_query($conn, $sql);
 
                 if (mysqli_num_rows($result) > 0) {
@@ -194,9 +236,9 @@ while ($datt = mysqli_fetch_assoc($ress)){
             <?php if(count($usages) < 1) { ?>
                 <tr>
                     <td style="width: 5%; padding: 5px; border: 1px solid #000; text-align: center;"><?= $no ?></td>
-                    <td style="width: 15%; min-width: 120px; max-width: 25%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['benefit_name'] ?></td>
-                    <td style="width: 20%; min-width: 160px; max-width: 30%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['description'] ?></td>
-                    <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;">-</td>
+                    <td style="width: 10%; min-width: 120px; max-width: 20%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['benefit_name'] ?></td>
+                    <td style="width: 13%; min-width: 160px; max-width: 23%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['description'] ?></td>
+                    <td style="width: 9%; padding: 5px; border: 1px solid #000; text-align: end;">-</td>
                     <td style="width: 9%; padding: 5px; border: 1px solid #000; text-align: end;">-</td>
                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $row['tot_usage1'] ?? 0 ?></td>
                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $row['qty'] ?></td>
@@ -204,7 +246,7 @@ while ($datt = mysqli_fetch_assoc($ress)){
                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= strtolower($program) == 'cbls3' ? $row['qty'] : $row['qty2'] ?></td>
                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $row['tot_usage3'] ?? 0 ?></td>
                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= strtolower($program) == 'cbls3' ? $row['qty'] : $row['qty3'] ?></td>
-
+                    <td style="width: 10%; min-width: 160px; max-width: 20%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['note'] ?></td>
                 </tr>
             <?php }else { 
                         $acc_qty1 = 0;
@@ -218,9 +260,9 @@ while ($datt = mysqli_fetch_assoc($ress)){
                 ?>
                                 <tr>
                                     <td rowspan="<?= count($usages) ?>" style="width: 5%; padding: 5px; border: 1px solid #000; text-align: center;"><?= $no ?></td>
-                                    <td rowspan="<?= count($usages) ?>" style="width: 15%; min-width: 120px; max-width: 25%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['benefit_name'] ?></td>
-                                    <td rowspan="<?= count($usages) ?>" style="width: 20%; min-width: 160px; max-width: 30%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['description'] ?></td>
-                                    <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: start;"><?= $usage['used_at'] ?></td>
+                                    <td rowspan="<?= count($usages) ?>" style="width: 10%; min-width: 120px; max-width: 20%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['benefit_name'] ?></td>
+                                    <td rowspan="<?= count($usages) ?>" style="width: 13%; min-width: 160px; max-width: 23%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['description'] ?></td>
+                                    <td style="width: 9%; padding: 5px; border: 1px solid #000; text-align: start;"><?= $usage['used_at'] ?></td>
                                     <td style="width: 9%; padding: 5px; border: 1px solid #000; text-align: start;"><?= $usage['descr'] ?></td>
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['usage1'] ?></td>
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['qty'] - $acc_qty1 ?></td>
@@ -228,10 +270,11 @@ while ($datt = mysqli_fetch_assoc($ress)){
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['qty2'] - $acc_qty2 ?></td>
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['usage3'] ?></td>
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['qty3'] - $acc_qty3 ?></td>
+                                    <td rowspan="<?= count($usages) ?>" style="width: 10%; min-width: 160px; max-width: 20%; padding: 5px; border: 1px solid #000; word-wrap: break-word;"><?= $row['note'] ?></td>
                                 </tr>
                             <?php } else { ?>
                                  <tr>
-                                    <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: start;"><?= $usage['used_at'] ?></td>
+                                    <td style="width: 9%; padding: 5px; border: 1px solid #000; text-align: start;"><?= $usage['used_at'] ?></td>
                                     <td style="width: 9%; padding: 5px; border: 1px solid #000; text-align: start;"><?= $usage['descr'] ?></td>
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['usage1'] ?></td>
                                     <td style="width: 7%; padding: 5px; border: 1px solid #000; text-align: end;"><?= $usage['qty'] - $acc_qty1 ?></td>
@@ -255,7 +298,7 @@ while ($datt = mysqli_fetch_assoc($ress)){
 
     <p style="margin-top: 60px;">
         Salam hangat,<br>
-        <strong>Dwinanto Setiawan</strong><br><br><br><br><br>
+        <strong>Dwinanto Setiawan</strong><br>
         National Manager<br>
         Mentari Group
     </p>

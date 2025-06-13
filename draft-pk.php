@@ -119,7 +119,6 @@
         var rowid = event.relatedTarget.getAttribute('data-id')
         var modalTitle = approvalModal.querySelector('.modal-title')
         modalTitle.textContent = 'Approval History ' + rowid;
-        console.log(rowid)
         $.ajax({
             url: 'get_benefits_approver.php',
             type: 'POST',
@@ -168,7 +167,6 @@
                     },
                     success: function(data) {
                         let resData = JSON.parse(data)
-                        console.log(resData)
                         Swal.close();
                         if(resData.status == 'Success') {
                             Swal.fire({
@@ -189,7 +187,6 @@
                         // location.reload();
                     },
                     error: function(data) {
-                        console.log(data);
                         Swal.close()
                         let resData = JSON.parse(data)
                         Swal.fire({

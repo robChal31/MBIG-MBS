@@ -234,7 +234,6 @@
             success: function(res) {
               let data = JSON.parse(res);
               Swal.close()
-              console.log((data));
               if(data.status == 'success') {
                 Swal.fire({
                   title: "Deleted!",

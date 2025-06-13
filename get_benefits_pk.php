@@ -191,7 +191,6 @@ $program = strtolower($program);
             program : '<?= $program ?>'
         },
         success: function(data) {
-          console.log(data)
             row.find('input[name="benefit[]"]').val(data[0].benefit);
             row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
             row.find('.ben').html(data[0].benefit);

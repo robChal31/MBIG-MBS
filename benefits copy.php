@@ -218,7 +218,6 @@
     function getBenefit() {
         let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
-        console.log(selectedType, usage_year);
         $.ajax({
             url: './get-confirmed-benefits.php',
             type: 'POST',

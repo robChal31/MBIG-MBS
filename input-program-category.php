@@ -63,7 +63,6 @@ $program_category = $program_categories[0] ?? [];
                     });
                 },
                 success: function(response) {
-                    console.log((response));
                     Swal.close()
                     if(response.status == 'success') {
                         Swal.fire({

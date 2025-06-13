@@ -151,7 +151,6 @@ $selected_school_ids_js = json_encode($selected_school_ids);
                     });
                 },
                 success: function(response) {
-                    console.log((response));
                     Swal.close()
                     if(response.status == 'success') {
                         Swal.fire({

@@ -193,7 +193,6 @@
 
     $('.del-prog').on('click', function() {
       var id = $(this).data('id');
-      console.log(id)
       Swal.fire({
         title: 'Are you sure?',
         text: "You won't be able to revert this!",
@@ -223,7 +222,6 @@
             success: function(res) {
               let data = JSON.parse(res);
               Swal.close()
-              console.log((data));
               if(data.status == 'success') {
                 Swal.fire({
                   title: "Deleted!",

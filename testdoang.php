@@ -54,7 +54,6 @@
             xhr.onload = function () {
               if (xhr.status >= 200 && xhr.status < 400) {
                 var response = JSON.parse(xhr.responseText);
-                console.log('Response:', response);
                 if (response.status === 'success') {
                   document
                     .querySelector('.form-sent')

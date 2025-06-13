@@ -317,7 +317,6 @@
                     var xmlhttp = new XMLHttpRequest();
                     xmlhttp.onreadystatechange = function() {
                         if (this.readyState == 4 && this.status == 200) {
-                            console.log(this.responseText);
                             if(this.responseText!=""){
                             document.getElementById("sisaquota").innerHTML = "Sisa kuotanya adalah " +this.responseText+" pax"; 
                             $('#submt').show(200); 
@@ -368,7 +367,6 @@
             var keterangan = button.getAttribute('data-bs-keterangan')
             var modalTitle = exampleModal3.querySelector('.modal-title')
             modalTitle.textContent = 'Update keterangan? ID = ' + rowid;
-            console.log(keterangan);
             $('#keteranganInput').val(keterangan);
             document.getElementById('updateKeterangan').setAttribute('onclick','updateKeteranganData('+rowid+')');
         })
@@ -380,7 +378,6 @@
             var tanggal = button.getAttribute('data-bs-tanggal')
             var modalTitle = exampleModal3.querySelector('.modal-title')
             modalTitle.textContent = 'Update tanggal? ID = ' + rowid;
-            console.log(tanggal);
             $('#tanggalInput').val(tanggal);
             document.getElementById('updateTanggal').setAttribute('onclick','updateTanggalData('+rowid+')');
         })
@@ -437,7 +434,7 @@
             function updateSecondDropdown(selectedValue) {
                 // Fetch JSON data from the specified URL based on the selected value
                 var apiUrl = `${apiUrl2}${selectedValue}`;
-                console.log(apiUrl);
+
                 fetch(apiUrl)
                     .then(response => {
                         // Check if the request was successful (status code 200)
@@ -495,13 +492,11 @@
 
             jsonDataDropdown.addEventListener('change', function () {
                 idevent = this.value;
-                console.log(idevent);
                 updateSecondDropdown(this.value);
             });
 
             jsonDataDropdown2.addEventListener('change', function () {
                 idticket = this.value;
-                console.log(idticket);
                 updateThirdDropdown(this.value);
             });
 

@@ -260,8 +260,6 @@ if ($result->num_rows > 0) {
                                         <td class="text-end"><?= strtolower($program) == 'cbls3'? $row['qty'] : $row['qty3'] ?></td>
                                         <td class="text-end"><?= $row['tot_usage3'] ?? 0?></td>
                                         <td><?= number_format($row['calcValue'], '0', ',', '.') ?></td>
-
-
                                         <td>
                                             <div class="d-flex gap-1">                                           
                                                 <?php if($confirmed == 1 && $row['redeemable'] == 1) : ?>
@@ -510,7 +508,6 @@ if ($result->num_rows > 0) {
 
     $('#reqReport').click(function () {
         var idDraft = $(this).data('id');
-        console.log(idDraft)
         Swal.fire({
             title: "You will send request report?",
             text: "This action will send request report to Top Leader and Secretary.",
@@ -538,9 +535,7 @@ if ($result->num_rows > 0) {
                         });
                     },
                     success: function(data) {
-                        console.log(data)
                         let resData = JSON.parse(data)
-                        console.log(resData)
                         Swal.close()
                         if(resData.status == 'Success') {
                             Swal.fire({
@@ -548,9 +543,6 @@ if ($result->num_rows > 0) {
                                 text: resData.message,
                                 icon: "success"
                             });
-
-                            
-                            
                         }else {
                             Swal.fire({
                                 title: "Error!",
@@ -563,7 +555,6 @@ if ($result->num_rows > 0) {
                         }, 3000);
                     },
                     error: function(data) {
-                        console.log(data)
                         Swal.close();
                         let resData = JSON.parse(data)
                         Swal.fire({

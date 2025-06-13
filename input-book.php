@@ -65,7 +65,6 @@ $book = $books[0] ?? [];
                     });
                 },
                 success: function(response) {
-                    console.log((response));
                     Swal.close()
                     if(response.status == 'success') {
                         Swal.fire({

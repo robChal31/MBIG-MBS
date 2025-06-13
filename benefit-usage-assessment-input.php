@@ -41,7 +41,6 @@
                         var xmlhttp = new XMLHttpRequest();
                         xmlhttp.onreadystatechange = function() {
                           if (this.readyState == 4 && this.status == 200) {
-                              console.log(this.responseText);
                               if(this.responseText!=""){
                                 document.getElementById("sisaquota").innerHTML = "Sisa kuotanya adalah " +this.responseText+" pax"; 
                                 document.getElementById("member").max = this.responseText;

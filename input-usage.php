@@ -123,7 +123,6 @@ Nama Peserta: </textarea>
             let yearValue = $('#year').val();
 
             let maxQty = quantity[yearValue]['remain'];
-            console.log('maxQty', maxQty)
 
             if (!isValid || value.includes(',')) {
                 $(this).val('');

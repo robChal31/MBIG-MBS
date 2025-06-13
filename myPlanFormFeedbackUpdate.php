@@ -156,7 +156,6 @@ if ($result->num_rows > 0) {
                     });
                 },
                 success: function(response) {
-                  console.log("response: ", response);
                     Swal.close();
                     if(response.status) {
                         Swal.fire({

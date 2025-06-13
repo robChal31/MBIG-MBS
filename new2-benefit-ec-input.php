@@ -204,13 +204,10 @@
       
         var setelahDiskon = normal -  (diskon/100 * normal);
         aftd.val(setelahDiskon);
-        console.log("setelah diskon :"+setelahDiskon);
         var onepriceRevenue = jumlah * usulan;
         afto.val(onepriceRevenue);
-        console.log("revenue oneprice :"+onepriceRevenue);
         var sebelumOneprice = jumlah * setelahDiskon;
         befo.val(sebelumOneprice);
-        console.log("sebelum oneprice :"+sebelumOneprice);
         var alokasi = onepriceRevenue - sebelumOneprice;
         disabledField.val(alokasi);
         accumulateAlokasi();
