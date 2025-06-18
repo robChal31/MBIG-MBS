@@ -716,12 +716,19 @@ if ($result && mysqli_num_rows($result) > 0) {
     var benefitSetting = <?php echo json_encode($benefitSetting); ?>;
     let maxBenefitPercentage = parseInt(benefitSetting.max_benefit_percentage);
 
-    let max_alokasi = alokasi * (maxBenefitPercentage / 100);
+    // let max_alokasi = alokasi * (maxBenefitPercentage / 100);
 
-    if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
-      alert(`Total nilai tidak boleh lebih dari ${maxBenefitPercentage}% dari alokasi.`);
-      return '0';
-    }
+    // if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
+    //   alert(`Total nilai tidak boleh lebih dari ${maxBenefitPercentage}% dari alokasi.`);
+    //   return '0';
+    // }
+
+    // let max_alokasi = alokasi * 0.15;
+
+    // if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
+    //   alert(`Total nilai tidak boleh lebih dari 15% dari alokasi.`);
+    //   return '0';
+    // }
 
     var formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
 
