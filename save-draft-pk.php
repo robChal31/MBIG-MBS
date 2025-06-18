@@ -197,11 +197,15 @@
         $tokenLeader = generateRandomString(16);
         
         $sql = "SELECT 
-                    ec.username, ec.generalname, ec.sa_email, lead.generalname as lead_name, 
-                    lead.username as lead_mail, lead.id_user as lead_id
+                    ec.username, ec.generalname, ec.sa_email, 
+                    lead1.generalname as lead_name1, lead1.username as lead_mail1, lead1.id_user as lead_id1,
+                    lead2.generalname as lead_name2, lead2.username as lead_mail2, lead2.id_user as lead_id2,
+                    lead3.generalname as lead_name3, lead3.username as lead_mail3, lead3.id_user as lead_id3
                 FROM draft_benefit as db
                 LEFT JOIN user as ec on ec.id_user = db.id_ec 
-                LEFT JOIN user as lead on ec.leadid3 = lead.id_user 
+                LEFT JOIN user as lead1 on ec.leadid = lead1.id_user
+                LEFT JOIN user as lead2 on ec.leadid2 = lead2.id_user
+                LEFT JOIN user as lead3 on ec.leadid3 = lead3.id_user
                 WHERE db.id_draft = $id_draft";
 
         $result = mysqli_query($conn,$sql);
@@ -217,8 +221,8 @@
             $saemail = $dra['sa_email'];
             $ec_email = $dra['username'];
             $ec_name = $dra['generalname'];
-            $lead_mail = $dra['lead_mail'];
-            $lead_name = $dra['lead_name'];
+            $lead_mail = $dra['lead_mail1'] ? $dra['lead_mail1'] : ($dra['lead_mail2'] ? $dra['lead_mail2'] : $dra['lead_mail3']);
+            $lead_name = $dra['lead_name1'] ? $dra['lead_name1'] : ($dra['lead_name2'] ? $dra['lead_name2'] : $dra['lead_name3']);
             $lead_id = $dra['lead_id'];
         }
         

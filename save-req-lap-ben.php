@@ -56,7 +56,7 @@ try {
     $html = ob_get_clean();
 
     // 3. Simpan ke server
-    $filename = 'laporan_' . date('Ymd_His') . '.pdf';
+    $filename = 'laporan_penggunaan_manfaat_program_' . $uc_program . '_' . date('Ymd_His') . '.pdf';
     $filepath = 'reports/' . $filename;
     $mpdf->WriteHTML($html);
     $pdfContent = $mpdf->Output('', 'S');

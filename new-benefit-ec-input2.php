@@ -701,12 +701,12 @@ while ($row = mysqli_fetch_assoc($check_result)) {
     let total_member2 = member2 * number;
     let total_member3 = member3 * number;
 
-    let max_alokasi = alokasi * 0.15
+    // let max_alokasi = alokasi * 0.15
 
-    if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
-      alert('Total nilai tidak boleh lebih dari 15% dari alokasi.');
-      return '0';
-    }
+    // if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
+    //   alert('Total nilai tidak boleh lebih dari 15% dari alokasi.');
+    //   return '0';
+    // }
 
     var formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
 
