@@ -10,7 +10,24 @@
       font-size: .9rem !important;
   }
 </style>
+<?php
+  include 'db_con.php';
+  require 'vendor/autoload.php';
+  $config = require 'config.php';
+  $benefitSetting = [
+      'max_price_percentage' => '',
+      'max_discount_percentage' => '',
+      'max_benefit_percentage' => ''
+  ];
 
+  $query = "SELECT max_price_percentage, max_discount_percentage, max_benefit_percentage FROM benefit_setting LIMIT 1";
+  $result = mysqli_query($conn, $query);
+
+  if ($result && mysqli_num_rows($result) > 0) {
+      $benefitSetting = mysqli_fetch_assoc($result);
+  }
+
+?>
 <?php include 'header.php'; ?>
   <!-- Content Start -->
   <div class="content">
@@ -142,7 +159,7 @@
                                     <td><input type="text" name="jumlahsiswa[]" class="form-control only_number form-control-sm" placeholder="Jumlah Siswa" onchange="updateDisabledField(this)"></td>
                                     <td><input type="text" name="usulanharga[]" class="form-control only_number form-control-sm" placeholder="Usulan Harga" onchange="updateDisabledField(this)"></td>
                                     <td><input type="text" name="harganormal[]" class="form-control only_number form-control-sm" placeholder="Harga Buku Normal" onchange="updateDisabledField(this)"></td>
-                                    <td><input type="text" name="diskon[]" max="30" class="form-control only_number form-control-sm" placeholder="Standard Discount" onchange="updateDisabledField(this)"></td>
+                                    <td><input type="text" name="diskon[]" max="<?= $benefitSetting['max_discount_percentage'] ?>" class="form-control only_number form-control-sm" placeholder="Standard Discount" onchange="updateDisabledField(this)"></td>
                                     <td><input type="text" class="aftd form-control form-control-sm" name="aftd[]" placeholder="0" readonly></td>
                                     <td><input type="text" class="afto form-control form-control-sm" name="afto[]" placeholder="0" readonly></td>
                                     <td><input type="text" class="befo form-control form-control-sm" name="befo[]" placeholder="0" readonly></td>
@@ -341,16 +358,32 @@
     var aftd = row.find('input[name="aftd[]"]');
     var befo = row.find('input[name="befo[]"]');
     var afto = row.find('input[name="afto[]"]');
-    
+    var benefitSetting = <?php echo json_encode($benefitSetting); ?>;
+
+    let maxProgramPrice = benefitSetting.max_price_percentage ?? 100;
+
     var jumlah = !isNaN(removeNonDigits(row.find('input[name="jumlahsiswa[]"').val())) ? removeNonDigits(row.find('input[name="jumlahsiswa[]"').val()) : 0;
     var usulan = !isNaN(removeNonDigits(row.find('input[name="usulanharga[]"').val())) ? removeNonDigits(row.find('input[name="usulanharga[]"').val()) : 0;
     var normal = !isNaN(removeNonDigits(row.find('input[name="harganormal[]"').val())) ? removeNonDigits(row.find('input[name="harganormal[]"').val()) : 0;
     var diskon = !isNaN(removeNonDigits(row.find('input[name="diskon[]"').val())) ? removeNonDigits(row.find('input[name="diskon[]"').val()) : 0;
-    if(diskon > 30){
-      diskon = 30;
+
+    if(normal && normal > 0){
+      let selisihHarga = usulan - normal;
+      let persentaseSelisihHarga = (selisihHarga / normal) * 100;
+      if(persentaseSelisihHarga > maxProgramPrice){
+        usulan = parseInt(normal) + (maxProgramPrice/100 * normal);
+        alert("Usulan harga program melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih");
+        row.find('input[name="usulanharga[]"').val(usulan);
+      }
+    }
+
+    let maxDiscount = benefitSetting.max_discount_percentage ?? 30;
+
+    if(diskon > maxDiscount){
+      diskon = maxDiscount;
       alert("Diskon melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih");
-      row.find('input[name="diskon[]"').val(30);
-    }  
+      row.find('input[name="diskon[]"').val(maxDiscount);
+    }
     
     var setelahDiskon = normal -  (diskon/100 * normal);
     aftd.val(formatNumber(setelahDiskon));

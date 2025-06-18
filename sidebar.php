@@ -71,7 +71,9 @@ $last_path_with_query;
                         <li>
                             <a class="nav-link <?= $last_path_with_query == 'benefit_templates.php' ? "active" : '' ?>" href="benefit_templates.php"><i class="fas fa-file-alt"></i> Benefit Templates</a>
                         </li>
-                        
+                        <li>
+                            <a class="nav-link <?= $last_path_with_query == 'benefit_setting.php' ? "active" : '' ?>" href="benefit_setting.php"><i class="fas fa-percentage"></i> Benefit Settings</a>
+                        </li>
                     </ul>
                 </div>
 

@@ -72,7 +72,7 @@
         }
 
 
-        if($id_draft){
+        if ($id_draft) {
             $sql = "UPDATE draft_benefit SET 
                         id_user = '$id_user',
                         id_ec = '$inputEC',
@@ -80,7 +80,7 @@
                         segment = '$segment',
                         program = '$program',
                         wilayah = '$wilayah',
-                        level   = '$level',
+                        level = '$level',
                         myplan_id = '$myplan_id',
                         total_benefit = '0',
                         selisih_benefit = '0',
@@ -90,13 +90,25 @@
                         alokasi = $alokasi
                     WHERE id_draft = $id_draft";
 
-            mysqli_query($conn, $sql);
-        }else {
-            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `myplan_id`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$program', current_timestamp(), '0', $alokasi, '$wilayah', '$level', $myplan_id);";
+            if (!mysqli_query($conn, $sql)) {
+               throw new Exception("❌ Gagal update: " . mysqli_error($conn));
+            }
 
-            mysqli_query($conn,$sql);
-            $id_draft = mysqli_insert_id($conn);
+        } else {
+            $sql = "INSERT INTO draft_benefit (
+                        id_user, id_ec, school_name, segment, program, date, status, alokasi, wilayah, level, myplan_id
+                    ) VALUES (
+                        '$id_user', '$inputEC', '$id_school', '$segment', '$program',
+                        current_timestamp(), '0', $alokasi, '$wilayah', '$level', '$myplan_id'
+                    )";
+
+            if (mysqli_query($conn, $sql)) {
+                $id_draft = mysqli_insert_id($conn);
+            } else {
+                throw new Exception("❌ Gagal insert: " . mysqli_error($conn));
+            }
         }
+
 
         $book_levels    = $_POST['levels'];
         $book_type      = $_POST['booktype'];
@@ -139,7 +151,6 @@
     } catch (\Throwable $th) {
         $_SESSION['toast_status'] = 'Error';
         $_SESSION['toast_msg'] = 'Gagal Menyimpan Draft Benefit ' . $th->getMessage();
-        
         $location = 'Location: ./draft-benefit.php'; 
         mysqli_close($conn);
         header($location);
