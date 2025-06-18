@@ -268,7 +268,7 @@
                 success: function(response) {
                   let options = '<option value="" disabled selected>Select a program</option>';
                   response.map((data) => {
-                      options += `<option value="${data.code}">${data.name}</option>`
+                      options += `<option value="${data.name}">${data.name}</option>`
                   }) 
 
                   $('#program').html(options);
