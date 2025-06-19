@@ -223,7 +223,7 @@
                               <?php foreach($grouped_programs as $key => $grouped_program) { ?>
                                 <optgroup label="<?= $key ?>">
                                   <?php foreach($grouped_program as $g_prog) { ?>
-                                        <option value="<?= $g_prog['code'] ?>" <?= strtolower($g_prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $g_prog['name'] ?></option>
+                                        <option value="<?= $g_prog['name'] ?>" <?= strtolower($g_prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $g_prog['name'] ?></option>
                                   <?php }; ?>
                                 </optgroup>
                               <?php }; ?>
@@ -304,11 +304,10 @@
           type: 'GET', 
           // dataType: 'json', 
           success: function(response) {
-            console.log(response);
-            $('#benefit_container').html(response);
+              $('#benefit_container').html(response);
           },
           error: function(jqXHR, textStatus, errorThrown) {
-            console.log(textStatus);
+              console.log(textStatus);
           }
         });
       }
@@ -322,8 +321,7 @@
           type: 'GET', 
           // dataType: 'json', 
           success: function(response) {
-            console.log(response);
-            $('#benefit_container').html(response);
+              $('#benefit_container').html(response);
           },
           error: function(jqXHR, textStatus, errorThrown) {
               console.log(textStatus);
