@@ -367,15 +367,15 @@
     var normal = !isNaN(removeNonDigits(row.find('input[name="harganormal[]"').val())) ? removeNonDigits(row.find('input[name="harganormal[]"').val()) : 0;
     var diskon = !isNaN(removeNonDigits(row.find('input[name="diskon[]"').val())) ? removeNonDigits(row.find('input[name="diskon[]"').val()) : 0;
 
-    if(normal && normal > 0){
-      let selisihHarga = usulan - normal;
-      let persentaseSelisihHarga = (selisihHarga / normal) * 100;
-      if(persentaseSelisihHarga > maxProgramPrice){
-        usulan = parseInt(normal) + (maxProgramPrice/100 * normal);
-        alert("Usulan harga program melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih");
-        row.find('input[name="usulanharga[]"').val(usulan);
-      }
-    }
+    // if(normal && normal > 0){
+    //   let selisihHarga = usulan - normal;
+    //   let persentaseSelisihHarga = (selisihHarga / normal) * 100;
+    //   if(persentaseSelisihHarga > maxProgramPrice){
+    //     usulan = parseInt(normal) + (maxProgramPrice/100 * normal);
+    //     alert("Usulan harga program melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih");
+    //     row.find('input[name="usulanharga[]"').val(usulan);
+    //   }
+    // }
 
     let maxDiscount = benefitSetting.max_discount_percentage ?? 30;
 

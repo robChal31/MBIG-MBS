@@ -1,9 +1,9 @@
 <?php
 include 'db_con.php';
 
-$current_row = 1;
-$id_draft = '';
-if($_GET['id_draft']){ 
+$current_row  = 1;
+$id_draft     = '';
+if($_GET['id_draft'] && $_GET['id_draft'] != '') { 
   $id_draft = $_GET['id_draft'];
   $sql      = "SELECT db.*, sc.name as school_name2
               FROM draft_benefit as db 
@@ -59,97 +59,97 @@ $program = strtolower($program);
 
     <div class="row">
       <div class="col-12">
-          <?php
-            if($id_draft || $program) { ?>
-              <h6 class="mb-5">Benefits</h6>
+        <?php
+          if($id_draft || $program) { ?>
+            <h6 class="mb-5">Benefits</h6>
 
-              <!-- <div class="d-flex justify-content-end">
-                <div>
-                  <span style="font-size: .75rem; display: inline-block;">click + for adding row</span>
-                  <div class="d-flex justify-content-end">
-                    <button type='button' class="add-button btn btn-success me-2" style="display:block" id='add_row'>
-                        <i class="fas fa-plus"></i>
-                    </button>
-                  </div>
-                  
+            <!-- <div class="d-flex justify-content-end">
+              <div>
+                <span style="font-size: .75rem; display: inline-block;">click + for adding row</span>
+                <div class="d-flex justify-content-end">
+                  <button type='button' class="add-button btn btn-success me-2" style="display:block" id='add_row'>
+                      <i class="fas fa-plus"></i>
+                  </button>
                 </div>
-              </div> -->
-
-              <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
-              <div class="row">
-                <input type="hidden" value="<?= $program ?>" name="program">
-                <table class="table table-striped table-bordered dataTable no-footer" id="input_form">
-                  <thead>
-                      <td>Benefit</td>
-                      <td>Sub Benefit</td>
-                      <td>Nama Benefit</td>
-                      <td style="width: 25%">Deskripsi</td>
-                      <td style="width: 25%">Pelaksanaan</td>
-                      <td>Qty Th 1</td>
-                      <td>Qty Th 2</td>
-                      <td>Qty Th 3</td>
-                      <td>Action</td>
-                  </thead>
-                  <tbody>
-                    <?php
-                      $row = 1; 
-                      foreach($data_templates as $data_template) : ?>
-                        <tr id="row<?= $row ?>">
-                            <td>
-                              <span><?= ucfirst($data_template['benefit']); ?></span>
-                              <input type='hidden' name='benefit[]' value='<?= $data_template['benefit'] ?>'>
-                              <input type='hidden' name='id_templates[]' value='<?= $data_template['id_template_benefit'] ?>'>
-                            </td>
-                            <td>
-                              <span><?= ucfirst($data_template['subbenefit']); ?></span>
-                              <input type='hidden' name='subbenefit[]' value='<?= $data_template['subbenefit'] ?>'>
-                            </td>
-                            <td>
-                              <!-- <select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select> -->
-                              <span><?= ucfirst($data_template['benefit_name']); ?></span>
-                              <input type='hidden' name='benefit_name[]' value='<?= $data_template['benefit_name'] ?>'>
-                            </td>
-                            <td class="benefit-desc">
-                              <input type="hidden" id="description" name="description[]" value="<?= $data_template['description'] ?>" />
-                              <span><?= $data_template['description'] ?></span>
-                            </td>
-                            <td class="benefit-desc">
-                              <input type="hidden" id="pelaksanaan" name="pelaksanaan[]" value="<?= $data_template['pelaksanaan'] ?>" />
-                              <span><?= $data_template['pelaksanaan'] ?></span>
-                            </td>
-                            <td>
-                              <input type="hidden" class="form-control form-control-sm tah1" id="qty1" name="qty1[]" placeholder="Quantity Tahun 1" value="<?= $data_template['qty1'] ?>">
-                              <span><?= $data_template['qty1'] ?></span>
-                            </td>
-                            <td>
-                              <input type="hidden" class="form-control form-control-sm tah2" id="qty2" name="qty2[]" placeholder="Quantity Tahun 2" value="<?= $data_template['qty2'] ?>">
-                              <span><?= $data_template['qty2'] ?></span>
-                            </td>
-                            <td> 
-                              <input type="hidden" class="form-control form-control-sm tah3" id="qty3" name="qty3[]" placeholder="Quantity Tahun 3" value="<?= $data_template['qty3'] ?>">
-                              <span><?= $data_template['qty3'] ?></span>
-                            </td>
-
-                            <td>
-                                <?php if($data_template['optional'] == 1) { ?>
-                                  <button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
-                                <?php } ?>
-                            </td>
-                        </tr>
-                    <?php $row++; endforeach ; ?>
-                  </tbody>
-                </table>   
+                
               </div>
-              <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
-                <button type="submit" class="btn btn-primary m-2 fw-bold" id="submt">Submit</button>
-              </div>
-          <?php } else { ?>
-            <?php if($program == '') : ?>
-              <div class="alert alert-info">Select a Program</div>
-            <?php else: ?>
-              <div class="alert alert-danger">Program or Saved Template Invalid</div>
-            <?php endif; ?>
-          <?php } ?>
+            </div> -->
+
+            <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
+            <div class="row">
+              <input type="hidden" value="<?= $program ?>" name="program">
+              <table class="table table-striped table-bordered dataTable no-footer" id="input_form">
+                <thead>
+                    <td>Benefit</td>
+                    <td>Sub Benefit</td>
+                    <td>Nama Benefit</td>
+                    <td style="width: 25%">Deskripsi</td>
+                    <td style="width: 25%">Pelaksanaan</td>
+                    <td>Qty Th 1</td>
+                    <td>Qty Th 2</td>
+                    <td>Qty Th 3</td>
+                    <td>Action</td>
+                </thead>
+                <tbody>
+                  <?php
+                    $row = 1; 
+                    foreach($data_templates as $data_template) : ?>
+                      <tr id="row<?= $row ?>">
+                          <td>
+                            <span><?= ucfirst($data_template['benefit']); ?></span>
+                            <input type='hidden' name='benefit[]' value='<?= $data_template['benefit'] ?>'>
+                            <input type='hidden' name='id_templates[]' value='<?= $data_template['id_template_benefit'] ?>'>
+                          </td>
+                          <td>
+                            <span><?= ucfirst($data_template['subbenefit']); ?></span>
+                            <input type='hidden' name='subbenefit[]' value='<?= $data_template['subbenefit'] ?>'>
+                          </td>
+                          <td>
+                            <!-- <select name="benefit_id[]" class="form-select form-select-sm" onchange="getBenefitData(this)"></select> -->
+                            <span><?= ucfirst($data_template['benefit_name']); ?></span>
+                            <input type='hidden' name='benefit_name[]' value='<?= $data_template['benefit_name'] ?>'>
+                          </td>
+                          <td class="benefit-desc">
+                            <input type="hidden" id="description" name="description[]" value="<?= $data_template['description'] ?>" />
+                            <span><?= $data_template['description'] ?></span>
+                          </td>
+                          <td class="benefit-desc">
+                            <input type="hidden" id="pelaksanaan" name="pelaksanaan[]" value="<?= $data_template['pelaksanaan'] ?>" />
+                            <span><?= $data_template['pelaksanaan'] ?></span>
+                          </td>
+                          <td>
+                            <input type="hidden" class="form-control form-control-sm tah1" id="qty1" name="qty1[]" placeholder="Quantity Tahun 1" value="<?= $data_template['qty1'] ?>">
+                            <span><?= $data_template['qty1'] ?></span>
+                          </td>
+                          <td>
+                            <input type="hidden" class="form-control form-control-sm tah2" id="qty2" name="qty2[]" placeholder="Quantity Tahun 2" value="<?= $data_template['qty2'] ?>">
+                            <span><?= $data_template['qty2'] ?></span>
+                          </td>
+                          <td> 
+                            <input type="hidden" class="form-control form-control-sm tah3" id="qty3" name="qty3[]" placeholder="Quantity Tahun 3" value="<?= $data_template['qty3'] ?>">
+                            <span><?= $data_template['qty3'] ?></span>
+                          </td>
+
+                          <td>
+                              <?php if($data_template['optional'] == 1) { ?>
+                                <button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row<?= $row ?>"><i class="fas fa-trash"></i></button>
+                              <?php } ?>
+                          </td>
+                      </tr>
+                  <?php $row++; endforeach ; ?>
+                </tbody>
+              </table>   
+            </div>
+            <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
+              <button type="submit" class="btn btn-primary m-2 fw-bold" id="submt">Submit</button>
+            </div>
+        <?php } else { ?>
+          <?php if($program == '') : ?>
+            <div class="alert alert-info">Select a Program</div>
+          <?php else: ?>
+            <div class="alert alert-danger">Program or Saved Template Invalid</div>
+          <?php endif; ?>
+        <?php } ?>
       </div>
     </div>
 
@@ -179,38 +179,38 @@ $program = strtolower($program);
     }
 
     function getBenefitData(element){
-        var row = $(element).closest('tr');
-        var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
-        var manval = row.find('input[name="manval[]"]')
+      var row = $(element).closest('tr');
+      var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
+      var manval = row.find('input[name="manval[]"]')
 
-        $.ajax({
-        url: 'get_benefit_datas.php',
-        type: 'POST',
-        data: {
-            benefitId: benefitId,
-            program : '<?= $program ?>'
-        },
-        success: function(data) {
-            row.find('input[name="benefit[]"]').val(data[0].benefit);
-            row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
-            row.find('.ben').html(data[0].benefit);
-            row.find('.sub_ben').html(data[0].subbenefit);
-            row.find('input[name="description[]"]').val(data[0].description);
-            row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
-            row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
-            row.find('input[name="qty1[]"]').val(data[0].qty1);
-            row.find('input[name="qty2[]"]').val(data[0].qty2);
-            row.find('input[name="qty3[]"]').val(data[0].qty3);
-            row.find('.ben_qty1').html(data[0].qty1);
-            row.find('.ben_qty2').html(data[0].qty2);
-            row.find('.ben_qty3').html(data[0].qty3);
-            row.find('.ben_desc').html(data[0].description);
-            row.find('.ben_pel').html(data[0].pelaksanaan);
-            row.find('input[name="pelaksanaan[]"]').val(data[0].pelaksanaan);
-        }
-      });
+      $.ajax({
+      url: 'get_benefit_datas.php',
+      type: 'POST',
+      data: {
+          benefitId: benefitId,
+          program : '<?= $program ?>'
+      },
+      success: function(data) {
+        row.find('input[name="benefit[]"]').val(data[0].benefit);
+        row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
+        row.find('.ben').html(data[0].benefit);
+        row.find('.sub_ben').html(data[0].subbenefit);
+        row.find('input[name="description[]"]').val(data[0].description);
+        row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
+        row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
+        row.find('input[name="qty1[]"]').val(data[0].qty1);
+        row.find('input[name="qty2[]"]').val(data[0].qty2);
+        row.find('input[name="qty3[]"]').val(data[0].qty3);
+        row.find('.ben_qty1').html(data[0].qty1);
+        row.find('.ben_qty2').html(data[0].qty2);
+        row.find('.ben_qty3').html(data[0].qty3);
+        row.find('.ben_desc').html(data[0].description);
+        row.find('.ben_pel').html(data[0].pelaksanaan);
+        row.find('input[name="pelaksanaan[]"]').val(data[0].pelaksanaan);
+      }
+    });
 
-    }
+  }
 
 </script>
 

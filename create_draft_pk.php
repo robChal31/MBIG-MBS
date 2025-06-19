@@ -116,129 +116,128 @@
       <?php include 'navbar.php'; ?>
 
       <div class="container-fluid p-4">
-          <div class="row">
-              <div class="col-12">
-                  <div class="bg-whites rounded h-100 p-4">
-                    <h6 class="mb-4">Create Draft Benefit PK</h6>
-                    <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
+        <div class="row">
+            <div class="col-12">
+                <div class="bg-whites rounded h-100 p-4">
+                  <h6 class="mb-4">Create Draft Benefit PK</h6>
+                  <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
+                    <table class="table table-striped">
+                      <tr>
+                        <td style="width: 15%">Inputter</td>
+                        <td style="width:5px">:</td>
+                        <td>
+                          <input type='hidden' name='id_user' value="<?= $_SESSION['id_user'] ?>"> 
+                          <?php
+                            if($_SESSION['role'] != 'admin') { ?>
+                              <?= $_SESSION['username']?>
+                              <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
+                          <?php } else {?>
+                            <select name="inputEC" class="form-select form-select-sm select2" required style="width: 100%;">
+                              <?php foreach($ecs as $ec) { ?>
+                                <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>><?= $ec['generalname'] ?></option>
+                              <?php } ?>
+                            </select>
+                          <?php } ?>
+                        </td>
                         
-                      <table class="table table-striped">
-                        <tr>
-                          <td style="width: 15%">Inputter</td>
-                          <td style="width:5px">:</td>
-                          <td>
-                            <input type='hidden' name='id_user' value="<?= $_SESSION['id_user'] ?>"> 
-                            <?php
-                              if($_SESSION['role'] != 'admin') { ?>
-                                <?= $_SESSION['username']?>
-                                <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
-                            <?php } else {?>
-                              <select name="inputEC" class="form-select form-select-sm select2" required style="width: 100%;">
-                                <?php foreach($ecs as $ec) { ?>
-                                  <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>><?= $ec['generalname'] ?></option>
-                                <?php } ?>
-                              </select>
-                            <?php } ?>
-                          </td>
-                          
-                        </tr>
+                      </tr>
 
-                        <tr>
-                          <td>Nama Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width: 100%;">
-                            </select>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Segment Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="segment" class="form-select form-select-sm select2" required style="width: 100%;">
-                              <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
-                              <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?>>National Plus</option>
-                              <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
-                            </select>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Jenjang Sekolah</td>
-                          <td>:</td>
-                          <td>
-                            <select name="level" class="form-select form-select-sm select2" required style="width: 100%;">
-                              <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
-                              <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
-                              <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
-                              <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
-                              <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
-                              <option value="other" id='level_manual_input' <?= $level ? (!in_array($level, ['tk', 'sd', 'smp', 'sma', 'yayasan']) ? 'selected' : '') : '' ?>>Lainnya (isi sendiri)</option>
-                            </select>
-                            <div class="my-1" id='other_level' style="display: none;">
-                              <input type="text" name="level2" value="" placeholder="Jenjang..." class="form-control form-control-sm">
-                            </div>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Wilayah Sekolah</td>
-                          <td>:</td>
-                          <td><input type="text" name="wilayah" placeholder="Wilayah" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                        </tr>
-                        <tr>
-                          <td>Nama Lengkap PIC</td>
-                          <td>:</td>
-                          <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                        </tr>
-                        <tr>
-                          <td>Jabatan PIC</td>
-                          <td>:</td>
-                          <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                        </tr>
-                        <tr>
-                          <td>No. Telepon PIC</td>
-                          <td>:</td>
-                          <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                        </tr>
-                        <tr>
-                          <td>E-mail PIC</td>
-                          <td>:</td>
-                          <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                        </tr>
-                        <tr>
-                          <td>Jenis PK</td>
-                          <td>:</td>
-                          <td>
-                            <select name="jenis_pk" class="form-select form-select-sm select2" required id="jenis_pk" required style="width: 100%;">
-                              <option value="">-- Select Jenis PK --</option>
-                              <option value="1">PK Baru</option>
-                              <option value="2">Amandemen</option>
-                            </select>
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>Program</td>
-                          <td>:</td>
-                          <td>
-                            <select name="program" class="form-select form-select-sm select2" required id="program" required style="width: 100%;">
-                              <option value="">-- Select Program --</option>
-                                <?php foreach($grouped_programs as $key => $grouped_program) { ?>
-                                  <optgroup label="<?= $key ?>">
-                                    <?php foreach($grouped_program as $g_prog) { ?>
-                                          <option value="<?= $g_prog['code'] ?>" <?= strtolower($g_prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $g_prog['name'] ?></option>
-                                    <?php }; ?>
-                                  </optgroup>
-                                <?php }; ?>
-                            </select>
-                          </td>
-                        </tr>
-                      </table>
+                      <tr>
+                        <td>Nama Sekolah</td>
+                        <td>:</td>
+                        <td>
+                          <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width: 100%;">
+                          </select>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Segment Sekolah</td>
+                        <td>:</td>
+                        <td>
+                          <select name="segment" class="form-select form-select-sm select2" required style="width: 100%;">
+                            <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
+                            <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?>>National Plus</option>
+                            <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
+                          </select>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Jenjang Sekolah</td>
+                        <td>:</td>
+                        <td>
+                          <select name="level" class="form-select form-select-sm select2" required style="width: 100%;">
+                            <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
+                            <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
+                            <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
+                            <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
+                            <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
+                            <option value="other" id='level_manual_input' <?= $level ? (!in_array($level, ['tk', 'sd', 'smp', 'sma', 'yayasan']) ? 'selected' : '') : '' ?>>Lainnya (isi sendiri)</option>
+                          </select>
+                          <div class="my-1" id='other_level' style="display: none;">
+                            <input type="text" name="level2" value="" placeholder="Jenjang..." class="form-control form-control-sm">
+                          </div>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Wilayah Sekolah</td>
+                        <td>:</td>
+                        <td><input type="text" name="wilayah" placeholder="Wilayah" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                      </tr>
+                      <tr>
+                        <td>Nama Lengkap PIC</td>
+                        <td>:</td>
+                        <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                      </tr>
+                      <tr>
+                        <td>Jabatan PIC</td>
+                        <td>:</td>
+                        <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                      </tr>
+                      <tr>
+                        <td>No. Telepon PIC</td>
+                        <td>:</td>
+                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                      </tr>
+                      <tr>
+                        <td>E-mail PIC</td>
+                        <td>:</td>
+                        <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                      </tr>
+                      <tr>
+                        <td>Jenis PK</td>
+                        <td>:</td>
+                        <td>
+                          <select name="jenis_pk" class="form-select form-select-sm select2" required id="jenis_pk" required style="width: 100%;">
+                            <option value="">-- Select Jenis PK --</option>
+                            <option value="1">PK Baru</option>
+                            <option value="2">Amandemen</option>
+                          </select>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td>Program</td>
+                        <td>:</td>
+                        <td>
+                          <select name="program" class="form-select form-select-sm select2" required id="program" required style="width: 100%;">
+                            <option value="">-- Select Program --</option>
+                              <?php foreach($grouped_programs as $key => $grouped_program) { ?>
+                                <optgroup label="<?= $key ?>">
+                                  <?php foreach($grouped_program as $g_prog) { ?>
+                                        <option value="<?= $g_prog['code'] ?>" <?= strtolower($g_prog['name']) == strtolower($program) ? 'selected' : '' ?>><?= $g_prog['name'] ?></option>
+                                  <?php }; ?>
+                                </optgroup>
+                              <?php }; ?>
+                          </select>
+                        </td>
+                      </tr>
+                    </table>
 
-                      <div class="mt-4" id="benefit_container"></div>
+                    <div class="mt-4" id="benefit_container"></div>
 
-                    </form>
-                  </div>
-              </div>
-          </div>
+                  </form>
+                </div>
+            </div>
+        </div>
       </div>
       <!-- Form End -->
 
@@ -305,10 +304,11 @@
           type: 'GET', 
           // dataType: 'json', 
           success: function(response) {
-              $('#benefit_container').html(response);
+            console.log(response);
+            $('#benefit_container').html(response);
           },
           error: function(jqXHR, textStatus, errorThrown) {
-              console.log(textStatus);
+            console.log(textStatus);
           }
         });
       }
@@ -322,7 +322,8 @@
           type: 'GET', 
           // dataType: 'json', 
           success: function(response) {
-              $('#benefit_container').html(response);
+            console.log(response);
+            $('#benefit_container').html(response);
           },
           error: function(jqXHR, textStatus, errorThrown) {
               console.log(textStatus);
