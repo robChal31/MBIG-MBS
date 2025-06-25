@@ -81,10 +81,10 @@ $benefitSetting = [
 ];
 
 $query = "SELECT max_price_percentage, max_discount_percentage, max_benefit_percentage FROM benefit_setting LIMIT 1";
-$result = mysqli_query($conn, $query);
+$result_price = mysqli_query($conn, $query);
 
-if ($result && mysqli_num_rows($result) > 0) {
-    $benefitSetting = mysqli_fetch_assoc($result);
+if ($result_price && mysqli_num_rows($result_price) > 0) {
+    $benefitSetting = mysqli_fetch_assoc($result_price);
 }
 ?>
 
