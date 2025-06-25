@@ -10,7 +10,8 @@ if($_GET['edit'] == 'edit'){
               LEFT JOIN schools as sc on sc.id = db.school_name
               where id_draft = $id_draft";
   $result   = mysqli_query($conn,$sql);
-  
+    var_dump($sql);
+    echo '<br />';
   if(mysqli_num_rows($result) < 1){
     header('Location: draft-benefit.php');
     exit;
@@ -40,7 +41,7 @@ if($_GET['edit'] == 'edit'){
     $result       = mysqli_query($conn,$sql);
     $current_row  = mysqli_num_rows($result);
   }
-
+  var_dump($sql);
 }else{
   $program  = $_SESSION['program'];
   $id_draft = $_SESSION['id_draft'];
