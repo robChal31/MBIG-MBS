@@ -125,6 +125,22 @@
             mysqli_query($conn, "DELETE FROM draft_approval where id_draft = '$id_draft';");
         }
 
+        if ($id_draft) {
+            // Ambil program lama dari database
+            $result = mysqli_query($conn, "SELECT program FROM draft_benefit WHERE id_draft = '$id_draft'");
+            $row = mysqli_fetch_assoc($result);
+            $existingProgram = $row['program'];
+
+            // Cek apakah program berubah
+            if ($existingProgram !== $program) {
+                mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft'");
+            }
+
+            // Always delete calc_table and draft_approval
+            mysqli_query($conn, "DELETE FROM `calc_table` WHERE id_draft = '$id_draft'");
+            mysqli_query($conn, "DELETE FROM `draft_approval` WHERE id_draft = '$id_draft'");
+        }
+
         for($i = 0; $i < $row_length; $i++){
             $jumlah_siswas[$i]  = preg_replace("/[^0-9]/", "", $jumlah_siswas[$i]);
             $usulan_hargas[$i]  = preg_replace("/[^0-9]/", "", $usulan_hargas[$i]);
