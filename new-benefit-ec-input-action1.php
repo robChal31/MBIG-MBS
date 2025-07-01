@@ -118,13 +118,7 @@
         $diskons        = $_POST['diskon'];
         
         $sumalok        = 0;
-
-        if($id_draft){
-            mysqli_query($conn, "DELETE FROM `calc_table` where id_draft = '$id_draft';");
-            mysqli_query($conn, "DELETE FROM `draft_benefit_list` where id_draft = '$id_draft';");
-            mysqli_query($conn, "DELETE FROM draft_approval where id_draft = '$id_draft';");
-        }
-
+        
         if ($id_draft) {
             // Ambil program lama dari database
             $result = mysqli_query($conn, "SELECT program FROM draft_benefit WHERE id_draft = '$id_draft'");
@@ -132,7 +126,7 @@
             $existingProgram = $row['program'];
 
             // Cek apakah program berubah
-            if ($existingProgram !== $program) {
+            if ($existingProgram != $program) {
                 mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft'");
             }
 
