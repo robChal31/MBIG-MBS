@@ -294,10 +294,10 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                     ];
                 }
 
-                $cc[] = [
-                    'email' => "novitasari@mentaribooks.com",
-                    'name' => "Novi / Mentaribooks"
-                ];
+                // $cc[] = [
+                //     'email' => "novitasari@mentaribooks.com",
+                //     'name' => "Novi / Mentaribooks"
+                // ];
                 
                 $cc[] = [
                     'email' => "ar@mentaribooks.com",
