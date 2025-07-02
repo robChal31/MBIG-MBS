@@ -293,10 +293,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                         'name' => $sa_name
                     ];
                 }
-                $cc[] = [
-                        'email' => "novitasari@mentaribooks.com",
-                        'name' => "Novi / Mentaribooks"
-                ];
                 
                 $cc[] = [
                     'email' => "ar@mentaribooks.com",

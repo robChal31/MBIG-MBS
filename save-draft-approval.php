@@ -46,8 +46,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
             foreach ($cc as $key => $value) {
                 $mail->addCC($value['email'], $value['name']);
             }
-            // $mail->addCC($leademail,$leadname);
-            // $mail->addCC("novitasari@mentaribooks.com", "Novi / Mentaribooks");
         }
 
         //Content
@@ -293,11 +291,6 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                         'name' => $sa_name
                     ];
                 }
-
-                // $cc[] = [
-                //     'email' => "novitasari@mentaribooks.com",
-                //     'name' => "Novi / Mentaribooks"
-                // ];
                 
                 $cc[] = [
                     'email' => "ar@mentaribooks.com",
