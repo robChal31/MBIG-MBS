@@ -50,4 +50,4 @@ try {
 }
 
 $conn->close();
-echo $query_program;
+echo $options;
