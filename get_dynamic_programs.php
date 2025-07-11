@@ -16,8 +16,8 @@ $query_program = "SELECT * FROM (
                     SELECT db.id_draft, 
                         IFNULL(sch.name, db.school_name) AS school_name,
                         prog.name AS program_name, 
-                        sch.id AS school_id,
-                        db.year, db.ref_id, db2.id_draft AS id_draft2, db2.year AS year2
+                        sch.id AS school_id, db2.deleted_at,
+                        db.year, db.ref_id, db2.ref_id AS ref_id2, db2.id_draft AS id_draft2, db2.year AS year2
                     FROM draft_benefit db
                     LEFT JOIN schools sch ON sch.id = db.school_name
                     LEFT JOIN programs prog ON prog.code = db.program
@@ -26,10 +26,12 @@ $query_program = "SELECT * FROM (
                     $where_clause
                     AND db.confirmed = 1 
                     AND db.year = $year
-                    AND db.deleted_at IS NULL
+                    AND db2.deleted_at IS NULL
                     ORDER BY db.id_draft DESC
                 ) AS benefit
-                WHERE benefit.year2 IS NULL OR benefit.year2 != $year_selected;";
+                    WHERE 
+                benefit.deleted_at IS NULL AND (benefit.year2 IS NULL OR benefit.year2 != $year_selected)
+                OR benefit.deleted_at IS NOT NULL;";
 
 $result = $conn->query($query_program);
 
