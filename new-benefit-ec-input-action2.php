@@ -87,7 +87,7 @@
     }
     
     if($program == 'cbls3' || $program == 'bsp' || $program == 'pk3' || $program == 'cbls1'){
-        if($total_benefit > $sumalok){
+        if(($total_benefit1 > $sumalok) || ($total_benefit2 > $sumalok) || ($total_benefit3 > $sumalok)){
             echo "Total benefit melebihi alokasi";
             exit();
         }
