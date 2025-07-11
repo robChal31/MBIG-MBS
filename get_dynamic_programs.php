@@ -26,6 +26,7 @@ $query_program = "SELECT * FROM (
                     $where_clause
                     AND db.confirmed = 1 
                     AND db.year = $year
+                    AND db.deleted_at IS NULL
                     ORDER BY db.id_draft DESC
                 ) AS benefit
                 WHERE benefit.year2 IS NULL OR benefit.year2 != $year_selected;";
