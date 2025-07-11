@@ -26,7 +26,6 @@ $query_program = "SELECT * FROM (
                     $where_clause
                     AND db.confirmed = 1 
                     AND db.year = $year
-                    AND db2.deleted_at IS NULL
                     ORDER BY db.id_draft DESC
                 ) AS benefit
                     WHERE 
@@ -51,4 +50,4 @@ try {
 }
 
 $conn->close();
-echo $options;
+echo $query_program;

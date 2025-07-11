@@ -460,6 +460,7 @@ if($posts && $posts['program_reffered']) {
                 type: "POST",
                 data: { year: year },
                 success: function (response) {
+                  console.log(response)
                   $("#program_reffered").html(response);
                   $('#program_reffered').select2();
                   $('#proceed').prop('disabled', true);
