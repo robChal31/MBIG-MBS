@@ -41,6 +41,7 @@ if ($result->num_rows > 0) {
         $file_pk = $row['file_pk'];
         $file_benefit = $row['file_benefit'];
         $fileUrl = $row['fileUrl'];
+        $perubahan_tahun = $row['perubahan_tahun'];
     }
 
     $sq_query = "SELECT * FROM dash_sa WHERE is_active = 1";
@@ -122,10 +123,20 @@ if ($result->num_rows > 0) {
                     <?php } ?>
                     <input type="file" name="file_benefit" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?>>
                 </div>
+               <?php if($action == 'updatePK') { ?>
+                    <div class="col-12 mb-3">
+                        <label class="form-label">Perubahan Tahun</label>
+                        <select name="perubahan_tahun" id="perubahan_tahun" class="form-control form-control-sm">
+                            <option value="" disabled selected>Select Perubahan Tahun</option>
+                            <option value="2" <?= $perubahan_tahun == 2 ? 'selected' : '' ?>>2</option>
+                            <option value="3" <?= $perubahan_tahun == 3 ? 'selected' : '' ?>>3</option>
+                        </select>
+                    </div>
+               <?php } ?>
                 <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
             </div>
             <?php
-                if($role == 'sa' && $action != 'view') {?>
+                if($role !== 'ec') {?>
                     <div class="d-flex justify-content-end">
                         <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
                         <button class="btn btn-primary btn-sm" id="submit_pk">Save</button>
@@ -141,7 +152,7 @@ if ($result->num_rows > 0) {
 <script>
     $(document).ready(function() {
         let role = '<?= $role ?>';
-        if(role != 'sa') {
+        if(role == 'ec') {
             $('input').attr('disabled', true);
         }
 

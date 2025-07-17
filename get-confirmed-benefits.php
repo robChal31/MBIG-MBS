@@ -31,7 +31,7 @@
                         FROM (
                             SELECT 
                                 db.*, db.year as prog_year, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
-                                IFNULL(sc.name, db.school_name) AS school_name2,
+                                IFNULL(sc.name, db.school_name) AS school_name2, p.perubahan_tahun,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
                                 bu.tot_usage3,
@@ -112,7 +112,7 @@
                         ?>
                                 <tr class="<?= $is_expired || $benefit['has_ref_usage'] ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" title="<?= $is_expired ? "Benefit Expired" : '' ?>" >
                                     <td><?= $benefit['no_pk'] ?></td>
-                                    <td><?= strtoupper($programe_name) ?></td>
+                                    <td><?= strtoupper($programe_name) ?> <?= $benefit['perubahan_tahun'] ? " Perubahan Manual Tahun Ke " . $benefit['perubahan_tahun'] : '' ?></td>
                                     <td><?= $benefit['school_name2'] ?></td>
                                     <td><?= $benefit['generalname'] ?></td>
                                     <td><?= $benefit['benefit'] ?></td>

@@ -38,7 +38,7 @@
 
                                 $sql = "SELECT 
                                             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed, b.jenis_pk, c.leadid, c.leadid2, c.leadid3
+                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed, b.jenis_pk, c.leadid, c.leadid2, c.leadid3, pk.perubahan_tahun
                                         FROM draft_benefit b
                                         LEFT JOIN (
                                             SELECT *
@@ -80,7 +80,7 @@
                                             <td><?= $row['school_name2'] ?></td>
                                             <td><?= ucfirst($row['segment']) ?></td>
                                             <td><?= $row['date'] ?></td>
-                                            <td><?= $row['program'] ?></td>
+                                            <td><?= $row['program'] ?> <?= $row['perubahan_tahun'] != null ? '(Perubahan Manual Tahun ke '.$row['perubahan_tahun'].')' : '' ?></td>
                                             <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
                                            
                                             <td>
@@ -111,6 +111,10 @@
 
                                                     <?php if($id_user == 5 && $row['verified'] == 1) { ?>
                                                         <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Confirm'><i class='fas fa-fingerprint'></i></a>
+                                                    <?php } ?>
+
+                                                    <?php if($role != 'ec' && $row['confirmed'] == 1) { ?>
+                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='updatePK' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Update'><i class='fa fa-pen'></i></span>
                                                     <?php } ?>
                                                 </div>
                                             </td>
@@ -159,11 +163,11 @@
         </div>
     </div>
 
-    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="pkModalLabel" aria-hidden="true" data-backdrop="static">
+    <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="pkModalLabel">Modal title</h5>
+                <h5 class="modal-title" id="deleteModalLabel">Modal title</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
@@ -174,8 +178,6 @@
             </div>
         </div>
     </div>
-
-
 
 <?php include 'footer.php';?>
 <script>
