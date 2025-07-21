@@ -68,10 +68,10 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     }
 }
 
-function file_pk_error_session(){
+function file_pk_error_session($message){
     echo json_encode([
         'status' => 'error',
-        'message' => 'Gagal menambahkan PK, pastikan inputan, dan format file benar!'
+        'message' => $message
     ]);
     exit();
 }
@@ -126,7 +126,7 @@ try {
                 $sql = "INSERT INTO pk (benefit_id, no_pk, start_at, expired_at, sa_id, file_pk, file_benefit, perubahan_tahun, created_at, updated_at) 
                         VALUES ($id_draft, '$no_pk', '$start_date', '$end_date', $id_sa, '$target_file_pk', '$target_file_benefit', $perubahan_tahun, current_timestamp(), NULL)";
             } else {
-                file_pk_error_session();
+                file_pk_error_session("Gagal menambahkan PK, error upload file");
             }
         } else {
             $update_file_query = "";
@@ -192,7 +192,7 @@ try {
                 'message' => 'Saved successfully'
             ]);
         } else {
-            file_pk_error_session();
+            file_pk_error_session("Gagal menambahkan PK, error query: " . $conn->error);
         }
     } elseif ($is_no_pk_exist) {
         echo json_encode([
@@ -200,9 +200,9 @@ try {
             'message' => 'Gagal menambahkan PK, nomor PK sudah ada!'
         ]);
     } else {
-        file_pk_error_session();
+        file_pk_error_session("Gagal menambahkan PK, error query: " . $conn->error);
     }
 } catch (\Throwable $th) {
-    file_pk_error_session();
+    file_pk_error_session("Gagal menambahkan PK, error query: " . $th->getMessage());
 }
 ?>
