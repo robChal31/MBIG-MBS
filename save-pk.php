@@ -120,10 +120,9 @@ try {
 
     if ($uploadOk == 1 && !$is_no_pk_exist) {
         $sa_action = $is_pk_exist ? "mengupdate" : "menambahkan";
-        
+        $perubahan_tahun_sql = is_null($perubahan_tahun) || $perubahan_tahun === '' ? 'NULL' : $perubahan_tahun;
         if (!$is_pk_exist) {
             if (move_uploaded_file($_FILES["file_pk"]["tmp_name"], $target_file_pk) && move_uploaded_file($_FILES["file_benefit"]["tmp_name"], $target_file_benefit)) {
-                $perubahan_tahun_sql = is_null($perubahan_tahun) || $perubahan_tahun === '' ? 'NULL' : $perubahan_tahun;
 
                 $sql = "INSERT INTO pk (benefit_id, no_pk, start_at, expired_at, sa_id, file_pk, file_benefit, perubahan_tahun, created_at, updated_at) 
                         VALUES ($id_draft, '$no_pk', '$start_date', '$end_date', $id_sa, '$target_file_pk', '$target_file_benefit', $perubahan_tahun_sql, current_timestamp(), NULL)";
@@ -141,7 +140,7 @@ try {
                 move_uploaded_file($_FILES["file_benefit"]["tmp_name"], $target_file_benefit);
                 $update_file_query .= "file_benefit = '$target_file_benefit', ";
             }
-            $sql = "UPDATE pk SET no_pk = '$no_pk', start_at = '$start_date', expired_at = '$end_date', sa_id = $id_sa, $update_file_query perubahan_tahun = $perubahan_tahun, updated_at = current_timestamp() 
+            $sql = "UPDATE pk SET no_pk = '$no_pk', start_at = '$start_date', expired_at = '$end_date', sa_id = $id_sa, $update_file_query perubahan_tahun = $perubahan_tahun_sql, updated_at = current_timestamp() 
                     WHERE benefit_id = $id_draft";
         }
 
