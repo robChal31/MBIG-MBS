@@ -6,7 +6,7 @@ include 'db_con.php';
 if ($conn->connect_error) die("Connection failed: " . $conn->connect_error);
 
 $year_selected = $_POST['year'];
-$year = $year_selected ? (intval($year_selected) - 1) : 1;
+$year = $year_selected && $year_selected == 2 ? (intval($year_selected) - 1) : 1;
 $options = "";
 
 $id_user = $_SESSION['id_user'];

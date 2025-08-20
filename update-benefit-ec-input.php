@@ -105,7 +105,7 @@ if($posts && $posts['program_reffered']) {
                     
                   <table class="table table-striped">
                     <tr>
-                      <td style="width: 15%">Proram Year</td>
+                      <td style="width: 15%">Program Year</td>
                       <td style="width:5px">:</td>
                       <td>
                         <input type="text" value="Year <?= $program_year ?>" class="form-control form-control-sm" required readonly />
