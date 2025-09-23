@@ -76,6 +76,7 @@
       $pic_email    = $dra['email'];
       $pic_phone    = $dra['no_tlp'];
       $jabatan      = $dra['jabatan'];
+      $jenis_pk     = $dra['jenis_pk'];
     }
 
     if(($id_ec != $_SESSION['id_user'] && $_SESSION['role'] != 'admin') && $dra['status'] != 2) {
@@ -199,7 +200,7 @@
                       <tr>
                         <td>No. Telepon PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $no_tlp ?>" required></td>
+                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $pic_phone ?>" required></td>
                       </tr>
                       <tr>
                         <td>E-mail PIC</td>
@@ -212,8 +213,8 @@
                         <td>
                           <select name="jenis_pk" class="form-select form-select-sm select2" required id="jenis_pk" required style="width: 100%;">
                             <option value="">-- Select Jenis PK --</option>
-                            <option value="1">PK Baru</option>
-                            <option value="2">Amandemen</option>
+                            <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
+                            <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
                           </select>
                         </td>
                       </tr>
