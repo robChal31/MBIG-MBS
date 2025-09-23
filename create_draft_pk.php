@@ -190,22 +190,22 @@
                       <tr>
                         <td>Nama Lengkap PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= $pic_name ?>" required></td>
+                        <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= ISSET($pic_name) ? $pic_name : '' ?>" required></td>
                       </tr>
                       <tr>
                         <td>Jabatan PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= $jabatan ?>" required></td>
+                        <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= ISSET($jabatan) ? $jabatan : '' ?>" required></td>
                       </tr>
                       <tr>
                         <td>No. Telepon PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $pic_phone ?>" required></td>
+                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= ISSET($pic_phone) ? $pic_phone : '' ?>" required></td>
                       </tr>
                       <tr>
                         <td>E-mail PIC</td>
                         <td>:</td>
-                        <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= $pic_email ?>" required></td>
+                        <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= ISSET($pic_email) ? $pic_email : '' ?>" required></td>
                       </tr>
                       <tr>
                         <td>Jenis PK</td>
@@ -213,8 +213,8 @@
                         <td>
                           <select name="jenis_pk" class="form-select form-select-sm select2" required id="jenis_pk" required style="width: 100%;">
                             <option value="">-- Select Jenis PK --</option>
-                            <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
-                            <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
+                            <option value="1" <?= (ISSET($jenis_pk) && $jenis_pk == 1) ? 'selected' : '' ?>>PK Baru</option>
+                            <option value="2" <?= (ISSET($jenis_pk) && $jenis_pk) == 2 ? 'selected' : '' ?>>Amandemen</option>
                           </select>
                         </td>
                       </tr>

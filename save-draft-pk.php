@@ -223,7 +223,7 @@
             $ec_name = $dra['generalname'];
             $lead_mail = $dra['lead_mail1'] ? $dra['lead_mail1'] : ($dra['lead_mail2'] ? $dra['lead_mail2'] : $dra['lead_mail3']);
             $lead_name = $dra['lead_name1'] ? $dra['lead_name1'] : ($dra['lead_name2'] ? $dra['lead_name2'] : $dra['lead_name3']);
-            $lead_id = $dra['lead_id'];
+            $lead_id = $dra['lead_id1'] ? $dra['lead_id1'] : ($dra['lead_id2'] ? $dra['lead_id2'] : $dra['lead_id3']);
         }
         
         $spreadsheet = new Spreadsheet();
