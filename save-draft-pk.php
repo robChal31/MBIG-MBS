@@ -159,7 +159,7 @@
                         fileUrl = '',
                         updated_at = current_timestamp(),
                         status = '$draft_status',
-                        alokasi = '0'
+                        alokasi = '0',
                         jenis_pk = '$jenis_pk'
                     WHERE id_draft = $id_draft";
 
