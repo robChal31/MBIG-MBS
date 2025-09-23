@@ -57,7 +57,8 @@
   if($id_draft) {
     $sql = "SELECT *
               FROM draft_benefit as db
-            LEFT JOIN user as ec on ec.id_user = db.id_ec   
+            LEFT JOIN user as ec on ec.id_user = db.id_ec
+            LEFT JOIN school_pic as sp on sp.id_draft = db.id_draft
             WHERE db.id_draft = $id_draft";
 
     $result = mysqli_query($conn,$sql);
@@ -71,8 +72,10 @@
       $level        = $dra['level'];
       $wilayah      = $dra['wilayah'];
       $program      = $dra['program'];
-  
-      
+      $pic_name     = $dra['name'];
+      $pic_email    = $dra['email'];
+      $pic_phone    = $dra['no_tlp'];
+      $jabatan      = $dra['jabatan'];
     }
 
     if(($id_ec != $_SESSION['id_user'] && $_SESSION['role'] != 'admin') && $dra['status'] != 2) {
@@ -186,22 +189,22 @@
                       <tr>
                         <td>Nama Lengkap PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= $pic_name ?>" required></td>
                       </tr>
                       <tr>
                         <td>Jabatan PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= $jabatan ?>" required></td>
                       </tr>
                       <tr>
                         <td>No. Telepon PIC</td>
                         <td>:</td>
-                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= $no_tlp ?>" required></td>
                       </tr>
                       <tr>
                         <td>E-mail PIC</td>
                         <td>:</td>
-                        <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
+                        <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= $pic_email ?>" required></td>
                       </tr>
                       <tr>
                         <td>Jenis PK</td>
