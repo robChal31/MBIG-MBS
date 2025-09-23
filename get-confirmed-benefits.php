@@ -87,8 +87,6 @@
                             <th>EC Name</th>
                             <th scope="col">Benefit</th>
                             <th style="width: 4%" scope="col">Sub Benefit</th>
-                            <!-- <th scope="col" style="width: 30%">Description</th> -->
-                            <!-- <th scope="col" style="width: 15%">Implementation</th> -->
                             <th scope="col">Active From</th>
                             <th scope="col">Expired At</th>
                             <th scope="col">Year 1</th>
@@ -117,8 +115,6 @@
                                     <td><?= $benefit['generalname'] ?></td>
                                     <td><?= $benefit['benefit'] ?></td>
                                     <td><?= $benefit['subbenefit'] ?></td>
-                                    <!-- <td><?= $benefit['description'] ?></td> -->
-                                    <!-- <td><?= $benefit['pelaksanaan'] ?></td> -->
                                     <td><?= $benefit['start_at'] ?></td>
                                     <td><?= $benefit['expired_at'] ?></td>
                                     <td class="text-center"><?= $benefit['qty'] ?></td>
