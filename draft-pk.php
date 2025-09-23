@@ -38,6 +38,7 @@
                                     <?php
 
                                         $order_by = ' ORDER BY a.date ASC';
+                                        $id_user = $_SESSION['id_user'];
                                         $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
