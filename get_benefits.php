@@ -12,7 +12,7 @@
     $selected_template = $_POST['selectedTemplate'] ?? NULL;
     $selected = $_POST['selected'] ?? NULL;
     
-    $query_program = "SELECT code FROM programs WHERE name = '$program' AND is_active = 1 LIMIT 1";
+    $query_program = "SELECT code FROM programs WHERE (name = '$program' OR code = '$program') AND is_active = 1 LIMIT 1";
 
     $exec_program = mysqli_query($conn, $query_program);
 

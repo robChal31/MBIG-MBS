@@ -73,6 +73,7 @@
     $id_draft       = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
 
     $id_user        = $_POST['id_user'];
+    $myplan_id      = ISSET($_POST['myplan_id']) ? $_POST['myplan_id'] : null;
     $school_name    = $_POST['nama_sekolah'];
     $id_master      = $_POST['nama_sekolah'];
     $segment        = $_POST['segment'];
@@ -102,6 +103,7 @@
     $jabatan    = $_POST['jabatan'];
     $no_tlp     = $_POST['no_tlp'];
     $email_pic  = $_POST['email_pic'];
+    $myplan_value = isset($myplan_id) && $myplan_id !== '' ? "'$myplan_id'" : "NULL";
 
     try {
         $url = "https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=$id_school";
@@ -153,6 +155,7 @@
                         segment = '$segment',
                         program = '$uc_program',
                         wilayah = '$wilayah',
+                        myplan_id = $myplan_value,
                         level   = '$level',
                         total_benefit = '0',
                         selisih_benefit = '0',
@@ -177,7 +180,7 @@
 
             mysqli_query($conn, $update_sql);
         }else {
-            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `jenis_pk`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$uc_program', current_timestamp(), '$draft_status', '0', '$wilayah', '$level', '$jenis_pk');";
+            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `jenis_pk`, `myplan_id`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$uc_program', current_timestamp(), '$draft_status', '0', '$wilayah', '$level', '$jenis_pk', $myplan_value);";
             mysqli_query($conn,$sql);
             $id_draft = mysqli_insert_id($conn);
 
@@ -342,7 +345,7 @@
     
             $cc = [];
     
-            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+            // sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
     
             //for leader mail
             $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
@@ -374,7 +377,7 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>";
-            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            // sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
         }
         
         

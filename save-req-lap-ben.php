@@ -23,7 +23,7 @@ try {
     $get_draft_benefit = "SELECT db.id_draft, p.name as program_name, db.segment, db.level, db.wilayah, db.id_ec,
                             IFNULL(s.name, db.school_name) AS school_name
                         FROM draft_benefit as db
-                        LEFT JOIN programs as p on p.name = db.program
+                        LEFT JOIN programs AS p ON (p.name = db.program OR p.code = db.program)
                         LEFT JOIN schools as s on s.id = db.school_name
                         WHERE id_draft = $id_draft";
 

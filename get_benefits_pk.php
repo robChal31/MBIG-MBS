@@ -33,7 +33,7 @@ if($_GET['id_draft'] && $_GET['id_draft'] != '') {
 }else if(!$_GET['id_draft'] && $_GET['program']){
   $program  = $_GET['program'];
 
-  $query_program = "SELECT code FROM programs WHERE name = '$program' AND is_active = 1 LIMIT 1";
+  $query_program = "SELECT code FROM programs WHERE (name = '$program' OR code = '$program') AND is_active = 1 LIMIT 1";
 
   $exec_program = mysqli_query($conn, $query_program);
 
@@ -153,8 +153,6 @@ $program = strtolower($program);
       </div>
     </div>
 
-
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
 
     function removeNonDigits(numberString) {

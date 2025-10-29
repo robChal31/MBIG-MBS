@@ -36,7 +36,7 @@ if($posts && $posts['program_reffered']) {
                 FROM draft_benefit as db
                 LEFT JOIN user as u on u.id_user = db.id_ec
                 LEFT JOIN schools sch ON sch.id = db.school_name
-                LEFT JOIN programs prog ON prog.code = db.program
+                LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
                 where id_draft = $id_draft";
   $levels   = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
 

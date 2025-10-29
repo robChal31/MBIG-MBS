@@ -33,7 +33,9 @@
     $sql    = "SELECT * from myplan where id = $id_plan";
     $result = mysqli_query($conn, $sql);
     $row    = mysqli_fetch_assoc($result);
-
+    if(!$row){
+      header("Location: myplan.php");
+    }
     $segment             = $row['segment'];
     $user_id             = $row['user_id'];
     $school_id           = $row['school_id'];
@@ -42,12 +44,18 @@
     $start_timeline      = $row['start_timeline'];
     $end_timeline        = $row['end_timeline'];
     $omset_projection    = $row['omset_projection'];
-    $level               = $row['level'];
-    $selected_lv         = array_filter($levels, function($lv) use($level) {
-                                  return $lv == $level;
-                                });
-    $level2              = count($selected_lv) < 1 ? $level : '';
+    $level               = strtolower(trim($row['level']));
+
+    $selected_lv = array_values(array_filter($levels, function ($lv) use ($level) {
+        return strcasecmp(trim($lv), $level) === 0;
+    }));
+
+    $level2 = count($selected_lv) < 1 ? $level : '';
   }
+
+  $segment_query    = "SELECT * from segments";
+  $result           = mysqli_query($conn, $segment_query);
+  $segment_rows     = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 ?>
   <!-- Content Start -->
@@ -102,24 +110,24 @@
                   <td>Start Timeline Penyelesaian</td>
                   <td>:</td>
                   <td>
-                    <input type="text" class="form-control dateFilter" name="start_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
+                    <input type="text" class="form-control form-control-sm dateFilter" name="start_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
                   </td>
                 </tr>
                 <tr>
                   <td>End Timeline Penyelesaian</td>
                   <td>:</td>
                   <td>
-                    <input type="text" class="form-control dateFilter" name="end_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
+                    <input type="text" class="form-control form-control-sm dateFilter" name="end_timeline" value="<?= $end_timeline ?>" placeholder="Pick the date" required>
                   </td>
                 </tr>
                 <tr>
-                  <td>Segment Sekolah</td>
+                  <td>Segment</td>
                   <td>:</td>
                   <td>
-                    <select name="segment" class="form-select form-select-sm" required>
-                      <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
-                      <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?> >National Plus</option>
-                      <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
+                    <select name="segment" class="select2 form-select form-select-sm" required>
+                      <?php foreach($segment_rows as $row) : ?>
+                        <option value="<?= $row['id'] ?>" <?= $segment == $row['id'] ? 'selected' : '' ?>><?= $row['segment'] ?></option>
+                      <?php endforeach; ?>
                     </select>
                   </td>
                 </tr>
@@ -157,7 +165,7 @@
                   <td>Proyeksi Omset</td>
                   <td>:</td>
                   <td>
-                    <input type="number" name="omset_projection" value="<?= $omset_projection ?>" placeholder="Proyeksi Omset" class="form-control form-control-sm" required>
+                    <input type="text" name="omset_projection" value="<?= number_format((float)$omset_projection, 0, ',', '.') ?>" placeholder="Proyeksi Omset" class="form-control form-control-sm" oninput="formatNumber(this)" required>
                   </td>
                 </tr>
               </table>
@@ -178,6 +186,23 @@
   flatpickr(".dateFilter", {
     dateFormat: "Y-m-d",
     allowInput: true,
+  });
+
+  function formatNumber(el) {
+    // Hilangkan semua karakter non-digit
+    let value = el.value.replace(/\D/g, '');
+    if (!value) {
+      el.value = '';
+      return;
+    }
+    
+    // Format pakai titik sebagai delimiter ribuan
+    el.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  }
+
+  document.getElementById('myplan-form').addEventListener('submit', function() {
+    const input = this.querySelector('[name="omset_projection"]');
+    input.value = input.value.replace(/\./g, '');
   });
   
   let school_id = "<?= $school_id ?>";
@@ -250,7 +275,6 @@
 
     $('#select_school').on('change', function () {
         const newSchoolId = $(this).val();
-        console.log('newSchool: ', newSchoolId);
         loadPrograms(newSchoolId);
     });
 

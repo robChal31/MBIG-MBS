@@ -52,12 +52,12 @@
                             <td>:</td>
                             <td>
                               <select name="inputEC" id="inputEC" class="form-select form-select-sm select2">
-                                  <?php 
-                                    $sql = "SELECT * from user where role='ec' order by generalname ASC"; $resultsd1 = mysqli_query($conn, $sql);
-                                    while ($row = mysqli_fetch_assoc($resultsd1)){
-                                      echo "<option value='".$row['id_user']."'>".$row['generalname']."</option>";
-                                    } 
-                                  ?>
+                                <?php 
+                                  $sql = "SELECT * from user where role='ec' order by generalname ASC"; $resultsd1 = mysqli_query($conn, $sql);
+                                  while ($row = mysqli_fetch_assoc($resultsd1)){
+                                    echo "<option value='".$row['id_user']."'>".$row['generalname']."</option>";
+                                  } 
+                                ?>
                               </select>
                             </td>
                           </tr>
@@ -68,8 +68,11 @@
                           <td>Nama Sekolah</td>
                           <td>:</td>
                           <td>
-                            <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
-                            </select>
+                            <div class="d-block w-100" id="select_school_div">
+                              <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
+                              </select>
+                            </div>
+                            <div class="d-none text-center" id="loading_school"><i class="fas fa-spinner fa-spin text-primary"></i></div>
                           </td>
                         </tr>
                         <tr>
@@ -95,7 +98,7 @@
                           <td>Jenjang Sekolah</td>
                           <td>:</td>
                           <td>
-                            <select name="level" class="form-select form-select-sm" required>
+                            <select id="level" name="level" class="form-select form-select-sm" required>
                               <option value="tk">TK</option>
                               <option value="sd">SD</option>
                               <option value="smp">SMP</option>
@@ -235,18 +238,30 @@
     $.ajax({
         url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>', 
         type: 'GET', 
-        dataType: 'json', 
+        dataType: 'json',
+        beforeSend: function() {
+          $('#select_school_div').addClass('d-none');
+          $('#loading_school').removeClass('d-none');
+        }, 
         success: function(response) {
           let options = '<option value="" disabled selected>Select a school</option>';
-            response.map((data) => {
-                options += `<option value="${data.id}">${data.name}</option>`
-            }) 
+          response.map((data) => {
+              options += `<option value="${data.id}">${data.name}</option>`
+          }) 
 
-            $('#select_school').html(options);
-            $('#select_school').select2();
+          $('#select_school').html(options);
+          $('#select_school').select2({ width: '100%' });
+          $('#loading_school').addClass('d-none');
+          $('#select_school_div').removeClass('d-none');
         },
         error: function(jqXHR, textStatus, errorThrown) {
             $('#select_school').html('Error: ' + textStatus);
+            $('#loading_school').addClass('d-none');
+            $('#select_school_div').removeClass('d-none');
+        },
+        complete: function () {
+          $('#loading_school').addClass('d-none');
+          $('#select_school_div').removeClass('d-none');
         }
     });
 
@@ -255,36 +270,36 @@
     });
 
     $('#select_school').on('change', function() {
-        var schoolId = $(this).val();
+      var schoolId = $(this).val();
 
-        if (schoolId) {
-            $.ajax({
-                url: 'get-school-program.php',
-                type: 'POST',
-                dataType: 'json',
-                data: {
-                    school_id: schoolId,
-                },
-                success: function(response) {
-                  let options = '<option value="" disabled selected>Select a program</option>';
-                  response.map((data) => {
-                      options += `<option value="${data.name}">${data.name}</option>`
-                  }) 
+      if (schoolId) {
+        $.ajax({
+          url: 'get-school-program.php',
+          type: 'POST',
+          dataType: 'json',
+          data: {
+              school_id: schoolId,
+          },
+          success: function(response) {
+            let options = '<option value="" disabled selected>Select a program</option>';
+            response.map((data) => {
+                options += `<option value="${data.code}">${data.name}</option>`
+            }) 
 
-                  $('#program').html(options);
-                  $('#program').select2();
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.log('Error:', textStatus, errorThrown);
-                    alert("Failed to get program")
-                }
-            });
-            
-            getMyPlanRef();
+            $('#program').html(options);
+            $('#program').select2();
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              console.log('Error:', textStatus, errorThrown);
+              alert("Failed to get program")
+          }
+        });
+        
+        getMyPlanRef();
 
-        } else {
-            alert('No school and ec selected');
-        }
+      } else {
+          alert('No school and ec selected');
+      }
     });
 
     function getMyPlanRef() {
@@ -297,12 +312,16 @@
           dataType: 'json',
           data: {
               school_id: schoolId,
-              ec: ec
+              ec: ec,
           },
           success: function(response) {
             let options = '<option value="" disabled selected>Select a plan</option>';
-            response.map((data) => {
-                options += `<option value="${data.value}">${data.label}</option>`
+            response.map((data, index) => {
+                let selected = index === 0 ? 'selected' : '';
+                if(selected == 'selected') {
+                  getPlanData(data.value);
+                }
+                options += `<option value="${data.value}" ${selected}>${data.label}</option>`
             }) 
 
             $('#myplan_id').html(options);
@@ -314,6 +333,39 @@
           }
         });
       }
+    }
+
+    $('#myplan_id').on('change', function () {
+      const selectedId = $(this).val();
+
+      if (!selectedId) return;
+
+      getPlanData(selectedId);
+      
+    });
+
+    function getPlanData(planId) {
+      $.ajax({
+        url: 'get-myplan-data.php',
+        method: 'POST',
+        data: { myplan_id: planId },
+        dataType: 'json',
+        success: function (res) {
+          if (res && res.program) {
+            const programName = res.program.trim();
+            $('#program').val(programName).trigger('change');
+            $('#level').val(res.level);
+          } else {
+            $('#program').val('').trigger('change');
+            $('#level').val('');
+            $('#program').val('').trigger('change');
+          }
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+          console.log('Error:', textStatus, errorThrown);
+          alert("Failed to get myplan");
+        }
+      });
     }
 
     // Populate dropdown options

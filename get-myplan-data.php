@@ -12,19 +12,15 @@ if ($conn->connect_error) {
 }
 
 try {
-    $school_id = $_POST['school_id'];
-    $programs = [];
-
-    $query = "SELECT prog.*
-        FROM programs AS prog
-        LEFT JOIN program_schools AS ps ON ps.program_id = prog.id
-        WHERE (ps.school_id = '$school_id' OR ps.program_id IS NULL)
-        AND prog.is_active = 1 AND prog.code NOT IN ('cbls1', 'cbls3')
-        AND prog.is_pk = 0
-    ";
+    $myplan_id = $_POST['myplan_id'];
+   
+    $query = "SELECT mp.*, prog.name as program_new
+                FROM myplan as mp
+                LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
+                WHERE mp.id = $myplan_id";
 
     $result = mysqli_query($conn, $query);
-
+    $response = array();
     if (!$result) {
         http_response_code(500);
         echo json_encode(["error" => mysqli_error($conn)]);
@@ -32,15 +28,12 @@ try {
     }
 
     while ($row = mysqli_fetch_assoc($result)) {
-        $programs[] = [
-            'code' => $row['code'],
-            'name' => $row['name']
-        ];
+        $response = $row;
     }
 
     $conn->close();
 
-    echo json_encode($programs);
+    echo json_encode($response);
 } catch (\Throwable $th) {
     http_response_code(500);
     echo json_encode(["error" => $th->getMessage()]);

@@ -16,7 +16,7 @@
                         FROM (
                             SELECT COUNT(db.id_draft) as total_draft, program, prog.code, prog.is_pk, prog.is_active 
                             FROM draft_benefit db 
-                            left join programs as prog on prog.name = db.program
+                            LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
                             $query_filter_draft db.status = 1
                             group by prog.code
                         ) AS prog

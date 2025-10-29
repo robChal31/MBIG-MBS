@@ -93,7 +93,7 @@
                                                 a.deleted_at, pk.start_at, pk.expired_at, cat.name as program_category
                                                 FROM draft_benefit a
                                             LEFT JOIN schools as sc on sc.id = a.school_name
-                                            LEFT JOIN programs as prog on prog.name = a.program
+                                            LEFT JOIN programs AS prog ON (prog.name = a.program OR prog.code = a.program)
                                             LEFT JOIN program_categories as cat on cat.id = prog.program_category_id
                                             LEFT JOIN user b on a.id_ec = b.id_user
                                             LEFT JOIN pk as pk on pk.benefit_id = a.id_draft

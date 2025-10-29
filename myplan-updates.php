@@ -45,7 +45,7 @@
                                                 LEFT JOIN myplan AS mp ON mp.id = mpu.myplan_id
                                                 LEFT JOIN schools AS sc ON sc.id = mp.school_id
                                                 LEFT JOIN user ON mp.user_id = user.id_user
-                                                LEFT JOIN programs AS prog ON prog.name = mp.program
+                                                LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
                                                 WHERE mp.deleted_at IS NULL";
 
                                         if($role == 'ec'){

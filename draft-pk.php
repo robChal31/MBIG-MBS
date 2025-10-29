@@ -43,7 +43,7 @@
                                                 FROM draft_benefit a
                                                 LEFT JOIN schools as sc on sc.id = a.school_name
                                                 LEFT JOIN user b on a.id_ec = b.id_user
-                                                LEFT JOIN programs as prog ON prog.name = a.program
+                                                LEFT JOIN programs AS prog ON (prog.name = a.program OR prog.code = a.program)
                                                 WHERE a.deleted_at IS NULL
                                                 AND prog.is_active = 1 AND prog.is_pk = 1
                                                 "; 

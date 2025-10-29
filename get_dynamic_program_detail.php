@@ -24,7 +24,7 @@ $query_program = "SELECT db.id_draft, IFNULL(sch.name, db.school_name) AS school
                          prog.name as programe_name, sch.id AS school_id, db.segment, db.level, db.wilayah
                   FROM draft_benefit AS db
                   LEFT JOIN schools AS sch ON sch.id = db.school_name
-                  LEFT JOIN programs AS prog ON prog.code = db.program
+                  LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
                   WHERE db.id_draft = $id_draft";
 
 $result = $conn->query($query_program);

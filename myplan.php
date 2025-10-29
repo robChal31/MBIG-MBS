@@ -48,12 +48,14 @@
                                 <tbody>
                                     <?php
 
-                                        $sql = "SELECT mp.*, user.*, sc.name as school_name, db.id_draft as id_draft, db.fileUrl, db.status, db.verified, db.confirmed
+                                        $sql = "SELECT mp.*, user.*, sc.name as school_name, db.id_draft as id_draft, db.fileUrl, db.status, db.verified, db.confirmed,
+                                                IFNULL(seg.segment, mp.segment) as new_segment, IFNULL(prog.name, mp.program) as new_program
                                                     FROM myplan AS mp
                                                 LEFT JOIN schools AS sc ON sc.id = mp.school_id
                                                 LEFT JOIN draft_benefit AS db ON mp.id = db.myplan_id
                                                 LEFT JOIN user ON mp.user_id = user.id_user
-                                                LEFT JOIN programs AS prog ON prog.name = mp.program
+                                                LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
+                                                LEFT JOIN segments AS seg ON seg.id = mp.segment
                                                 WHERE mp.deleted_at IS NULL";
 
                                         if($role == 'ec'){
@@ -61,7 +63,7 @@
                                         }
 
                                         $sql .= " ORDER BY mp.created_at ASC";
-                                        
+
                                         $result = mysqli_query($conn, $sql);
                                         setlocale(LC_MONETARY,"id_ID");
                                         if (mysqli_num_rows($result) > 0) {
@@ -78,10 +80,10 @@
                                                     <td><?= $row['id'] ?></td>
                                                     <td><?= $row['generalname'] ?></td>
                                                     <td><?= $row['school_name'] ?></td>
-                                                    <td><?= ucfirst($row['segment']) ?></td>
+                                                    <td><?= ucfirst($row['new_segment']) ?></td>
                                                     <td><?= ($row['start_timeline']) ?></td>
                                                     <td><?= ($row['end_timeline']) ?></td>
-                                                    <td><?= strtoupper($row['program']) ?></td>
+                                                    <td><?= strtoupper($row['new_program']) ?></td>
                                                     <td><?= number_format($row['omset_projection']) ?></td>
                                                     <td>
                                                         <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>

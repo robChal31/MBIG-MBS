@@ -43,7 +43,7 @@
                                         LEFT JOIN user c on c.id_user = b.id_ec 
                                         INNER JOIN pk pk on pk.benefit_id = b.id_draft
                                         LEFT JOIN school_pic_partner spp on spp.id_draft = b.id_draft
-                                        LEFT JOIN programs as prog on prog.name = b.program ";
+                                        LEFT JOIN programs AS prog ON (prog.name = b.program OR prog.code = b.program)";
                                 if($_SESSION['role'] == 'ec'){
                                     $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or b.id_ec = $id_user) ";
                                     $sql_q = " AND ";

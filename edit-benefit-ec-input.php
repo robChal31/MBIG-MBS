@@ -36,6 +36,7 @@ if(mysqli_num_rows($result) < 1){
     $username                 = $data['generalname'];
     $sumalok                  = $data['alokasi'];
     $school_name              = $data['school_name'];
+    $myplan_id                = $data['myplan_id'];
     $selected_lv              = array_filter($levels, function($lv) use($level) {
                                   return $lv == $level;
                                 });
@@ -50,7 +51,7 @@ if(mysqli_num_rows($result) < 1){
   $current_row  = mysqli_num_rows($result);
 
   $program_code = mysqli_real_escape_string($conn, $program);
-  $sql = "SELECT code FROM programs WHERE code = '$program_code' LIMIT 1";
+  $sql = "SELECT code FROM programs WHERE (name = '$program_code' OR code = '$program_code') LIMIT 1";
   $result = mysqli_query($conn, $sql);
   
   $program_id = null;
@@ -122,8 +123,19 @@ if ($exec_list_book->num_rows > 0) {
                   <td>Nama Sekolah</td>
                   <td>:</td>
                   <td>
-                      <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
-                      </select>
+                      <div class="d-block w-100" id="select_school_div">
+                        <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
+                        </select>
+                      </div>
+                      <div class="d-none text-center" id="loading_school"><i class="fas fa-spinner fa-spin text-primary"></i></div>
+                  </td>
+                </tr>
+                <tr>
+                  <td>My Plan Ref</td>
+                  <td>:</td>
+                  <td>
+                    <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2">
+                    </select>
                   </td>
                 </tr>
                 <tr>
@@ -280,6 +292,77 @@ if ($exec_list_book->num_rows > 0) {
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
+  const idDraft = '<?= $id_draft ?? '' ?>';
+
+  function getMyPlanRef(schoolID = null) {
+    const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
+    const schoolId = schoolID ?? $('select[name="nama_sekolah"]').val();
+
+    if(ec && schoolId) {
+      $.ajax({
+        url: 'get-ec-plan.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            school_id: schoolId,
+            ec: ec,
+            id_draft: idDraft,
+        },
+        success: function(response) {
+
+          let options = '<option value="" disabled selected>Select a plan</option>';
+          response.map((data, index) => {
+              let selected = index === 0 ? 'selected' : '';
+              if(selected == 'selected') {
+                getPlanData(data.value);
+              }
+              options += `<option value="${data.value}" ${selected}>${data.label}</option>`
+          }) 
+
+          $('#myplan_id').html(options);
+          $('#myplan_id').select2();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.log('Error:', textStatus, errorThrown);
+            alert("Failed to get myplan")
+        }
+      });
+    }
+  }
+
+  $('#myplan_id').on('change', function () {
+    const selectedId = $(this).val();
+
+    if (!selectedId) return;
+
+    getPlanData(selectedId);
+    
+  });
+
+  function getPlanData(planId) {
+    $.ajax({
+      url: 'get-myplan-data.php',
+      method: 'POST',
+      data: { myplan_id: planId },
+      dataType: 'json',
+      success: function (res) {
+        if (res && res.program) {
+          const programName = res.program.trim();
+          $('#program').val(programName).trigger('change');
+          $('#level').val(res.level);
+        } else {
+          $('#program').val('').trigger('change');
+          $('#level').val('');
+          $('#program').val('').trigger('change');
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.log('Error:', textStatus, errorThrown);
+        alert("Failed to get myplan");
+      }
+    });
+  }
+
   $(document).ready(function(){
     $('.select2').select2();
     var maxRows = 75; // Maximum rows allowed
@@ -296,22 +379,36 @@ if ($exec_list_book->num_rows > 0) {
     });
 
     $.ajax({
-        url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>', 
-        type: 'GET', 
-        dataType: 'json', 
-        success: function(response) {
-            let options = '';
-            let schoolId = "<?= $school_name ?>";
-            response.map((data) => {
-                options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`
-            }) 
+      url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>', 
+      type: 'GET', 
+      dataType: 'json',
+      beforeSend: function() {
+        $('#select_school_div').addClass('d-none');
+        $('#loading_school').removeClass('d-none');
+      },
+      success: function(response) {
+        let options = '';
+        let schoolId = "<?= $school_name ?>";
 
-            $('#select_school').html(options);
-            $('#select_school').select2();
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            $('#select_school').html('Error: ' + textStatus);
-        }
+        getMyPlanRef(schoolId)
+        response.map((data) => {
+            options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`
+        }) 
+
+        $('#select_school').html(options);
+        $('#select_school').select2({ width: '100%' });
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        $('#select_school').html('Error: ' + textStatus);
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      },
+      complete: function () {
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      }
     });
     
     let programId = '<?= $program_id ?>';
@@ -319,27 +416,27 @@ if ($exec_list_book->num_rows > 0) {
 
     function loadPrograms(schoolId, programId = false) {
       if (schoolId) {
-          $.ajax({
-              url: 'get-school-program.php',
-              type: 'POST',
-              dataType: 'json',
-              data: {
-                  school_id: schoolId,
-              },
-              success: function(response) {
-                  let options = '<option value="" disabled>Select a program</option>';
-                  response.map((data) => {
-                      const selected = programId ? (data.code == programId ? 'selected' : '') : '';
-                      options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
-                  });
+        $.ajax({
+          url: 'get-school-program.php',
+          type: 'POST',
+          dataType: 'json',
+          data: {
+              school_id: schoolId,
+          },
+          success: function(response) {
+            let options = '<option value="" disabled>Select a program</option>';
+            response.map((data) => {
+                const selected = programId ? (data.code == programId ? 'selected' : '') : '';
+                options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
+            });
 
-                  $('#program').html(options).select2();
-              },
-              error: function(jqXHR, textStatus, errorThrown) {
-                  console.log('Error:', textStatus, errorThrown);
-                  alert("Failed to get program");
-              }
-          });
+            $('#program').html(options).select2();
+          },
+          error: function(jqXHR, textStatus, errorThrown) {
+              console.log('Error:', textStatus, errorThrown);
+              alert("Failed to get program");
+          }
+        });
       } else {
           alert('No school selected');
       }
@@ -350,8 +447,12 @@ if ($exec_list_book->num_rows > 0) {
     });
 
     $('#select_school').on('change', function () {
-        const newSchoolId = $(this).val();
-        loadPrograms(newSchoolId);
+      const newSchoolId = $(this).val();
+      loadPrograms(newSchoolId);
+      if(newSchoolId) {
+        getMyPlanRef();
+      }
+
     });
 
     $("select[name='level']").on('change', function() {

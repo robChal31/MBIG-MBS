@@ -31,7 +31,7 @@ $sql = "SELECT
         LEFT JOIN user as c on c.id_user = b.id_ec
         LEFT JOIN pk on pk.benefit_id = b.id_draft
         LEFT JOIN dash_sa on dash_sa.id_sa = pk.sa_id
-        LEFT JOIN programs AS prog ON prog.name = b.program
+        LEFT JOIN programs AS prog ON (prog.name = b.program OR prog.code = b.program)
         LEFT JOIN (
             SELECT 
                 id_draft, 

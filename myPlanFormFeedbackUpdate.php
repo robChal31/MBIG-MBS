@@ -12,7 +12,7 @@ $sql        = "SELECT mp.*, user.*, sc.name as school_name
                   FROM myplan AS mp
               LEFT JOIN schools AS sc ON sc.id = mp.school_id
               LEFT JOIN user ON mp.user_id = user.id_user
-              LEFT JOIN programs AS prog ON prog.name = mp.program
+              LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
               WHERE mp.deleted_at IS NULL AND mp.id = $myplan_id";
 $result = $conn->query($sql);
 

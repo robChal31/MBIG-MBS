@@ -20,7 +20,7 @@ $query_program = "SELECT * FROM (
                         db.year, db.ref_id, db2.ref_id AS ref_id2, db2.id_draft AS id_draft2, db2.year AS year2
                     FROM draft_benefit db
                     LEFT JOIN schools sch ON sch.id = db.school_name
-                    LEFT JOIN programs prog ON prog.code = db.program
+                    LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
                     LEFT JOIN draft_benefit db2 ON db2.ref_id = db.id_draft
                     WHERE prog.is_dynamic = 1
                     $where_clause

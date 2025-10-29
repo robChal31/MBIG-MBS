@@ -14,18 +14,21 @@ if ($conn->connect_error) {
 try {
     $school_id = $_POST['school_id'];
     $ec = $_POST['ec'];
+    $id_draft = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
     $programs = [];
+    $is_pk = ISSET($_POST['is_pk']) ? $_POST['is_pk'] : null;
 
     $query = "SELECT plan.*, school.name as school_name, prog.name as program_name
-        FROM myplan AS plan
-        LEFT JOIN schools as school on school.id = plan.school_id
-        LEFT JOIN programs as prog on prog.code = plan.program
-        WHERE plan.school_id = '$school_id' AND plan.user_id = $ec
-        AND NOT EXISTS (
-            SELECT 1 FROM draft_benefit db
-            WHERE db.myplan_id = plan.id
-        )
-    ";
+                FROM myplan AS plan
+                LEFT JOIN schools as school on school.id = plan.school_id
+                LEFT JOIN programs AS prog ON (prog.name = plan.program OR prog.code = plan.program)
+                WHERE plan.school_id = '$school_id' AND plan.user_id = $ec
+                " . ($is_pk !== null ? " AND prog.is_pk = 1" : "AND prog.is_pk = 0") . " AND prog.is_active = 1
+                AND NOT EXISTS (
+                    SELECT 1 FROM draft_benefit db
+                    WHERE db.myplan_id = plan.id " . ($id_draft !== null ? "AND db.id_draft != '$id_draft'" : "") . "
+                )
+            ";
 
     $result = mysqli_query($conn, $query);
 
