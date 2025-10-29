@@ -345,7 +345,7 @@
     
             $cc = [];
     
-            // sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
     
             //for leader mail
             $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
@@ -377,7 +377,7 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>";
-            // sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
         }
         
         
