@@ -101,7 +101,7 @@
                     <tbody>
                         <?php
                             foreach($benefits as $loop => $benefit) {
-                                if(strtolower($benefit['program']) == 'cbls3') {
+                                if(strtolower($benefit['program']) == 'cbls3' && $benefit['prog_year'] == 1) {
                                     $benefit['qty2'] = $benefit['qty'];
                                     $benefit['qty3'] = $benefit['qty'];
                                 }

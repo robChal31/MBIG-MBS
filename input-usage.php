@@ -30,7 +30,7 @@ $result = $conn->query($sql);
 if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
     $usages = $usages[0];  
-    if(strtolower($usages['program']) == 'cbls3') {
+    if(strtolower($usages['program']) == 'cbls3' && $usages['year'] == 1) {
         $usages['qty2'] = $usages['qty'];
         $usages['qty3'] = $usages['qty'];
     }
