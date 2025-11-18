@@ -52,6 +52,9 @@ $last_path_with_query;
                         <li>
                             <a href="report_usage.php" class="nav-link <?= $last_path_with_query == 'report_usage.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Usage</a>
                         </li>
+                        <li>
+                            <a href="report_partnership.php" class="nav-link <?= $last_path_with_query == 'report_partnership.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Partnership</a>
+                        </li>
                       
                     </ul>
                 </div>

@@ -74,7 +74,7 @@
                                 WHERE a.deleted_at IS NULL AND a.status IN ($selectedStatus2) 
                                 $query_program 
                                 -- AND DATE_FORMAT(a.date, '%Y-%m') BETWEEN '$startDate2' AND '$endDate2'
-                                AND DATE_FORMAT(pk.expired_at, '%Y-%m') >= '$endDate'
+                                AND DATE_FORMAT(pk.expired_at, '%Y-%m') >= '$endDate2'
                                 ORDER BY a.date ASC";
                         
 

@@ -56,29 +56,27 @@
                                 <th scope="col">Program Category</th>
                                 <th scope="col">Program</th>
                                 <th scope="col">No PK</th>
-                                <th scope="col">Benefit</th>
-                                <th scope="col">Benefit Description</th>
-                                <th scope="col">Usage Description</th>
-                                <th scope="col">Quantity</th>
-                                <th scope="col">Used At</th>
+                                <th scope="col">Alokasi Benefit</th>
+                                <th scope="col">Total Benfefit</th>
+                                <th scope="col">Active From</th>
+                                <th scope="col">Expired At</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php
                                 $query_program = " AND db.program IN ('$selected_programs') ";
-                                $sql2 = "SELECT db.id_draft, bu.id, bu.description, bu.qty1, bu.qty2, bu.qty3, bu.used_at, bu.redeem_code, dbl.benefit_name, 
-                                                dbl.description as benefit_desc, IFNULL(sc.name, db.school_name) as school_name2, prog.name as program_name,
-                                                b.generalname as ec_name, cat.name as program_category, pk.no_pk
-                                            FROM benefit_usages as bu 
-                                            LEFT JOIN draft_benefit_list as dbl on dbl.id_benefit_list = bu.id_benefit_list 
-                                            LEFT JOIN draft_benefit as db on db.id_draft = dbl.id_draft
+                                $sql2 = "SELECT db.id_draft, db.alokasi, db.total_benefit, IFNULL(sc.name, db.school_name) as school_name2, prog.name as program_name,
+                                                b.generalname as ec_name, cat.name as program_category, pk.no_pk, pk.start_at, pk.expired_at
+                                            FROM draft_benefit as db 
                                             LEFT JOIN schools as sc on sc.id = db.school_name
                                             LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
                                             LEFT JOIN program_categories as cat on cat.id = prog.program_category_id
                                             LEFT JOIN user b on db.id_ec = b.id_user
                                             LEFT JOIN pk as pk on pk.benefit_id = db.id_draft
                                             WHERE db.deleted_at IS NULL AND db.confirmed = 1
-                                            AND bu.used_at BETWEEN '$startDate' AND '$endDate'
+                                            AND pk.start_at BETWEEN '$startDate' AND '$endDate'
+                                            AND pk.expired_at >= CURDATE()
+
                                             ";
                                 
                                 $result = mysqli_query($conn, $sql2);
@@ -98,11 +96,10 @@
                                         <td><?= $row['program_category'] ? $row['program_category'] : 'Belum dilengkapi' ?></td>
                                         <td><?= $row['program_name'] ?></td>
                                         <td><?= $row['no_pk'] ?></td>
-                                        <td><?= $row['benefit_name'] ?></td>
-                                        <td><?= $row['benefit_desc'] ?></td>
-                                        <td><?= $row['description'] ?></td>
-                                        <td><?= $row['qty1'] != 0 ? $row['qty1'] : ($row['qty2'] != 0 ? $row['qty2'] : $row['qty3']) ?></td>
-                                        <td><?= $row['used_at'] ?></td>
+                                        <td><?= number_format($row['alokasi'], '0', ',', '.') ?></td>
+                                        <td><?= number_format($row['total_benefit'], '0', ',', '.') ?></td>
+                                        <td><?= $row['start_at'] ?></td>
+                                        <td><?= $row['expired_at'] ?></td>
                                     </tr>
                                     
                                 <?php } } ?>
