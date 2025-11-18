@@ -44,10 +44,13 @@ $last_path_with_query;
                 <div class="collapse" id="collapsibleNav2">
                     <ul class="list-unstyled ms-3">
                         <li>
-                            <a href="report.php" class="nav-link <?= $last_path_with_query == 'report.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Report Programs</a>
+                            <a href="report.php" class="nav-link <?= $last_path_with_query == 'report.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Programs</a>
                         </li>
                         <li>
-                            <a href="report_adoption.php" class="nav-link <?= $last_path_with_query == 'report_adoption.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Report Adopsi</a>
+                            <a href="report_adoption.php" class="nav-link <?= $last_path_with_query == 'report_adoption.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Adopsi</a>
+                        </li>
+                        <li>
+                            <a href="report_usage.php" class="nav-link <?= $last_path_with_query == 'report_usage.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Usage</a>
                         </li>
                       
                     </ul>
