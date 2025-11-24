@@ -88,7 +88,11 @@ try {
     $is_pk_exist_exec = $conn->query($pk_exist_query);
     $is_pk_exist = $is_pk_exist_exec->num_rows > 0;
 
-    $no_pk_exist_query = "SELECT * FROM pk WHERE no_pk = '$no_pk' AND benefit_id != $id_draft";
+    $no_pk_exist_query = "SELECT * 
+                            FROM pk as p 
+                            LEFT JOIN draft_benefit AS db ON db.id_draft = p.benefit_id 
+                            WHERE no_pk = '$no_pk' AND benefit_id != $id_draft 
+                            AND db.deleted_at IS NULL and db.status != 2 LIMIT 1";
     $is_no_pk_exist_exec = $conn->query($no_pk_exist_query);
     $is_no_pk_exist = $is_no_pk_exist_exec->num_rows > 0;
 
