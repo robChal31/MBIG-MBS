@@ -49,8 +49,8 @@ if ($result->num_rows > 0) {
                         $acc_qty3 = 0;
                         foreach($usages as $usage) {
                             $acc_qty1 += $usage['usage1'];
-                            $acc_qty2 += $usage['program'] == 'cbls3' ? $usage['usage1'] : $usage['usage2'];
-                            $acc_qty3 += $usage['program'] == 'cbls3' ? $usage['usage1'] : $usage['usage3'];
+                            $acc_qty2 += strtolower($usage['program']) == 'cbls3' ? $usage['usage1'] : $usage['usage2'];
+                            $acc_qty3 += strtolower($usage['program']) == 'cbls3' ? $usage['usage1'] : $usage['usage3'];
                     ?>
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
