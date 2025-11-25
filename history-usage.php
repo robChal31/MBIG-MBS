@@ -49,8 +49,8 @@ if ($result->num_rows > 0) {
                         $acc_qty3 = 0;
                         foreach($usages as $usage) {
                             $acc_qty1 += $usage['usage1'];
-                            $acc_qty2 += strtolower($usage['program']) == 'cbls3' ? $usage['usage1'] : $usage['usage2'];
-                            $acc_qty3 += strtolower($usage['program']) == 'cbls3' ? $usage['usage1'] : $usage['usage3'];
+                            $acc_qty2 += $usage['usage2'];
+                            $acc_qty3 += $usage['usage3'];
                     ?>
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
@@ -62,9 +62,9 @@ if ($result->num_rows > 0) {
                                 <td class="text-center"><?= $usage['usage1'] ?></td>
                                 <td class="text-center"><?= $usage['qty'] - $acc_qty1 ?></td>
                                 <td class="text-center"><?= $usage['usage2'] ?></td>
-                                <td class="text-center"><?= $usage['qty2'] - $acc_qty2 ?></td>
+                                <td class="text-center"><?= (strtolower($usage['program']) == 'cbls3' ? $usage['qty'] : $usage['qty2']) - $acc_qty2 ?></td>
                                 <td class="text-center"><?= $usage['usage3'] ?></td>
-                                <td class="text-center"><?= $usage['qty3'] - $acc_qty3 ?></td>
+                                <td class="text-center"><?= (strtolower($usage['program']) == 'cbls3' ? $usage['qty'] : $usage['qty3']) - $acc_qty3 ?></td>
                                 <td><?= $usage['created'] ?></td>
                                 <td><a href="edit-usage.php?id=<?=$usage['id_usage']?>"><i class="fas fa-edit"></i> Edit</a></td>
                             </tr>
