@@ -167,6 +167,7 @@ Nama Peserta: </textarea>
                     });
                 },
                 success: function(response) {
+                    console.log('response: ', response);
                     Swal.close();
                     if(response.status) {
                         Swal.fire({

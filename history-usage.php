@@ -6,9 +6,13 @@ include 'db_con.php';
 $id_benefit_llist = $_POST['id_benefit_list'];  
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT 
-            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, bu.created_at as created, dtb.redeemable, bu.used_at, bu.redeem_code, bu.id as id_usage
+            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, 
+            bu.created_at as created, dtb.redeemable, bu.used_at, bu.redeem_code, bu.id as id_usage,
+            prog.name as program
         FROM benefit_usages AS bu
         LEFT JOIN draft_benefit_list AS dbl ON dbl.id_benefit_list = bu.id_benefit_list
+        LEFT JOIN draft_benefit as db on db.id_draft = dbl.id_draft
+        LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
         WHERE bu.id_benefit_list = $id_benefit_llist
         ORDER BY bu.used_at";
@@ -45,8 +49,8 @@ if ($result->num_rows > 0) {
                         $acc_qty3 = 0;
                         foreach($usages as $usage) {
                             $acc_qty1 += $usage['usage1'];
-                            $acc_qty2 += $usage['usage2'];
-                            $acc_qty3 += $usage['usage3'];
+                            $acc_qty2 += $usage['program'] == 'cbls3' ? $usage['usage1'] : $usage['usage2'];
+                            $acc_qty3 += $usage['program'] == 'cbls3' ? $usage['usage1'] : $usage['usage3'];
                     ?>
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
