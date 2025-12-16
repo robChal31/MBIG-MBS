@@ -27,9 +27,12 @@
       $benefitSetting = mysqli_fetch_assoc($result);
   }
 
+
+?>
+<?php include 'header.php';
+
   $role = $_SESSION['role'];
 ?>
-<?php include 'header.php'; ?>
   <!-- Content Start -->
   <div class="content">
       <?php include 'navbar.php'; ?>

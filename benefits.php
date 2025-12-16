@@ -28,7 +28,12 @@
     }
 
 </style>
-<?php
+
+
+<div class="content">
+<?php 
+    include 'navbar.php';
+
     $role = $_SESSION['role'];
     $types = [];
 
@@ -51,10 +56,6 @@
     }
     $matched_ec_default_benefits = ['Kolektif', 'MBMTA', 'FGB', 'RBMG'];
 ?>
-
-<div class="content">
-    <?php include 'navbar.php'; ?>
-
     <div class="container-fluid p-4">
         <div class="col-12">
 

@@ -28,6 +28,9 @@
 }
 
 </style>
+
+<div class="content">
+    <?php include 'navbar.php'; ?>
 <?php
     $role = $_SESSION['role'];
     $types = [];
@@ -44,9 +47,6 @@
     }
     
 ?>
-
-<div class="content">
-    <?php include 'navbar.php'; ?>
 
     <div class="container-fluid p-4">
         <div class="col-12">
