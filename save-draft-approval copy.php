@@ -76,10 +76,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
     $id_draft_approval  = ISSET($_POST['id_draft_approval']) ? $_POST['id_draft_approval'] : '';
     $notes              = ISSET($_POST['notes']) ? $_POST['notes'] : '';
     $approver_id        = $_SESSION['id_user'];
+    $role               = $_SESSION['role'];
 
     $status_msg = $status == 1 ? 'Approve' : 'Reject';
 
-    $url_redirect = $approver_id == 70 || $approver_id == 5 || $approver_id == 15 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
+    $url_redirect = $role != 'ec' ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
 
     date_default_timezone_set('Asia/Jakarta');
     $current_time = date('Y-m-d H:i:s');
@@ -274,6 +275,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                 'name' => "Putri"
             ];
 
+            $cc[] = [
+                'email' => "yully.mentarigroups@gmail.com",
+                'name' => "Yully"
+            ];
+
             sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
 
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
@@ -284,7 +290,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $sql            = "UPDATE draft_benefit set status = '$choosen_status' where id_draft = '$id_draft';";
         mysqli_query($conn, $sql);
 
-        if($approver_id == 70 || $approver_id == 15) {
+        if($role == 'admin') {
             $sql = "UPDATE draft_benefit set verified = 1 where id_draft = '$id_draft';";
             mysqli_query($conn, $sql);       
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '5', '0');";
@@ -400,6 +406,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                     'name' => $dra['generalname']
                 ];
             }
+
+            $cc[] = [
+                'email' => "yully.mentarigroups@gmail.com",
+                'name' => "Yully"
+            ];
     
             $email = 'secretary@mentaribooks.com';
             $name = 'Putri';

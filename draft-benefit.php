@@ -1,6 +1,8 @@
 
 <?php 
     include 'header.php'; 
+
+    $role = $_SESSION['role'];
 ?>
 
     <!-- Content Start -->
@@ -72,7 +74,7 @@
                                                 $stat = ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0) ? 'Waiting Confirmation' : ($row['verified'] == 0 && $row['status'] == 1 ? 'Waiting Verification' : $stat);
 
 
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
                                                 $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
                                     ?>
                                                 <tr>

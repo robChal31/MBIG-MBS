@@ -167,7 +167,10 @@ try {
             $school_name = $data_benefit['school_name'];
             $program = $data_benefit['program'];
             $uc_program = strtoupper($program);
-
+            $cc[] = [
+                'email' => "yully.mentarigroups@gmail.com",
+                'name' => "Yully"
+            ];
             $email = "secretary@mentaribooks.com";
             $name = "Secretary Mentari Books";
             $subject = "Pengajuan PK";
@@ -191,7 +194,7 @@ try {
                         </div>";
             $fileUrl = [$file_pk, $file_benefit, $file_exc_benefit];
 
-            sendEmail($email, $name, $subject, $message, $config, $fileUrl);
+            sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
 
             echo json_encode([
                 'status' => 'success',

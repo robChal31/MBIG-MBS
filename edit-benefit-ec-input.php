@@ -14,6 +14,7 @@
 <?php
 include 'header.php';
 
+$role = $_SESSION['role'];
 $id_draft = $_GET['id_draft'];
 $sql      = "SELECT * 
               from draft_benefit as db
@@ -102,7 +103,7 @@ if ($exec_list_book->num_rows > 0) {
                   <td style="width:5px">:</td>
                   <td><?= $_SESSION['username'] ?? $username ?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?? $id_user ?>"></td>
                 </tr>
-                <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
+                <?php if($role == 'admin') : ?>
                   <tr>
                     <td>Nama EC</td>
                     <td>:</td>

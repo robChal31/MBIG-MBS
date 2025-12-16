@@ -27,6 +27,7 @@
       $benefitSetting = mysqli_fetch_assoc($result);
   }
 
+  $role = $_SESSION['role'];
 ?>
 <?php include 'header.php'; ?>
   <!-- Content Start -->
@@ -46,7 +47,7 @@
                           <td style="width:5px">:</td>
                           <td><?= $_SESSION['username']?><input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"></td>
                         </tr>
-                        <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
+                        <?php if($role == 'admin') : ?>
                           <tr>
                             <td>Nama EC</td>
                             <td>:</td>

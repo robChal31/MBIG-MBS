@@ -74,7 +74,7 @@
                                                 $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
 
                                                 $stat = ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0) ? 'Waiting Confirmation' : ($row['verified'] == 0 && $row['status'] == 1 ? 'Waiting Verification' : $stat);
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['user_id'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['user_id'] || $role == 'admin';
                                     ?>
                                                 <tr>
                                                     <td><?= $row['id'] ?></td>

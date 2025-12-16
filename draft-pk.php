@@ -1,6 +1,8 @@
 
 <?php 
-    include 'header.php'; 
+    include 'header.php';
+
+    $role = $_SESSION['role'];
 ?>
 
     <!-- Content Start -->
@@ -59,7 +61,7 @@
                                                 $stat = ($row['status'] == 0) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
                                                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                                                 $stat = $row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0 ? 'Verified' : ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 1 ? 'Confirmed' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat));
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $_SESSION['id_user'] == 70 || $_SESSION['id_user'] == 15;
+                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
                                     ?>
                                                 <tr>
                                                     <td><?= $row['generalname'] ?></td>

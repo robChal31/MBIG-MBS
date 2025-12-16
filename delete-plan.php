@@ -5,6 +5,7 @@
     require 'vendor/autoload.php';
 
     $id_user  = $_SESSION['id_user'];
+    $role  = $_SESSION['role'];
     $id = ISSET($_POST['id']) ? $_POST['id'] : null;
 
     $sql      = "SELECT * FROM myplan as db where id = $id";
@@ -19,7 +20,7 @@
         $user_id = $data['user_id'];
     }
    
-    $is_creator_or_admin = $id_user == $user_id || $id_user == 70 || $id_user == 15;
+    $is_creator_or_admin = $id_user == $user_id || ($role == 'admin');
 
     if (!$is_creator_or_admin && ($status != 0)) {
         $response = [

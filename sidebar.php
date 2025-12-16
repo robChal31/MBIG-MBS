@@ -83,12 +83,12 @@ $last_path_with_query;
                     </ul>
                 </div>
 
-                <a href="masters.php" class="nav-item nav-link <?= $last_path_with_query == 'masters.php' ? "active" : '' ?>"><i class="fas fa-school"></i>Master School</a>
+                <!-- <a href="masters.php" class="nav-item nav-link <?= $last_path_with_query == 'masters.php' ? "active" : '' ?>"><i class="fas fa-school"></i>Master School</a>
                 <a href="customer_data.php" class="nav-item nav-link <?= $last_path_with_query == 'customer_data.php' ? "active" : '' ?>"><i class="fas fa-users"></i>Customer Data</a>
                 <a href="history.php" class="nav-item nav-link <?= $last_path_with_query == 'history.php' ? "active" : '' ?>"><i class="fas fa-history"></i>School History</a>
                 <a href="cbls-prestasi.php" class="nav-item nav-link <?= $last_path_with_query == 'cbls-prestasi.php' ? "active" : '' ?>"><i class="fas fa-trophy"></i>Nilai CBLS dan Prestasi</a>
                 <a href="new-masterb.php" class="nav-item nav-link <?= $last_path_with_query == 'new-masterb.php' ? "active" : '' ?>"><i class="fa fa-th me-2"></i>Master Benefit</a>
-                <a href="omset-data-input.php" class="nav-item nav-link <?= $last_path_with_query == 'omset-data-input.php' ? "active" : '' ?>"><i class="fas fa-coins"></i>School Omset</a>
+                <a href="omset-data-input.php" class="nav-item nav-link <?= $last_path_with_query == 'omset-data-input.php' ? "active" : '' ?>"><i class="fas fa-coins"></i>School Omset</a> -->
             <?php } ?>
 
             <?php if($_SESSION['role']): ?>

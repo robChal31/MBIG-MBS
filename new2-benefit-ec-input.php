@@ -65,7 +65,7 @@
                             <form method="POST" action="new2-benefit-ec-input-action1.php" enctype="multipart/form-data">
                             <table class="table table-striped">
                                 <tr><td>Inputter : <?=$_SESSION['username']?><input type="hidden" name="id_user" value="<?=$_SESSION['id_user']?>"></td></tr>
-                                <?php if($_SESSION['username']=='secretary@mentaribooks.com'):?>
+                                <?php if($_SESSION['role']=='admin'):?>
                                 <tr><td>Nama EC : <select name="inputEC" id="inputEC"><?php $sql = "SELECT * from user where role='ec' order by generalname ASC"; $resultsd1 = mysqli_query($conn, $sql);
 
                                 while ($row = mysqli_fetch_assoc($resultsd1))

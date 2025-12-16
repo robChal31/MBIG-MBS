@@ -1,68 +1,68 @@
 <?php
-include 'db_con.php';
-require 'vendor/autoload.php';
-use PHPMailer\PHPMailer\PHPMailer;
+    include 'db_con.php';
+    require 'vendor/autoload.php';
+    use PHPMailer\PHPMailer\PHPMailer;
 
-$config = require 'config.php';
+    $config = require 'config.php';
 
-ob_start();
-session_start();
+    ob_start();
+    session_start();
 
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
 
-function generateRandomString($length = 10) {
-    $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
-    $charactersLength = strlen($characters);
-    $randomString = '';
-    for ($i = 0; $i < $length; $i++) {
-        $randomString .= $characters[random_int(0, $charactersLength - 1)];
-    }
-    return $randomString;
-}
-
-function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = []) {
-    $mail = new PHPMailer(true);
-    try {
-        $mail->isSMTP(); 
-        $mail->Host       = $config['host']; 
-        $mail->SMTPAuth   = true; 
-        $mail->Username   = $config['smtp_username'];
-        $mail->Password   = $config['smtp_password']; 
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-        $mail->Port       = $config['port'] ?? 465;
-
-        //Recipients
-        $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
-        $file_path = 'draft-benefit/'.$fileUrl.'.xlsx';
-        
-        if (file_exists($file_path)) {
-            $mail->addAttachment($file_path, $fileUrl.'.xlsx');
+    function generateRandomString($length = 10) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyz';
+        $charactersLength = strlen($characters);
+        $randomString = '';
+        for ($i = 0; $i < $length; $i++) {
+            $randomString .= $characters[random_int(0, $charactersLength - 1)];
         }
+        return $randomString;
+    }
 
-        $mail->addAddress($email, $name);
-        if(count($cc) > 0) {
-            foreach ($cc as $key => $value) {
-                $mail->addCC($value['email'], $value['name']);
+    function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = []) {
+        $mail = new PHPMailer(true);
+        try {
+            $mail->isSMTP(); 
+            $mail->Host       = $config['host']; 
+            $mail->SMTPAuth   = true; 
+            $mail->Username   = $config['smtp_username'];
+            $mail->Password   = $config['smtp_password']; 
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = $config['port'] ?? 465;
+
+            //Recipients
+            $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
+            $file_path = 'draft-benefit/'.$fileUrl.'.xlsx';
+            
+            if (file_exists($file_path)) {
+                $mail->addAttachment($file_path, $fileUrl.'.xlsx');
             }
+
+            $mail->addAddress($email, $name);
+            if(count($cc) > 0) {
+                foreach ($cc as $key => $value) {
+                    $mail->addCC($value['email'], $value['name']);
+                }
+            }
+
+            //Content
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $message;
+            $mail->send();
+            
+        } catch (Exception $e) {
+            $_SESSION['toast_status'] = "Error";
+            $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            header('Location: ./draft-approval-list.php');
+            exit();
         }
-
-        //Content
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body    = $message;
-        $mail->send();
-        
-    } catch (Exception $e) {
-        $_SESSION['toast_status'] = "Error";
-        $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-        header('Location: ./draft-approval-list.php');
-        exit();
     }
-}
 
-    if(!$_POST){
+    if(!$_POST || !isset($_SESSION['username'])){
         $_SESSION['toast_status'] = "Error";
         $_SESSION['toast_msg'] = "Unauthorized Access";
         header('Location: ./draft-approval-list.php');
@@ -79,10 +79,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $id_draft_approval  = ISSET($_POST['id_draft_approval']) ? $_POST['id_draft_approval'] : '';
         $notes              = ISSET($_POST['notes']) ? $_POST['notes'] : '';
         $approver_id        = $_SESSION['id_user'];
+        $role               = $_SESSION['role'];
 
         $status_msg = $status == 1 ? 'Approve' : 'Reject';
 
-        $url_redirect = $approver_id == 70 || $approver_id == 5 || $approver_id == 15 ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
+        $url_redirect = $role != 'ec' ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
 
         date_default_timezone_set('Asia/Jakarta');
         $current_time = date('Y-m-d H:i:s');
@@ -217,6 +218,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                     'name' => "Kelly"
                 ];
 
+                $cc[] = [
+                    'email' => "yully.mentarigroups@gmail.com",
+                    'name' => "Yully"
+                ];
+
                 if($leadid3 == 16) {
                     $cc[] = [
                         'email' => "santo@mentaribooks.com",
@@ -302,6 +308,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                     'name' => "Putri"
                 ];
 
+                $cc[] = [
+                    'email' => "yully.mentarigroups@gmail.com",
+                    'name' => "Yully"
+                ];
+
                 sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
 
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
@@ -311,7 +322,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                 mysqli_query($conn, $sql);
             }
 
-            if(($approver_id == 70 || $approver_id == 15) && $draft_status == 1) {
+            if($role == 'admin' && $draft_status == 1) {
                 $sql = "UPDATE draft_benefit set verified = 1 where id_draft = '$id_draft';";
                 mysqli_query($conn, $sql);       
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '5', '0');";
@@ -325,7 +336,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         
         
                 sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
-            }else if(($approver_id == 70 || $approver_id == 15) && $draft_status == 0) {
+            }else if($role == 'admin' && $draft_status == 0) {
                 $sql = "SELECT * from user where id_user = $leadid3";
                 $result = mysqli_query($conn,$sql);
                 while ($dra = $result->fetch_assoc()){
@@ -500,6 +511,11 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                         'name' => $dra['generalname']
                     ];
                 }
+
+                $cc[] = [
+                    'email' => "yully.mentarigroups@gmail.com",
+                    'name' => "Yully"
+                ];
         
                 $email = 'secretary@mentaribooks.com';
                 $name = 'Putri';

@@ -7,7 +7,8 @@ if($conn->connect_error) {
   die("Connection failed: " . $conn->connect_error);
 }
 
-$id_draft = $_POST['id_draft'];                                                                      
+$id_draft = $_POST['id_draft'];
+$role = $_SESSION['role'];                                                                    
 $sql = "SELECT 
             a.id_draft_approval, a.id_draft, a.status, a.token, a.approved_at, b.status as draft_status, b.verified, b.program,
             a.notes, c.generalname as ec_name, d.generalname as leadername, a.id_user_approver as approver, b.confirmed
@@ -44,7 +45,7 @@ if ($result->num_rows > 0) {
               while ($row = $result->fetch_assoc()) { 
                 $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
                 $status_msg = $row['status'] == 0 ? 'Waiting Approval' : ($row['status'] == 1 ? 'Approved' : 'Rejected');
-                if($row['approver'] == 70 || $row['approver'] == 15) {
+                if($role == 'admin') {
                   $status_msg = $row['draft_status'] == 1 ? ($row['verified'] == 1 && $row['status'] == 1 ? 'Verified' : ($row['verified'] == 0 ? 'Waiting Verification' : $status_msg)) : $status_msg;    
                 }
 

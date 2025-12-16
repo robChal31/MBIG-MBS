@@ -19,7 +19,7 @@
     $aloks          = $_POST['alokasi'];
     $book_titles    = $_POST['titles'];
     $wilayah        = $_POST['wilayah'];
-    $level          = $_POST['level'];
+    $level          = ISSET($_POST['level']) ? $_POST['level'] : '';
     $level2         = $_POST['level2'];
     $myplan_id      = ISSET($_POST['myplan_id']) && $_POST['myplan_id'] != '' ? $_POST['myplan_id'] : null;
     $row_length     = count($book_titles);

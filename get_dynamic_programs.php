@@ -10,7 +10,8 @@ $year = $year_selected && $year_selected == 2 ? (intval($year_selected) - 1) : 1
 $options = "";
 
 $id_user = $_SESSION['id_user'];
-$is_admin = $id_user == 70 ? true : false;
+$role = $_SESSION['role'];
+$is_admin = $role == 'admin';
 $where_clause = $is_admin ? "" : " AND db.id_ec = $id_user";
 $query_program = "SELECT * FROM (
                     SELECT db.id_draft, 

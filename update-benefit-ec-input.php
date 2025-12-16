@@ -290,7 +290,7 @@ if($posts && $posts['program_reffered']) {
                       <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>">
                     </td>
                   </tr>
-                  <?php if($_SESSION['username'] == 'secretary@mentaribooks.com') : ?>
+                  <?php if($_SESSION['role'] == 'admin') : ?>
                     <tr>
                       <td>Nama EC</td>
                       <td>:</td>

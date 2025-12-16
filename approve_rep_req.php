@@ -15,6 +15,7 @@
 <?php
 
     $id_user    = $_SESSION['id_user'];
+    $role       = $_SESSION['role'];
     $token      = ISSET($_GET['token']) ? $_GET['token'] : NULL;
     $bir_id     = '';
     if(!$token) {
@@ -123,7 +124,7 @@
             $file = $bir['file'];
             $filename = basename($file); // lebih aman dari explode
 
-            if ($id_user != 70) {
+            if ($role != 'admin') {
                 $new_token = bin2hex(random_bytes(16));
                 $insert_q = "INSERT INTO bir_approval (bir_id, date, status, id_user_approver, token) VALUES ($bir_id, current_timestamp(), 0, 70, '$new_token')";
                 $insert_exec = $conn->query($insert_q);
@@ -166,6 +167,8 @@
 
                 $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
                 $mail->addAddress('secretary@mentaribooks.com', 'Putri');
+                $mail->addCC('yully.mentarigroups@gmail.com', 'Yully');
+
                 $mail->addAttachment($file, $filename);
 
                 $mail->isHTML(true);
@@ -210,7 +213,7 @@
                 $mail->send();
             }
 
-            $bir_status = ($id_user != 70 && $status == 1) ? 0 : $status;
+            $bir_status = ($role != 'admin' && $status == 1) ? 0 : $status;
             $update_bir = "UPDATE benefit_imp_report SET status = '$bir_status' WHERE id_draft = $id_draft";
             $update_exec = $conn->query($update_bir);
 

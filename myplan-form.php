@@ -17,6 +17,7 @@
   $id_plan  = ISSET($_GET['plan_id']) ? $_GET['plan_id'] : NULL;
   $username = $_SESSION['username'];
   $id_user  = $_SESSION['id_user'];
+  $role  = $_SESSION['role'];
   $levels = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
 
   $segment = NULL;
@@ -74,7 +75,7 @@
               <?php endif; ?>
 
               <table class="table table-striped">
-                <?php if($id_user == 70) : ?>
+                <?php if($role == 'admin') : ?>
                   <tr>
                     <td>Nama EC</td>
                     <td>:</td>

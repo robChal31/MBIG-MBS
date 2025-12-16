@@ -5,6 +5,7 @@
     require 'vendor/autoload.php';
 
     $id_user  = $_SESSION['id_user'];
+    $role     = $_SESSION['role'];
     $id_draft = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
 
     $sql      = "SELECT * FROM draft_benefit as db where id_draft = $id_draft";
@@ -21,7 +22,7 @@
         $fileUrl = $data['fileUrl'];
     }
    
-    $is_creator_or_admin = $id_user == $id_ec || $id_user == 70 || $id_user == 15;
+    $is_creator_or_admin = $id_user == $id_ec || ($role == 'admin');
 
     if (!$is_creator_or_admin && ($status != 0)) {
         $response = [

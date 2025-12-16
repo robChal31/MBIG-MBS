@@ -23,9 +23,9 @@
     }
 
     .select2-container--default .select2-search--dropdown .select2-search__field {
-    pointer-events: auto; /* Ensure clicks are registered */
-    cursor: text;         /* Change cursor to text input style */
-}
+        pointer-events: auto; /* Ensure clicks are registered */
+        cursor: text;         /* Change cursor to text input style */
+    }
 
 </style>
 <?php
