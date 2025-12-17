@@ -71,6 +71,7 @@
             }
         }
 
+
         if ($id_draft) {
             $sql = "UPDATE draft_benefit SET 
                         id_user = '$id_user',
