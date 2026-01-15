@@ -14,7 +14,7 @@
     <div class="container-fluid p-4">
         <div class="col-12">
             
-            <div class="bg-whites rounded h-100 p-4">
+            <div class="card rounded h-100 p-4">
                 <h6 class="mb-4">Partnership Agreement List</h6>                      
                 <div class="table-responsive">
                     <table class="table table-striped" id="table_id">

@@ -76,45 +76,77 @@
       <div class="container-fluid p-4">
           <div class="row">
               <div class="col-12">
-                  <div class="bg-whites rounded h-100 p-4">
-                    <div class="d-flex justify-content-between">
-                      <div class="">
-                        <h6 class="mb-4">Program Categories</h6>
-                      </div>
-                      <div class="">
-                        <button type="button" class="btn btn-primary btn-sm" data-action="create" data-bs-toggle="modal" data-bs-target="#programCategoryModal" id="add_program">Add Program Category</button>
-                      </div>
+                <div class="card rounded shadow-sm h-100 p-3">
+                    <!-- HEADER -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h6 class="fw-semibold mb-0">Program Categories</h6>
+                            <small class="text-muted">Manage program category master data</small>
+                        </div>
+                        <button type="button"
+                                class="btn btn-primary btn-sm fw-semibold"
+                                data-action="create"
+                                data-bs-toggle="modal"
+                                data-bs-target="#programCategoryModal"
+                                id="add_program">
+                            <i class="fa fa-plus me-1"></i> Add Category
+                        </button>
                     </div>
+
+                    <!-- TABLE -->
                     <div class="table-responsive">
-                      <table class="table" id="table_id">
-                          <thead>
-                              <tr>
-                                  <th style="width: 5%;">Id</th>
-                                  <th scope="col">Name</th>
-                                  <th scope="col">Created at</th>
-                                  <th scope="col">Updated at</th>
-                                  <th scope="col">Action</th>
-                              </tr>
-                          </thead>
-                          <tbody>
-                             <?php $no = 1; foreach($program_categories as $program_category) { ?>
+                        <table class="table align-middle" id="table_id">
+                            <thead>
+                                <tr>
+                                    <th style="width:5%">No</th>
+                                    <th>Name</th>
+                                    <th>Created At</th>
+                                    <th>Updated At</th>
+                                    <th class="text-center" style="width:10%">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php $no = 1; foreach($program_categories as $program_category): ?>
                                 <tr>
                                     <td class="text-center"><?= $no ?></td>
-                                    <td class="text-start"><?= $program_category['name'] ?></td>
-                                    <td class="text-start"><?= $program_category['created_at'] ?></td>
-                                    <td class="text-start"><?= $program_category['updated_at'] ?></td>
+                                    <td class="fw-semibold"><?= $program_category['name'] ?></td>
+                                    <td><?= $program_category['created_at'] ?></td>
+                                    <td><?= $program_category['updated_at'] ?></td>
                                     <td class="text-center">
-                                      <span data-id="<?= $program_category['id'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#programCategoryModal' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
+                                        <div class="dropdown" data-bs-boundary="window">
+                                            <i class="fas fa-ellipsis-v text-muted"
+                                              data-bs-toggle="dropdown"
+                                              style="cursor:pointer"></i>
 
-                                      <?php if($_SESSION['role'] == "admin") { ?>
-                                        <span data-id="<?= $program_category['id'] ?>" class='del-prog btn btn-outline-danger btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></span>
-                                      <?php } ?>
+                                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                <li>
+                                                    <a class="dropdown-item"
+                                                      data-id="<?= $program_category['id'] ?>"
+                                                      data-action="edit"
+                                                      data-bs-toggle="modal"
+                                                      data-bs-target="#programCategoryModal">
+                                                        <i class="fa fa-pen me-2"></i> Edit
+                                                    </a>
+                                                </li>
+
+                                                <?php if($_SESSION['role'] === 'admin'): ?>
+                                                <li>
+                                                    <a class="dropdown-item text-danger del-prog"
+                                                      data-id="<?= $program_category['id'] ?>">
+                                                        <i class="fa fa-trash me-2"></i> Delete
+                                                    </a>
+                                                </li>
+                                                <?php endif; ?>
+                                            </ul>
+                                        </div>
                                     </td>
-                            <?php $no++; } ?>
-                          </tbody>
-                      </table>
+                                </tr>
+                                <?php $no++; endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
-                  </div>
+                </div>
+
               </div>
           </div>
       </div>

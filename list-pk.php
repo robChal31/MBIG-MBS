@@ -32,152 +32,209 @@
 
 <div class="content">
     <?php include 'navbar.php'; ?>
-    <div class="container-fluid p-4">
-        <div class="col-12">
-            <div class="card mb-4">
-                <div class="card-header bg-primary d-flex justify-content-between align-items-center text-white" data-bs-toggle="collapse" data-bs-target="#collapseCard">
-                   Filter
-                    <i class="fas fa-chevron-down rotate-icon"></i>
-                </div>
-                <div id="collapseCard" class="collapse show">
-                    <div class="card-body">
-                        <form method="POST" action="" id="filterForm">
-                            <div class="row">
-                                <div class="col-md-2 col-12">
-                                    <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">Active From</label>
-                                        <input type="text" class="form-control dateFilter" name="start_date" placeholder="Select Date" value="<?= $start_date ?>">
-                                    </div>
-                                </div>
-                                <div class="col-md-2 col-12">
-                                    <div class="mb-3">
-                                        <label for="dateFilter" class="form-label">Expired At</label>
-                                        <input type="text" class="form-control dateFilter" name="end_date" placeholder="Select Date" value="<?= $end_date ?>">
-                                    </div>
-                                </div>
-                                <div class="col-md-8 col-12 mb-2">
-                                    <div class="mb-2">
-                                        <label for="program" class="form-label">Program</label>
-                                        <select placeholder="Select Program" name="programs[]" id="program" class="form-control form-control-sm select2" style="background-color: white;" multiple>
-                                            <?php foreach ($programs as $program) { ?>
-                                                <option value="<?= trim($program['name']) ?>" <?= !$selected_program ? '' : (in_array($program['name'], $selected_program) ? 'selected' : '') ?>><?= $program['name'] ?></option>
-                                            <?php } ?>
-                                        </select>
-                                    </div>
-                                    <div class="d-flex justify-content-end gap-2">
-                                        <button type="button" class="btn btn-sm btn-secondary" id="select-all">Select All</button>
-                                        <button type="button" class="btn btn-sm btn-secondary" id="clear-all">Clear All</button>
-                                    </div>
-                                </div>
+        <div class="container-fluid p-4">
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="bg-whites rounded h-100 p-4 shadow">
+
+                        <!-- HEADER -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">Agreement List</h5>
+                                <small class="text-muted">
+                                    Verified and confirmed benefit agreements
+                                </small>
                             </div>
-                           
-                            
-                            <div class="d-flex justify-content-end my-2">
-                                <button type="submit" class="btn btn-primary"><i class="fas fa-filter"></i> Filter</button>
+                        </div>
+
+                        <!-- FILTER -->
+                        <div class="border rounded mb-4 shadow-sm">
+
+                            <!-- FILTER HEADER -->
+                            <div class="d-flex justify-content-between align-items-center px-3 py-2
+                                        bg-light-subtle fw-semibold cursor-pointer"
+                                data-bs-toggle="collapse"
+                                data-bs-target="#filterCollapse"
+                                aria-expanded="false">
+
+                                <div class="d-flex align-items-center gap-2">
+                                    <i class="fas fa-sliders-h text-primary"></i>
+                                    <span>Filter Agreement</span>
+                                </div>
+
+                                <i class="fas fa-chevron-down transition rotate-icon"></i>
                             </div>
 
-                        </form>
-                 
+                            <!-- FILTER BODY -->
+                            <div id="filterCollapse" class="collapse">
+                                <div class="p-3 bg-white rounded-bottom">
+
+                                    <form method="POST" action="" id="filterForm">
+                                        <div class="row g-3 align-items-start">
+
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label fw-semibold">Active From</label>
+                                                <input type="text"
+                                                    class="form-control dateFilter"
+                                                    name="start_date"
+                                                    value="<?= $start_date ?>"
+                                                    placeholder="Select date">
+                                               
+                                            </div>
+
+                                            <div class="col-md-6 col-12">
+                                                <label class="form-label fw-semibold">Expired At</label>
+                                                <input type="text"
+                                                    class="form-control dateFilter"
+                                                    name="end_date"
+                                                    value="<?= $end_date ?>"
+                                                    placeholder="Select date">
+                                               
+                                            </div>
+
+                                            <div class="col-md-12 col-12">
+                                                <label class="form-label fw-semibold">Program <small class="text-muted" style="font-size: 12px;">(You can select multiple programs)</small></label>
+                                                <select name="programs[]" id="program" class="form-control select2" multiple>
+                                                    <?php foreach ($programs as $program) { ?>
+                                                        <option value="<?= trim($program['name']) ?>"
+                                                            <?= !$selected_program ? '' : (in_array($program['name'], $selected_program) ? 'selected' : '') ?>>
+                                                            <?= $program['name'] ?>
+                                                        </option>
+                                                    <?php } ?>
+                                                </select>
+                                                <div class="d-flex justify-content-end gap-2 mt-1 col-12">
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="select-all">
+                                                        Select All
+                                                    </button>
+                                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="clear-all">
+                                                        Clear
+                                                    </button>
+                                                </div>
+                                                 
+                                            </div>
+
+                                            <div class="col-12 d-flex justify-content-md-end align-items-end">
+                                                <button type="submit" class="btn btn-primary btn-sm px-4 fw-semibold">
+                                                    <i class="fas fa-filter me-1"></i> Apply
+                                                </button>
+                                                
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- TABLE -->
+                        <div class="table-responsive">
+                            <table class="table align-middle" id="table_id">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>No</th>
+                                        <th>EC</th>
+                                        <th>School</th>
+                                        <th>Segment</th>
+                                        <th>Program</th>
+                                        <th>PK Type</th>
+                                        <th>Alokasi</th>
+                                        <th>No PK</th>
+                                        <th>Active</th>
+                                        <th>Expired</th>
+                                        <th>Created</th>
+                                        <!-- <th>Status</th> -->
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                <?php
+                                    $sql_q = " WHERE ";
+                                    $id_user = $_SESSION['id_user'];
+
+                                    $sql = "SELECT 
+                                                b.id_draft, b.status, b.date, b.id_ec, b.school_name,
+                                                b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
+                                                b.alokasi, b.year, c.generalname, pk.id as pk_id,
+                                                b.verified, b.confirmed, b.jenis_pk,
+                                                pk.no_pk, pk.start_at, pk.expired_at, pk.created_at,
+                                                IFNULL(seg.segment, b.segment) as new_segment
+                                            FROM draft_benefit b
+                                            LEFT JOIN draft_approval a ON a.id_draft = b.id_draft
+                                            LEFT JOIN segments seg ON seg.id = b.segment
+                                            LEFT JOIN schools sc ON sc.id = b.school_name
+                                            LEFT JOIN user c ON c.id_user = b.id_ec
+                                            LEFT JOIN pk pk ON pk.benefit_id = b.id_draft";
+
+                                    if($_SESSION['role'] == 'ec'){
+                                        $sql .= " WHERE (a.id_user_approver = $id_user
+                                                OR c.leadId = $id_user
+                                                OR b.id_ec = $id_user)";
+                                        $sql_q = " AND ";
+                                    }
+
+                                    $sql .= "$sql_q
+                                            b.status = 1
+                                            AND b.verified = 1
+                                            AND b.confirmed = 1
+                                            AND b.deleted_at IS NULL";
+
+                                    $sql .= $selected_program ? " AND b.program IN ('$selected_programs_q')" : '';
+                                    $sql .= $start_date ? " AND pk.start_at >= '$start_date'" : '';
+                                    $sql .= $end_date ? " AND pk.expired_at <= '$end_date'" : '';
+                                    $sql .= " GROUP BY b.id_draft ORDER BY b.date DESC";
+
+                                    $result = mysqli_query($conn, $sql);
+
+                                    if (mysqli_num_rows($result) > 0) {
+                                        while($row = mysqli_fetch_assoc($result)) {
+
+                                            $program_name = $row['year'] == 1
+                                                ? $row['program']
+                                                : $row['program']." Perubahan Tahun Ke ".$row['year'];
+
+                                            $status_class = $row['confirmed'] == 1 ? 'success' : 'warning';
+                                            $status_text  = $row['confirmed'] == 1 ? 'Confirmed' : 'Waiting';
+                                ?>
+                                    <tr>
+                                        <td><?= $row['id_draft'] ?></td>
+                                        <td class="fw-semibold"><?= $row['generalname'] ?></td>
+                                        <td><?= $row['school_name2'] ?></td>
+                                        <td><?= ucfirst($row['new_segment']) ?></td>
+                                        <td><?= strtoupper($program_name) ?></td>
+                                        <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
+                                        <td><?= number_format($row['alokasi'], 0, ',', '.') ?></td>
+                                        <td><?= $row['no_pk'] ?></td>
+                                        <td><?= $row['start_at'] ?></td>
+                                        <td><?= $row['expired_at'] ?></td>
+                                        <td><?= $row['created_at'] ?></td>
+
+                                        <!-- <td>
+                                            <span class="badge bg-<?= $status_class ?>">
+                                                <?= $status_text ?>
+                                            </span>
+                                        </td> -->
+
+                                        <td class="text-center">
+                                            <button class="btn btn-outline-primary btn-sm"
+                                                    data-id="<?= $row['id_draft'] ?>"
+                                                    data-bs-toggle="modal"
+                                                    data-bs-target="#pkModal">
+                                                <i class="fa fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                <?php } } ?>
+                                </tbody>
+                            </table>
+                        </div>
+
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-12">
-            
-            <div class="bg-whites rounded h-100 p-4">
-                <h6 class="mb-4">Agreement List</h6>    
-            
-                <div class="table-responsive">
-                    <table class="table table-striped" id="table_id">
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th scope="col" style="width:10%">EC</th>
-                                <th scope="col" style="width: 20%">School Name</th>
-                                <th scope="col">Segment</th>
-                                <th scope="col">Jenis Program</th>
-                                <th scope="col">Jenis PK</th>
-                                <th scope="col">Alokasi</th>
-                                <th>No PK</th>
-                                <th scope="col">Active From</th>
-                                <th scope="col">Expired At</th>
-                                <th scope="col">Created At</th>
-                                <th scope="col" style="width: 13%">Status</th>
-                                <th scope="col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                                $sql_q = " WHERE ";
-                                $id_user = $_SESSION['id_user'];
-
-                                $sql = "SELECT 
-                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2, b.alokasi, b.year, c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, 
-                                            pk.no_pk, pk.start_at, pk.expired_at, pk.created_at, b.confirmed, b.jenis_pk, c.leadId
-                                        FROM draft_benefit b
-                                        LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
-                                        LEFT JOIN schools sc on sc.id = b.school_name
-                                        LEFT JOIN user c on c.id_user = b.id_ec 
-                                        LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
-                                if($_SESSION['role'] == 'ec'){
-                                    $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or b.id_ec = $id_user) ";
-                                    $sql_q = " AND ";
-                                }
-
-                                $sql .= "$sql_q b.status = 1 AND b.verified = 1 AND b.confirmed = 1 AND b.deleted_at IS NULL ";
-                                $sql .= $selected_program ? " AND b.program IN ('$selected_programs_q') " : '';
-                                $sql .= $start_date ? " AND pk.start_at >= '$start_date' " : '';
-                                $sql .= $end_date ? " AND pk.expired_at <= '$end_date' " : '';        
-                                $sql .= "GROUP BY b.id_draft ORDER BY b.date DESC";
-
-
-                                $result = mysqli_query($conn, $sql);
-                                setlocale(LC_MONETARY,"id_ID");
-                                if (mysqli_num_rows($result) > 0) {
-                                    while($row = mysqli_fetch_assoc($result)) {
-                                        $id_draft = $row['id_draft'];
-                                        $status_class = $row['verified'] == 1 ? 'bg-success' :  'bg-primary';
-                                        $status_msg = ($row['verified'] == 1 ? 'Verified' : 'Waiting Verification');
-                                        if($row['verified'] == 1) {
-                                            $status_class = $row['confirmed'] == 1 ? 'bg-success' :  'bg-primary';
-                                            $status_msg = ($row['confirmed'] == 1 ? 'Confirmed' : 'Waiting Confirmation');
-                                        }
-                                        $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
-                                ?>
-                                        <tr>
-                                            <td><?= $id_draft ?></td>
-                                            <td><?= $row['generalname'] ?></td>
-                                            <td><?= $row['school_name2'] ?></td>
-                                            <td><?= ucfirst($row['segment']) ?></td>
-                                            <td><?= strtoupper($programe_name) ?></td>
-                                            <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
-                                            <td><?= number_format($row['alokasi'], 0, ',', '.') ?></td>
-                                            <td><?= $row['no_pk'] ?></td>
-                                            <td><?= $row['start_at'] ?></td>
-                                            <td><?= $row['expired_at'] ?></td>
-                                            
-                                            <td>
-                                                <?= $row['created_at'] ?>
-                                            </td>
-                                            <td>
-                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.55rem'><?= $status_msg  ?></span>
-                                            </td>
-                                            <td scope='col'>
-                                               
-                                                <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-2' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
-                                               
-                                            </td>
-                                        </tr>
-                               <?php     }
-                                }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
     <!-- Sale & Revenue End -->
 
     <!-- Modal -->
@@ -284,11 +341,6 @@
         // Clear All functionality
         document.getElementById('clear-all').addEventListener('click', () => {
             choices.removeActiveItems();
-        });
-
-
-        document.querySelector('.card-header').addEventListener('click', function () {
-            this.classList.toggle('collapsed');
         });
 
     })

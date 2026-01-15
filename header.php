@@ -65,10 +65,12 @@
         {
             font-family: "Nunito",sans-serif;
         }
+
         .table-wrap{
             height:40px;
             transition:height 0.5s;
         }
+
         .table-wrap:hover{
             height : 100%;
         }
@@ -129,6 +131,90 @@
         .bg-whites {
             background-color: #FCFCFF;
         }
+
+        #table_id th {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6c757d;
+        }
+
+        #table_id td {
+            font-size: .8rem;
+        }
+
+        #table_id tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #table_draft th {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6c757d;
+        }
+
+        #table_draft td {
+            font-size: .8rem;
+        }
+
+        #table_draft tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        #table_data th {
+            font-size: .72rem;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            color: #6c757d;
+        }
+
+        #table_data td {
+            font-size: .8rem;
+        }
+
+        #table_data tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .dropdown-item {
+            cursor: pointer;
+        }
+
+        ::placeholder {
+            color: #adb5bd !important;
+            opacity: 1 !important;
+            font-style: italic !important;
+            font-size: 11px !important;
+        }
+
+        input[readonly],
+        textarea[readonly],
+        select[readonly] {
+            background-color: #f8f9fa !important;
+            color: #495057 !important;
+            border-color: #dee2e6 !important;
+            cursor: not-allowed;
+            opacity: 1;
+        }
+
+        input[readonly]::placeholder,
+        textarea[readonly]::placeholder {
+            color: #adb5bd;
+        }
+
+        input[readonly]:focus,
+        textarea[readonly]:focus,
+        select[readonly]:focus {
+            box-shadow: none !important;
+            border-color: #dee2e6 !important;
+        }
+
+        /* BOOTSTRAP FORM-CONTROL OVERRIDE */
+        .form-control[readonly] {
+            background-color: #f8f9fa !important;
+        }
+
     </style>
 </head>
 

@@ -40,6 +40,10 @@
     table.dataTable tbody td {
         font-size: .75rem !important;
     }
+
+    * {
+      font-size: .9rem !important;
+    }
 </style>
 
 <?php
@@ -118,132 +122,144 @@
   <div class="content">
     <?php include 'navbar.php'; ?>
 
-    <div class="container-fluid p-4">
-      <div class="row">
+    <div class="container-fluid p-4 f-1">
+      <div class="row justify-content-center">
         <div class="col-12">
-          <div class="bg-whites rounded h-100 p-4">
-            <h6 class="mb-4">Create Draft Benefit PK</h6>
+          <div class="card rounded-4 shadow-sm p-4">
+
+            <div class="d-flex align-items-center mb-4">
+              <div class="me-3">
+                <i class="fas fa-file-signature text-primary fs-4"></i>
+              </div>
+              <div>
+                <h5 class="mb-0 fw-semibold fs-5">Create Draft Benefit PK</h5>
+                <small class="text-muted fs-6">Lengkapi data sekolah & PIC</small>
+              </div>
+            </div>
+
             <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
-              <table class="table table-striped">
-                <tr>
-                  <td style="width: 15%">Inputter</td>
-                  <td style="width:5px">:</td>
-                  <td>
-                    <input type='hidden' name='id_user' value="<?= $_SESSION['id_user'] ?>"> 
-                    <?php
-                      if($_SESSION['role'] != 'admin') { ?>
-                        <?= $_SESSION['username']?>
-                        <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
-                    <?php } else {?>
-                      <select name="inputEC" class="form-select form-select-sm select2" required style="width: 100%;">
-                        <?php foreach($ecs as $ec) { ?>
-                          <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>><?= $ec['generalname'] ?></option>
-                        <?php } ?>
-                      </select>
-                    <?php } ?>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Nama Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <div class="d-block w-100" id="select_school_div">
-                      <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width: 100%;">
-                      </select>
+
+              <!-- INPUTTER -->
+              <div class="row mb-3 align-items-center">
+                <label class="col-md-3 col-form-label fw-semibold">EC</label>
+                <div class="col-md-9">
+                  <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"> 
+                  <?php if($_SESSION['role'] != 'admin') { ?>
+                    <div class="form-control form-control-sm bg-light">
+                      <?= $_SESSION['username']?>
                     </div>
-                    <div class="d-none text-center" id="loading_school"><i class="fas fa-spinner fa-spin text-primary"></i></div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>My Plan Ref</td>
-                  <td>:</td>
-                  <td>
-                    <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2" style="width: 100%;">
+                    <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
+                  <?php } else { ?>
+                    <select name="inputEC" class="form-select form-select-sm select2" required style="width:100%;">
+                      <?php foreach($ecs as $ec) { ?>
+                        <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>>
+                          <?= $ec['generalname'] ?>
+                        </option>
+                      <?php } ?>
                     </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Segment Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <select name="segment" class="form-select form-select-sm select2" required style="width: 100%;">
-                      <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
-                      <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?>>National Plus</option>
-                      <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International/SPK</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Jenjang Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <select name="level" class="form-select form-select-sm select2" required style="width: 100%;">
-                      <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
-                      <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
-                      <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
-                      <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
-                      <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
-                      <option value="other" id='level_manual_input' <?= $level ? (!in_array($level, ['tk', 'sd', 'smp', 'sma', 'yayasan']) ? 'selected' : '') : '' ?>>Lainnya (isi sendiri)</option>
-                    </select>
-                    <div class="my-1" id='other_level' style="display: none;">
-                      <input type="text" name="level2" value="" placeholder="Jenjang..." class="form-control form-control-sm">
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Wilayah Sekolah</td>
-                  <td>:</td>
-                  <td><input type="text" name="wilayah" placeholder="wilayah" class="form-control form-control-sm" value="<?= $wilayah ?>" required></td>
-                </tr>
-                <tr>
-                  <td>Nama Lengkap PIC</td>
-                  <td>:</td>
-                  <td><input type="text" name="pic_name" placeholder="nama lengkap" class="form-control form-control-sm" value="<?= ISSET($pic_name) ? $pic_name : '' ?>" required></td>
-                </tr>
-                <tr>
-                  <td>Jabatan PIC</td>
-                  <td>:</td>
-                  <td><input type="text" name="jabatan" placeholder="jabatan" class="form-control form-control-sm" value="<?= ISSET($jabatan) ? $jabatan : '' ?>" required></td>
-                </tr>
-                <tr>
-                  <td>No. Telepon PIC</td>
-                  <td>:</td>
-                  <td><input type="text" name="no_tlp" placeholder="no telp" class="form-control form-control-sm" value="<?= ISSET($pic_phone) ? $pic_phone : '' ?>" required></td>
-                </tr>
-                <tr>
-                  <td>E-mail PIC</td>
-                  <td>:</td>
-                  <td><input type="email" name="email_pic" placeholder="email" class="form-control form-control-sm" value="<?= ISSET($pic_email) ? $pic_email : '' ?>" required></td>
-                </tr>
-                <tr>
-                  <td>Jenis PK</td>
-                  <td>:</td>
-                  <td>
-                    <select name="jenis_pk" class="form-select form-select-sm select2" required id="jenis_pk" required style="width: 100%;">
-                      <option value="">-- Select Jenis PK --</option>
-                      <option value="1" <?= (ISSET($jenis_pk) && $jenis_pk == 1) ? 'selected' : '' ?>>PK Baru</option>
-                      <option value="2" <?= (ISSET($jenis_pk) && $jenis_pk) == 2 ? 'selected' : '' ?>>Amandemen</option>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Program</td>
-                  <td>:</td>
-                  <td>
-                    <select name="program" class="form-select form-select-sm select2" required id="program" required style="width: 100%;">
-                      
-                    </select>
-                  </td>
-                </tr>
-              </table>
+                  <?php } ?>
+                </div>
+              </div>
+
+              <!-- NAMA SEKOLAH -->
+              <div class="row mb-3">
+                <label class="col-md-3 col-form-label fw-semibold">Nama Sekolah</label>
+                <div class="col-md-9">
+                  <div id="select_school_div">
+                    <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width:100%;"></select>
+                  </div>
+                  <div class="d-none text-center mt-2" id="loading_school">
+                    <i class="fas fa-spinner fa-spin text-primary"></i>
+                  </div>
+                </div>
+              </div>
+              <!-- PK & PROGRAM -->
+              <div class="row mb-3">
+                <label class="col-md-3 col-form-label fw-semibold">Jenis PK</label>
+                <div class="col-md-9">
+                  <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
+                    <option value="">-- Pilih Jenis PK --</option>
+                    <option value="1">PK Baru</option>
+                    <option value="2">Amandemen</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-md-3 col-form-label fw-semibold">Program</label>
+                <div class="col-md-9">
+                  <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
+                </div>
+              </div>
+              <!-- MY PLAN -->
+              <div class="row mb-3">
+                <label class="col-md-3 col-form-label fw-semibold">My Plan Ref</label>
+                <div class="col-md-9">
+                  <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2" style="width:100%;"></select>
+                </div>
+              </div>
+
+              <!-- SEGMENT & JENJANG -->
+              <div class="row mb-3">
+                <label class="col-md-3 col-form-label fw-semibold">Segment Sekolah</label>
+                <div class="col-md-9">
+                  <select name="segment" class="form-select form-select-sm select2" required style="width:100%;">
+                    <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
+                    <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?>>National Plus</option>
+                    <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International / SPK</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="row mb-3">
+                <label class="col-md-3 col-form-label fw-semibold">Jenjang Sekolah</label>
+                <div class="col-md-9">
+                  <select name="level" class="form-select form-select-sm select2" required style="width:100%;">
+                    <option value="tk">TK</option>
+                    <option value="sd">SD</option>
+                    <option value="smp">SMP</option>
+                    <option value="sma">SMA</option>
+                    <option value="yayasan">Yayasan</option>
+                    <option value="other" id="level_manual_input">Lainnya (isi sendiri)</option>
+                  </select>
+                  <div class="mt-2" id="other_level" style="display:none;">
+                    <input type="text" name="level2" class="form-control form-control-sm" placeholder="Jenjang lainnya...">
+                  </div>
+                </div>
+              </div>
+
+              <!-- PIC SECTION -->
+              <hr class="my-4">
+              <h6 class="fw-semibold mb-3">Informasi PIC</h6>
+
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label">Nama Lengkap</label>
+                  <input type="text" name="pic_name" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Jabatan</label>
+                  <input type="text" name="jabatan" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">No. Telepon</label>
+                  <input type="text" name="no_tlp" class="form-control form-control-sm" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Email</label>
+                  <input type="email" name="email_pic" class="form-control form-control-sm" required>
+                </div>
+              </div>
 
               <div class="mt-4" id="benefit_container"></div>
 
             </form>
+
           </div>
         </div>
       </div>
     </div>
+
       <!-- Form End -->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>

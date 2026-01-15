@@ -1,6 +1,6 @@
 <!-- Navbar Start -->
 <div class="" style="position: relative;">
-    <nav class="navbar navbar-expand navbar-light sticky-top px-4 py-0 bg-whites">
+    <nav class="navbar navbar-expand navbar-light sticky-top px-4 py-0">
         <a href="#" class="sidebar-toggler flex-shrink-0">
             <i class="fa fa-bars"></i>
         </a>
@@ -10,7 +10,7 @@
                     <img class="rounded-circle me-lg-2" src="img/user2.png" alt="" style="width: 40px; height: 40px;">
                     <span class="d-none d-lg-inline-flex" style="font-size: .9rem;"><?=$_SESSION['username'];?></span>
                 </a>
-                <div class="dropdown-menu dropdown-menu-end bg-whites border-0 rounded-0 rounded-bottom m-0">
+                <div class="dropdown-menu dropdown-menu-end border-0 rounded-0 rounded-bottom m-0">
                     <a href="logout.php" class="dropdown-item fw-bold"> <i class="fas fa-sign-out-alt logout-icon"></i> Logout</a>
                 </div>
             </div>

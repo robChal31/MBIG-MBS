@@ -37,12 +37,15 @@
     $sumalok = ISSET($_POST["sumalok"]) ? $_POST["sumalok"] : (ISSET($_SESSION["sumalok"]) ? $_SESSION['sumalok'] : 0);
 
     $program = strtolower($program);
-
+    $program_name   = $program;
     $id_draft       = $_SESSION["id_draft"];
     $school_name    = $_SESSION["school_name"];
     $school_name    = str_replace("'", "", $school_name);
 
     $segment        = $_SESSION["segment"];
+    $segment        = trim($segment ?? '');
+    $segment_name   = $segment;
+
     unset($_SESSION["program"]);
     unset($_SESSION["sumalok"]);
     unset($_SESSION["id_draft"]);
@@ -79,8 +82,9 @@
     $manvals        = ISSET($_POST["manval"]) ? $_POST["manval"] : NULL;
     $valbens        = $_POST["valben"];
     $id_templates   = $_POST["id_templates"];
-    $editmode       = $_POST["editmode"];
-    
+    $editmode       = ISSET($_POST["editmode"]) ? $_POST["editmode"] : NULL;
+
+
     if($selisih_benefit < 0){
         echo "Selisih Benefit Minus";
         exit();
@@ -138,6 +142,26 @@
         
         //create excel
         if(!$save_as_draft) {
+
+            if ($segment !== '' && is_numeric($segment)) {
+                $segment_id = (int) $segment;
+
+                $q_segment = "SELECT * FROM segments WHERE id = $segment_id LIMIT 1";
+                $r_segment = mysqli_query($conn, $q_segment);
+
+                if ($r_segment && mysqli_num_rows($r_segment) === 1) {
+                    $segment_data = mysqli_fetch_assoc($r_segment);
+                    $segment_name = $segment_data['segment'];
+                }
+            }
+
+            $q_program = "SELECT * FROM programs WHERE code = '$program_code' OR name = '$program_code' LIMIT 1";
+            $r_program = mysqli_query($conn, $q_program);
+
+            if ($r_program && mysqli_num_rows($r_program) === 1) {
+                $program_name = mysqli_fetch_assoc($r_program);
+                $program_name = $program_name['name'];
+            }
             
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();
@@ -145,7 +169,7 @@
             // $sheet->setCellValue('A2', 'FORM PERHITUNGAN HARGA DAN BENEFIT');
             $sheet->mergeCells('A2:J2');
             // $sheet->setCellValue('A3', 'PROGRAM COMPETENCY BASED LEARNING SOLUTION (CBLS ) 2023');
-            $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program) . ($program_year != 1 ? ($program_year == 2 ? " PERUBAHAN TAHUN KE 2" : " PERUBAHAN TAHUN KE 3") : " TAHUN KE I"));
+            $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program_name) . ($program_year != 1 ? ($program_year == 2 ? " PERUBAHAN TAHUN KE 2" : " PERUBAHAN TAHUN KE 3") : " TAHUN KE I"));
             $sheet->mergeCells('A3:J3');
             $sheet->setCellValue('A4', 'TAHUN AJARAN');
             $sheet->mergeCells('A4:J4');
@@ -155,9 +179,9 @@
             $sheet->setCellValue('A6', 'Nama EC');
             $sheet->setCellValue('B6', ': '.$ec_name);
             $sheet->setCellValue('A7', 'Program');
-            $sheet->setCellValue('B7', ': '. strtoupper($program));
+            $sheet->setCellValue('B7', ': '. strtoupper($program_name));
             $sheet->setCellValue('A8', 'Segment');
-            $sheet->setCellValue('B8', ': '.ucfirst($segment));
+            $sheet->setCellValue('B8', ': '.ucfirst($segment_name));
             $sheet->setCellValue('A9', 'Tanggal Dibuat');
             $sheet->setCellValue('B9', ': '.date('d M Y'));
             
@@ -524,11 +548,12 @@
                 //Recipients
                 $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
                 
+                // $mail->addAddress('bany@mentarigroups.com', $leaderName);
                 $mail->addAddress($leaderEmail, $leaderName);
                 $mail->addAttachment($excelFile,$fileName);
                 //Content
                 $mail->isHTML(true);
-                $uc_program = strtoupper($program);
+                $uc_program = strtoupper($program_name);
                 $mail->Subject = 'Keren, '.$ec_name.' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
                 $mail->Body    = $message;
                 $mail->send();
@@ -551,11 +576,12 @@
                 //Recipients
                 $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
                 
+                // $mail->addAddress('bany@mentarigroups.com', $ec_name);
                 $mail->addAddress($ec_email, $ec_name);
                 $mail->addAttachment($excelFile,$fileName);
                 //Content
                 $mail->isHTML(true);
-                $uc_program = strtoupper($program); 
+                $uc_program = strtoupper($program_name); 
                 $mail->Subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program. '  ' . $school_name;
                 $mail->Body    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
                 $mail->send();

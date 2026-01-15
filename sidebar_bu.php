@@ -17,7 +17,7 @@ $last_path_with_query;
 
 
 <div class="sidebar pe-4 pb-3">
-    <nav class="navbar bg-white">
+    <nav class="navbar card">
         <a href="main.php" class="navbar-brand mx-4 mt-md-0 pt-md-0 pt-4 mt-4">
             <h3 class="text-primary"><img src='img/logoMISs.png' width="50%"></h3>
         </a>

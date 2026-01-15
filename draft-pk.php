@@ -12,91 +12,151 @@
         <div class="container-fluid p-4">
             <div class="row">
                 <div class="col-12">
-                    <div class="bg-whites rounded h-100 p-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-4">Draft Benefit</h6>
-                            <a href="create_draft_pk.php">
-                                <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Draft</button>    
+                    <div class="card rounded h-100 p-4 shadow">
+
+                        <!-- HEADER -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">Draft Benefit (PK)</h5>
+                                <small class="text-muted">Manage PK draft approval and verification</small>
+                            </div>
+
+                            <a href="create_draft_pk.php" class="btn btn-primary btn-sm fw-semibold">
+                                <i class="fas fa-plus me-2"></i> Create Draft
                             </a>
                         </div>
-                        
 
+                        <!-- TABLE -->
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered" id="table_draft">
-                                <thead>
+                            <table class="table align-middle" id="table_draft">
+                                <thead class="table-light">
                                     <tr>
-                                        <th scope="col" style="width: 10%">Nama EC</th>
-                                        <th scope="col" style="width: 20%">Nama Sekolah</th>
-                                        <th scope="col">Segment</th>
-                                        <th scope="col">Program</th>
-                                        <th scope="col">Created at</th>
-                                        <th scope="col">Updated at</th>
-                                        <!-- <th scope="col">Deleted at</th> -->
-                                        <th scope="col" style="width: 13%">Status</th>
-                                        <th scope="col">Action</th>
+                                        <th>Nama EC</th>
+                                        <th>Nama Sekolah</th>
+                                        <th>Segment</th>
+                                        <th>Program</th>
+                                        <th>Created</th>
+                                        <th>Updated</th>
+                                        <th>Status</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
-                                    <?php
+                                <?php
+                                    $order_by = ' ORDER BY a.date ASC';
+                                    $id_user = $_SESSION['id_user'];
 
-                                        $order_by = ' ORDER BY a.date ASC';
-                                        $id_user = $_SESSION['id_user'];
-                                        $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at
-                                                FROM draft_benefit a
-                                                LEFT JOIN schools as sc on sc.id = a.school_name
-                                                LEFT JOIN user b on a.id_ec = b.id_user
-                                                LEFT JOIN programs AS prog ON (prog.name = a.program OR prog.code = a.program)
-                                                WHERE a.deleted_at IS NULL
-                                                AND prog.is_active = 1 AND prog.is_pk = 1
-                                                "; 
-                                        if($_SESSION['role'] == 'ec'){
-                                            // $sql.=" AND (a.id_user=".$_SESSION['id_user']." or b.leadId='".$_SESSION['id_user']."')";
-                                            $sql.=" AND (a.id_ec = $id_user or b.leadId = $id_user or b.leadId2 = $id_user or b.leadId3 = $id_user)";
-                                        }
-                                        $sql .= $order_by;
-                                        $result = mysqli_query($conn, $sql);
-                                        setlocale(LC_MONETARY,"id_ID");
-                                        if (mysqli_num_rows($result) > 0) {
-                                            while($row = mysqli_fetch_assoc($result)) {
-                                                $stat = ($row['status'] == 0) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
-                                                $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
-                                                $stat = $row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0 ? 'Verified' : ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 1 ? 'Confirmed' : ($row['verified'] == 0 && $stat == 'Approved' ? 'Waiting Verification' : $stat));
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
-                                    ?>
-                                                <tr>
-                                                    <td><?= $row['generalname'] ?></td>
-                                                    <td><?= $row['school_name2'] ?></td>
-                                                    <td><?= $row['segment'] ?></td>
-                                                    <td><?= $row['program'] ?></td>
-                                                    <td><?= $row['date'] ?></td>
-                                                    <td><?= $row['updated_at'] ?></td>
-                                                    <!-- <td><?= $row['deleted_at'] ?></td> -->
-                                                    <td>
-                                                        <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>
-                                                    </td>
-                                                    <td scope="col">
-                                                        <?php if($row['fileUrl']) { ?>
-                                                            <a href='draft-benefit/<?= $row['fileUrl'].".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="fa fa-paperclip me-1"></i></a>
-                                                        <?php } ?>
-                                                        <?php 
-                                                            if($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')){ ?>
-                                                                <a href="create_draft_pk.php?id_draft=<?= $row['id_draft'] ?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
-                                                        <?php } ?>
+                                    $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at, IFNULL(seg.segment, a.segment) as new_segment
+                                            FROM draft_benefit a
+                                            LEFT JOIN schools as sc on sc.id = a.school_name
+                                            LEFT JOIN segments as seg on seg.id = a.segment
+                                            LEFT JOIN user b on a.id_ec = b.id_user
+                                            LEFT JOIN programs AS prog ON (prog.name = a.program OR prog.code = a.program)
+                                            WHERE a.deleted_at IS NULL
+                                            AND prog.is_active = 1 AND prog.is_pk = 1";
 
-                                                        <?php if(($is_ec_the_creator || $_SESSION['role'] == 'admin') && $row['status'] == 2){ ?>
-                                                            <a href='#' data-id="<?= $row['id_draft'] ?>" class='delete-btn text-danger me-1' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
-                                                        <?php } ?>
-                                                    </td>
-                                                </tr>
-                                            
-                                        <?php } } ?>
+                                    if($_SESSION['role'] == 'ec'){
+                                        $sql.=" AND (a.id_ec = $id_user 
+                                                    OR b.leadId = $id_user 
+                                                    OR b.leadId2 = $id_user 
+                                                    OR b.leadId3 = $id_user)";
+                                    }
+
+                                    $sql .= $order_by;
+                                    $result = mysqli_query($conn, $sql);
+
+                                    if (mysqli_num_rows($result) > 0) {
+                                        while($row = mysqli_fetch_assoc($result)) {
+
+                                            $stat = ($row['status'] == 0)
+                                                ? 'Waiting Approval'
+                                                : ($row['status'] == 1 ? 'Approved' : 'Rejected');
+
+                                            $status_class = $row['status'] == 0
+                                                ? 'warning'
+                                                : ($row['status'] == 1 ? 'success' : 'danger');
+
+                                            $stat = $row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0
+                                                ? 'Verified'
+                                                : ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 1
+                                                    ? 'Confirmed'
+                                                    : ($row['verified'] == 0 && $stat == 'Approved'
+                                                        ? 'Waiting Verification'
+                                                        : $stat));
+
+                                            $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
+                                ?>
+                                    <tr>
+                                        <td class="fw-semibold"><?= $row['generalname'] ?></td>
+                                        <td><?= $row['school_name2'] ?></td>
+                                        <td><?= ucfirst($row['new_segment']) ?></td>
+                                        <td><?= strtoupper($row['program']) ?></td>
+                                        <td><?= $row['date'] ?></td>
+                                        <td><?= $row['updated_at'] ?></td>
+
+                                        <!-- STATUS -->
+                                        <td>
+                                            <span
+                                                class="badge bg-<?= $status_class ?>"
+                                                style="cursor:pointer"
+                                                data-id="<?= $row['id_draft'] ?>"
+                                                <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>
+                                                data-bs-target="#approvalModal">
+                                                <?= $stat ?>
+                                            </span>
+                                        </td>
+
+                                        <!-- ACTION -->
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <i class="fas fa-ellipsis-v text-muted"
+                                                data-bs-toggle="dropdown"
+                                                style="cursor:pointer"></i>
+
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+
+                                                    <?php if($row['fileUrl']) { ?>
+                                                        <li>
+                                                            <a class="dropdown-item"
+                                                            href="draft-benefit/<?= $row['fileUrl'] ?>.xlsx">
+                                                                <i class="fa fa-paperclip me-2"></i> View File
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+
+                                                    <?php if($row['status'] == 2 && ($is_ec_the_creator || $_SESSION['role'] == 'admin')){ ?>
+                                                        <li>
+                                                            <a class="dropdown-item text-success"
+                                                            href="create_draft_pk.php?id_draft=<?= $row['id_draft'] ?>">
+                                                                <i class="fas fa-edit me-2"></i> Edit
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+
+                                                    <?php if(($is_ec_the_creator || $_SESSION['role'] == 'admin') && $row['status'] == 2){ ?>
+                                                        <li>
+                                                            <a class="dropdown-item text-danger delete-btn"
+                                                            data-id="<?= $row['id_draft'] ?>" href="#">
+                                                                <i class="fas fa-trash me-2"></i> Delete
+                                                            </a>
+                                                        </li>
+                                                    <?php } ?>
+
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php } } ?>
                                 </tbody>
                             </table>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
+
         <!-- Sale & Revenue End -->
 
         <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
@@ -207,42 +267,60 @@
 
     $(document).ready(function() {
         $('#table_draft').DataTable({
-            dom: 'Bfrtip',
+            dom: 'Bfrtilp',
             pageLength: 20,
-            order: [
-                [4, 'desc'] 
-            ],
+            lengthMenu: [10, 20, 50, 100],
+            order: [[4, 'desc']],
             buttons: [
                 { 
                     extend: 'copyHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
                     }
                 },
                 { 
                     extend: 'excelHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
                     }
                 },
                 { 
                     extend: 'csvHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
                     }
                 },
                 { 
                     extend: 'pdfHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
                     }
                 }
-            ]
-        })
+            ],
+            initComplete: function () {
+                $('#table_draft_length label').css({
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'gap': '8px',
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'margin-left': '20px',
+                    'margin-top': '8px'
+                });
+
+                $('#table_draft_length select').css({
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'border-radius': '5px',
+                    'padding': '2px 6px',
+                    'border': '1px solid #ccc'
+                });
+            }
+        });
     })
 </script>
        

@@ -75,115 +75,190 @@
     }
 ?>
 
-    <div class="container-fluid p-1">               
-        <div class="table-responsive">
-            <div class="table-responsive">
-                <table class="table" id="table_id">
-                    <thead>
-                        <tr>
-                            <th style="width: 4%">No PK</th>
-                            <th>Jenis Program</th>
-                            <th>School</th>
-                            <th>EC Name</th>
-                            <th scope="col">Benefit</th>
-                            <th style="width: 4%" scope="col">Sub Benefit</th>
-                            <th scope="col">Active From</th>
-                            <th scope="col">Expired At</th>
-                            <th scope="col">Year 1</th>
-                            <th scope="col">Total Usage Year 1</th>
-                            <th scope="col">Year 2</th>
-                            <th scope="col">Total Usage Year 2</th>
-                            <th scope="col">Year 3</th>
-                            <th scope="col">Total Usage Year 3</th>
-                            <th scope="col" style="width: 10%;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                            foreach($benefits as $loop => $benefit) {
-                                if(strtolower($benefit['program']) == 'cbls3' && $benefit['prog_year'] == 1) {
-                                    $benefit['qty2'] = $benefit['qty'];
-                                    $benefit['qty3'] = $benefit['qty'];
-                                }
-                                $programe_name = $benefit['prog_year'] == 1 ? $benefit['program'] : ($benefit['program'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
-                                $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time())
-                        ?>
-                                <tr class="<?= $is_expired || $benefit['has_ref_usage'] ? "bg-danger text-white" : (!$query_selected_usage_year && ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0) ? 'bg-info text-white' : '') ?>" title="<?= $is_expired ? "Benefit Expired" : '' ?>" >
-                                    <td><?= $benefit['no_pk'] ?></td>
-                                    <td><?= strtoupper($programe_name) ?> <?= $benefit['perubahan_tahun'] ? " Perubahan Manual Tahun Ke " . $benefit['perubahan_tahun'] : '' ?></td>
-                                    <td><?= $benefit['school_name2'] ?></td>
-                                    <td><?= $benefit['generalname'] ?></td>
-                                    <td><?= $benefit['benefit'] ?></td>
-                                    <td><?= $benefit['subbenefit'] ?></td>
-                                    <td><?= $benefit['start_at'] ?></td>
-                                    <td><?= $benefit['expired_at'] ?></td>
-                                    <td class="text-center"><?= $benefit['qty'] ?></td>
-                                    <td class="text-center"><?= $benefit['tot_usage1'] ?? 0?></td>
-                                    <td class="text-center"><?= $benefit['qty2'] ?></td>
-                                    <td class="text-center"><?= $benefit['tot_usage2'] ?? 0?></td>
-                                    <td class="text-center"><?= $benefit['qty3'] ?></td>
-                                    <td class="text-center"><?= $benefit['tot_usage3'] ?? 0?></td>
-                                    <td scope='col' >
-                                       <div class="d-flex gap-1">
-                                            <span data-id="<?= $benefit['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-primary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fa fa-eye'></i></span>
-                                            
-                                            <?php if($benefit['confirmed'] == 1) : ?>
-                                                <?php if(($_SESSION['role'] == "ec" && $benefit['redeemable'] == 1) || $_SESSION['role'] != "ec" && !$benefit['has_ref_usage']) : ?>
-                                                    <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='usage' data-bs-toggle='modal' data-bs-target='#usageModal' class='btn btn-outline-warning btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Usage'><i class='fa fa-clipboard-list'></i></span>
-                                                <?php endif; ?>
+<div class="container-fluid p-1">
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="table align-middle" id="table_id">
+            <thead>
+                <tr>
+                    <th style="width:4%">No PK</th>
+                    <th>Jenis Program</th>
+                    <th>School</th>
+                    <th>EC Name</th>
+                    <th>Benefit</th>
+                    <th style="width:6%">Sub Benefit</th>
+                    <th>Active From</th>
+                    <th>Expired At</th>
+                    <th class="text-center">Year 1</th>
+                    <th class="text-center">Total Usage Y1</th>
+                    <th class="text-center">Year 2</th>
+                    <th class="text-center">Total Usage Y2</th>
+                    <th class="text-center">Year 3</th>
+                    <th class="text-center">Total Usage Y3</th>
+                    <th class="text-center" style="width:10%">Action</th>
+                </tr>
+            </thead>
 
-                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='history' data-bs-toggle='modal' data-bs-target='#historyUsageModal' class='btn btn-outline-success btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='History Usage'><i class='fa fa-history'></i></span>
+            <tbody>
+            <?php foreach ($benefits as $loop => $benefit): ?>
+                <?php
+                    if (strtolower($benefit['program']) === 'cbls3' && $benefit['prog_year'] == 1) {
+                        $benefit['qty2'] = $benefit['qty'];
+                        $benefit['qty3'] = $benefit['qty'];
+                    }
 
-                                                <span data-id="<?= $benefit['id_benefit_list'] ?>" data-action='note' data-bs-toggle='modal' data-bs-target='#noteUsageModal' class='btn btn-outline-secondary btn-sm me-1 mb-1' style='font-size: .75rem' data-toggle='tooltip' title='Note Usage'><i class='fa fa-sticky-note'></i></span>
-                                            <?php endif; ?>
-                                       </div>
-                                    </td>
-                                </tr>
-                        <?php } ?>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    $programe_name = $benefit['prog_year'] == 1
+                        ? $benefit['program']
+                        : ($benefit['program'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
+
+                    $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time());
+
+                    $row_class = $is_expired || $benefit['has_ref_usage']
+                        ? "table-danger"
+                        : (
+                            !$query_selected_usage_year &&
+                            ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0)
+                            ? "table-info"
+                            : ""
+                        );
+                ?>
+                <tr class="<?= $row_class ?>" title="<?= $is_expired ? 'Benefit Expired' : '' ?>">
+                    <td><?= $benefit['no_pk'] ?></td>
+                    <td>
+                        <?= strtoupper($programe_name) ?>
+                        <?= $benefit['perubahan_tahun'] ? " Perubahan Manual Tahun Ke ".$benefit['perubahan_tahun'] : '' ?>
+                    </td>
+                    <td><?= $benefit['school_name2'] ?></td>
+                    <td class="fw-semibold"><?= $benefit['generalname'] ?></td>
+                    <td><?= $benefit['benefit'] ?></td>
+                    <td><?= $benefit['subbenefit'] ?></td>
+                    <td><?= $benefit['start_at'] ?></td>
+                    <td><?= $benefit['expired_at'] ?></td>
+
+                    <td class="text-center"><?= $benefit['qty'] ?></td>
+                    <td class="text-center"><?= $benefit['tot_usage1'] ?? 0 ?></td>
+                    <td class="text-center"><?= $benefit['qty2'] ?></td>
+                    <td class="text-center"><?= $benefit['tot_usage2'] ?? 0 ?></td>
+                    <td class="text-center"><?= $benefit['qty3'] ?></td>
+                    <td class="text-center"><?= $benefit['tot_usage3'] ?? 0 ?></td>
+
+                    <td class="text-center">
+                        <div class="dropdown" data-bs-boundary="window">
+                            <i class="fas fa-ellipsis-v text-muted"
+                            data-bs-toggle="dropdown"
+                            style="cursor:pointer"></i>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                <li>
+                                    <a class="dropdown-item"
+                                    data-id="<?= $benefit['id_draft'] ?>"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#pkModal">
+                                        <i class="fa fa-eye me-2"></i> Detail
+                                    </a>
+                                </li>
+
+                                <?php if ($benefit['confirmed'] == 1): ?>
+                                    <?php if (
+                                        ($_SESSION['role'] === "ec" && $benefit['redeemable'] == 1) ||
+                                        ($_SESSION['role'] !== "ec" && !$benefit['has_ref_usage'])
+                                    ): ?>
+                                    <li>
+                                        <a class="dropdown-item text-warning"
+                                        data-id="<?= $benefit['id_benefit_list'] ?>"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#usageModal">
+                                            <i class="fa fa-clipboard-list me-2"></i> Usage
+                                        </a>
+                                    </li>
+                                    <?php endif; ?>
+
+                                    <li>
+                                        <a class="dropdown-item text-success"
+                                        data-id="<?= $benefit['id_benefit_list'] ?>"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#historyUsageModal">
+                                            <i class="fa fa-history me-2"></i> History Usage
+                                        </a>
+                                    </li>
+
+                                    <li>
+                                        <a class="dropdown-item text-secondary"
+                                        data-id="<?= $benefit['id_benefit_list'] ?>"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#noteUsageModal">
+                                            <i class="fa fa-sticky-note me-2"></i> Note Usage
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
+
+</div>
+
  
 <?php $conn->close();?>
 <script>
     $('#table_id').DataTable({
-        dom: 'Bfrtip',
+        dom: 'Bfrtilp',
         pageLength: 20,
-        order: [
-            // [0, 'desc'] 
-        ],
+        lengthMenu: [10, 20, 50, 100],
+        order: [[0, 'desc']],
         buttons: [
             { 
                 extend: 'copyHtml5',
                 className: 'btn-custom',
                 attr: {
-                    style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                    style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
                 }
             },
             { 
                 extend: 'excelHtml5',
                 className: 'btn-custom',
                 attr: {
-                    style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                    style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
                 }
             },
             { 
                 extend: 'csvHtml5',
                 className: 'btn-custom',
                 attr: {
-                    style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                    style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
                 }
             },
             { 
                 extend: 'pdfHtml5',
                 className: 'btn-custom',
                 attr: {
-                    style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                    style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
                 }
             }
-        ]
+        ],
+        initComplete: function () {
+            $('#table_id_length label').css({
+                'display': 'flex',
+                'align-items': 'center',
+                'gap': '8px',
+                'font-size': '.7rem',
+                'font-weight': 'bold',
+                'margin-left': '20px',
+                'margin-top': '8px'
+            });
+
+            $('#table_id_length select').css({
+                'font-size': '.7rem',
+                'font-weight': 'bold',
+                'border-radius': '5px',
+                'padding': '2px 6px',
+                'border': '1px solid #ccc'
+            });
+        }
     });
 </script>
 

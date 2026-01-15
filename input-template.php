@@ -89,7 +89,8 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Business Unit</label>
-                    <select name="unit_bisnis" id="unit_bisnis" class="form-control form-control-sm" required>
+                    <select name="unit_bisnis" id="unit_bisnis" class="form-control form-control-sm select2" required>
+                        <option value="" disabled selected>--Select--</option>
                         <?php foreach($business_units as $bu) { ?>
                             <option value="<?= $bu['code'] ?>" <?= $bu['code'] == ($template['code'] ?? '') ? 'selected' : '' ?>><?= $bu['name'] ?></option>
                         <?php } ; ?>
@@ -97,29 +98,60 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Optional</label>
-                    <select name="optional" id="optional" class="form-control form-control-sm" required>
+                    <select name="optional" id="optional" class="form-control form-control-sm select2" required>
+                       <option value="" disabled selected>--Select--</option>
                        <option value="0" <?= ($template['optional'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
                        <option value="1" <?= ($template['optional'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
                     </select>
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Subject</label>
-                    <select name="subject" id="subject" class="form-control form-control-sm">
+                    <select name="subject" id="subject" class="form-control form-control-sm select2">
                         <option value="" disabled selected>--Select Subject--</option>
-                        <option value="English" <?= ($template['subject'] ?? '') == 'English' ? 'selected' : '' ?>>English</option>
-                        <option value="Maths" <?= ($template['subject'] ?? '') == 'Maths' ? 'selected' : '' ?>>Maths</option>
-                        <option value="Science" <?= ($template['subject'] ?? '') == 'Science' ? 'selected' : '' ?>>Science</option>
-                        <option value="Mandarin" <?= ($template['subject'] ?? '') == 'Mandarin' ? 'selected' : '' ?>>Mandarin</option>
-                        <option value="Bahasa Indonesia" <?= ($template['subject'] ?? '') == 'Bahasa Indonesia' ? 'selected' : '' ?>>Bahasa Indonesia</option>
-                        <option value="Penguatan Karakter" <?= ($template['subject'] ?? '') == 'Penguatan Karakter' ? 'selected' : '' ?>>Penguatan Karakter</option>
-                        <option value="IGCSE" <?= ($template['subject'] ?? '') == 'IGCSE' ? 'selected' : '' ?>>IGCSE</option>
+                        <?php 
+                            $sql_subject = "SELECT * FROM subjects";
+                            $result_subject = $conn->query($sql_subject);
+                            while($subject = $result_subject->fetch_assoc()) { ?>
+                                <option value="<?= $subject['id'] ?>" <?= ($template['subject'] ?? '') == $subject['id'] ? 'selected' : '' ?>><?= $subject['name'] ?></option>
+                            <?php } ; ?>
                     </select>
                 </div>
+
                 <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Highlight Color</label>
+                    <select name="highlight_color" id="highlight_color" class="form-control form-control-sm">
+                        <option value="" disabled selected>--Select Highlight Color --</option>
+                        <option value="8338ec" <?= ($template['highlight_color'] ?? '') == '8338ec' ? 'selected' : '' ?> style="color: #8338ec">Purple</option>
+                        <option value="ff006e" <?= ($template['highlight_color'] ?? '') == 'ff006e' ? 'selected' : '' ?> style="color: #ff006e">Red</option>
+                        <option value="fb5607" <?= ($template['highlight_color'] ?? '') == 'fb5607' ? 'selected' : '' ?> style="color: #fb5607">Orange</option>
+                        <option value="3a86ff" <?= ($template['highlight_color'] ?? '') == '3a86ff' ? 'selected' : '' ?> style="color: #3a86ff">Blue</option>
+                    </select>
+                </div>
+
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Redeemable</label>
-                    <select name="redeemable" id="redeemable" class="form-control form-control-sm">
+                    <select name="redeemable" id="redeemable" class="form-control form-control-sm select2" required>
+                        <option value="" disabled selected>--Select--</option>
                         <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
                         <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
+                    </select>
+                </div>
+
+                <div class="col-4 mb-3">
+                    <label class="form-label d-flex" style="font-size: .85rem;">Manual Input Value</label>
+                    <select name="manual_input" id="manual_input" class="form-control form-control-sm select2" required>
+                        <option value="" disabled selected>--Select --</option>
+                        <option value="1" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
+                        <option value="0" <?= ($template['manual_input'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
+                    </select>
+                </div>
+
+                <div class="col-4 mb-3">
+                    <label class="form-label d-flex" style="font-size: .85rem;">Editable Quantity</label>
+                    <select name="editable_qty" id="editable_qty" class="form-control form-control-sm select2" required>
+                        <option value="" disabled selected>--Select --</option>
+                        <option value="1" <?= ($template['editable_qty'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
+                        <option value="0" <?= ($template['editable_qty'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
                     </select>
                 </div>
 
@@ -130,38 +162,9 @@ if (mysqli_num_rows($program_exec) > 0) {
                 </div>
 
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Highlight Color</label>
-                    <select name="highlight_color" id="highlight_color" class="form-control form-control-sm bg-white ">
-                        <option value="" disabled selected>--Select Highlight Color --</option>
-                        <option value="8338ec" <?= ($template['highlight_color'] ?? '') == '8338ec' ? 'selected' : '' ?> style="color: #8338ec">Purple</option>
-                        <option value="ff006e" <?= ($template['highlight_color'] ?? '') == 'ff006e' ? 'selected' : '' ?> style="color: #ff006e">Red</option>
-                        <option value="fb5607" <?= ($template['highlight_color'] ?? '') == 'fb5607' ? 'selected' : '' ?> style="color: #fb5607">Orange</option>
-                        <option value="3a86ff" <?= ($template['highlight_color'] ?? '') == '3a86ff' ? 'selected' : '' ?> style="color: #3a86ff">Blue</option>
-                    </select>
-                </div>
-
-                <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Info</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info...">
-                </div>
-
-                <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Manual Input Value</label>
-                    <select name="manual_input" id="manual_input" class="form-control form-control-sm bg-white" required>
-                        <option value="" disabled selected>--Select --</option>
-                        <option value="1" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
-                        <option value="0" <?= ($template['manual_input'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
-                    </select>
-                </div>
-
-                <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Editable Quantity</label>
-                    <select name="editable_qty" id="editable_qty" class="form-control form-control-sm bg-white" required>
-                        <option value="" disabled selected>--Select --</option>
-                        <option value="1" <?= ($template['editable_qty'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
-                        <option value="0" <?= ($template['editable_qty'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
-                    </select>
                 </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">
@@ -177,7 +180,9 @@ if (mysqli_num_rows($program_exec) > 0) {
 
 <script>
     $(document).ready(function() {
-        $('.select2').select2();
+        $('.select2').select2({
+            width: '100%'
+        });
 
         $('#form_template').on('submit', function(event) {
             event.preventDefault();

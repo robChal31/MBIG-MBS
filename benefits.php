@@ -27,6 +27,59 @@
         cursor: text;         /* Change cursor to text input style */
     }
 
+    #table_id {
+        font-size: 0.8rem;
+    }
+
+    #table_id th,
+    #table_id td {
+        padding: 0.45rem 0.5rem;
+        vertical-align: middle;
+        font-size: 0.7rem;
+    }
+
+    #table_id .dropdown-menu {
+        font-size: 0.8rem;
+    }
+
+    #table_id .badge {
+        font-size: 0.7rem;
+    }
+
+    /* tighter + modern */
+    #filterBenefitBody .form-label {
+        margin-bottom: 4px;
+    }
+
+    #filterBenefitBody .select2-container--default .select2-selection--multiple {
+        min-height: 34px;
+        font-size: .8rem;
+    }
+
+    #filterBenefitBody .select2-selection__choice {
+        font-size: .75rem;
+    }
+
+    #filterBenefitBody .btn {
+        height: 34px;
+    }
+
+    .form-label { margin-bottom: 4px; }
+
+    .select2-container--default .select2-selection--multiple {
+        min-height: 34px;
+        font-size: .8rem;
+    }
+
+    .select2-selection__choice {
+        font-size: .75rem;
+    }
+
+    .btn-xs {
+        padding: 2px 8px;
+        font-size: .7rem;
+    }
+
 </style>
 
 
@@ -58,49 +111,90 @@
 ?>
     <div class="container-fluid p-4">
         <div class="col-12">
+            <div class="card rounded shadow-sm p-3 mb-4">
+                <!-- HEADER -->
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h6 class="fw-semibold mb-0">Filter Benefit</h6>
+                        <small class="text-muted">Refine data based on benefit type</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-secondary"
+                            data-bs-toggle="collapse"
+                            data-bs-target="#filterBenefitBody">
+                        <i class="fa fa-sliders-h me-1"></i> Toggle
+                    </button>
+                </div>
 
-            <div class="bg-whites rounded h-100 p-4 mb-4">
-                <h6 style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
-                <div class="row p-4">
-                    <div class="col-12 mb-4 <?= $role == 'ec' ? 'd-none' : '' ?> ">
-                        <label for="type">Benefit Type</label>
-                        <select class="form-select form-select-sm select2" name="type[]" multiple>
-                            <?php foreach($types as $type) : ?>
-                                <!-- <?php if($role == 'ec') : ?>
-                                    <?php 
-                                        $match_found = array_filter($matched_ec_default_benefits, fn($benefit) => stripos($type['subbenefit'], $benefit) !== false);
-                                    ?>
-                                    <option value="<?= $type['id_templates'] ?>" <?= $match_found ? 'selected' : '' ?> ><?= $type['subbenefit'] ?></option>
-                                <?php else : ?>
-                                    <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
-                                <?php endif; ?> -->
-                                <option value="<?= $type['id_templates'] ?>" selected><?= $type['benefit'] ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
-                    <div class="col-md-5 col-12 mb-4">
-                        <label for="type">Usage Year</label>
-                        <select class="form-select form-select-sm select2" name="usage_year[]" multiple>
-                            <option value="1">Year 1</option>
-                            <option value="2">Year 2</option>
-                            <option value="3">Year 3</option>
-                        </select>
-                    </div>
-                    <div class="col-12 mb-4">
-                        <div class="d-flex justify-content-end">  
-                            <button class="btn btn-primary" id="filter-btn"><i class="fa fa-filter"></i> Filter</button>
+                <!-- BODY -->
+                <div class="collapse show" id="filterBenefitBody">
+                    <div class="row g-3 align-items-end">
+
+                        <!-- BENEFIT TYPE -->
+                        <div class="col-12 <?= $role == 'ec' ? 'd-none' : '' ?>">
+                            <label class="form-label small fw-semibold">Benefit Type</label>
+
+                            <select class="form-select form-select-sm select2"
+                                    id="benefitType"
+                                    name="type[]"
+                                    multiple>
+                                <?php foreach($types as $type) : ?>
+                                    <option value="<?= $type['id_templates'] ?>" selected>
+                                        <?= $type['benefit'] ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+
+                            <!-- helper buttons -->
+                            <div class="d-flex gap-2 mt-1">
+                                <button type="button"
+                                        class="btn btn-outline-secondary btn-xs"
+                                        id="selectAllBenefit">
+                                    Select All
+                                </button>
+                                <button type="button"
+                                        class="btn btn-outline-secondary btn-xs"
+                                        id="clearAllBenefit">
+                                    Clear
+                                </button>
+                            </div>
                         </div>
+
+                        <!-- USAGE YEAR (NO SELECT ALL) -->
+                        <div class="col-md-6 col-12">
+                            <label class="form-label small fw-semibold">Usage Year</label>
+                            <select class="form-select form-select-sm select2"
+                                    id="usageYear"
+                                    name="usage_year[]"
+                                    multiple>
+                                <option value="1">Year 1</option>
+                                <option value="2">Year 2</option>
+                                <option value="3">Year 3</option>
+                            </select>
+                        </div>
+
+                        <!-- ACTION -->
+                        <div class="col-md-6 col-12 d-flex justify-content-md-end align-items-end">
+                            <button class="btn btn-primary btn-sm px-4 fw-semibold"
+                                    id="filter-btn">
+                                <i class="fa fa-filter me-1"></i> Apply Filter
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>
             
-            <div class="bg-whites rounded h-100 p-4">
-                <h6 class="mb-4">Benefits</h6>                      
+            <div class="card shadow rounded h-100 p-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 class="fw-bold mb-0">Benefits</h5>
+                        <small class="text-muted">Manage benefit usage, history, and details</small>
+                    </div>
+                </div>                     
                 <div class="" id="benefits-container"></div>
             </div>
         </div>
     </div>
-    <!-- Sale & Revenue End -->
 
     <!-- Modal -->
 
@@ -257,6 +351,15 @@
         });
     })
 
+    $('#selectAllBenefit').on('click', function () {
+        $('#benefitType option').prop('selected', true);
+        $('#benefitType').trigger('change');
+    });
+
+    $('#clearAllBenefit').on('click', function () {
+        $('#benefitType').val(null).trigger('change');
+    });
+
     $(document).ready(function() {
         $('.select2').select2({});
         getBenefit();
@@ -271,7 +374,7 @@
         let usage_year = $('select[name="usage_year[]"]').val();
 
         $.ajax({
-            url: './get-confirmed-benefits.php',
+            url: './get-confirmed-benefits-bu.php',
             type: 'POST',
             data: {
                 types: selectedType,

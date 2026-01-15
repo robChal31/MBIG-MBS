@@ -24,8 +24,7 @@
     table.dataTable tbody td {
       padding : 5px !important;
       vertical-align: middle !important;
-      /* text-align: center !important; */
-      font-size: .65rem !important;
+      font-size: .7rem !important;
     }
 
     table.dataTable tbody td.benefit-desc{
@@ -49,7 +48,6 @@
     }
 
 </style>
-
 <?php include 'header.php'; ?>
 
 <?php
@@ -60,16 +58,15 @@
     header('Location: ./draft-pk.php');
     exit();
   }
-
   
-  $templates = [];
-  $draft_templates_q = "SELECT * 
-                        FROM draft_template_benefit AS dtb
-                        LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit
-                        WHERE dtb.is_active = 1";
-  $draft_exec = mysqli_query($conn, $draft_templates_q);
-  if (mysqli_num_rows($draft_exec) > 0) {
-    $templates = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
+  $books = [];
+  $books_q = "SELECT series.*, level.name AS level_name, subject.name AS subject_name 
+              FROM book_series AS series
+              LEFT JOIN levels AS level ON level.id = series.level_id
+              LEFT JOIN subjects AS subject ON subject.id = series.subject_id";
+  $books_exec = mysqli_query($conn, $books_q);
+  if (mysqli_num_rows($books_exec) > 0) {
+    $books = mysqli_fetch_all($books_exec, MYSQLI_ASSOC);    
   }
     
 ?>
@@ -81,19 +78,20 @@
           <div class="row">
               <div class="col-12">
                 <div class="card rounded shadow-sm h-100 p-3">
+
                     <!-- HEADER -->
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <div>
-                            <h6 class="fw-semibold mb-0">Benefit Templates</h6>
-                            <small class="text-muted">Manage benefit master templates</small>
+                            <h6 class="fw-semibold mb-0">Book Series</h6>
+                            <small class="text-muted">Manage book series and classifications</small>
                         </div>
                         <button type="button"
                                 class="btn btn-primary btn-sm fw-semibold"
                                 data-action="create"
                                 data-bs-toggle="modal"
-                                data-bs-target="#templateModal"
-                                id="add_template">
-                            <i class="fa fa-plus me-1"></i> Add Template
+                                data-bs-target="#bookModal"
+                                id="add_book">
+                            <i class="fa fa-plus me-1"></i> Add Series
                         </button>
                     </div>
 
@@ -102,36 +100,32 @@
                         <table class="table align-middle" id="table_id">
                             <thead>
                                 <tr>
-                                    <th style="width:5%">ID</th>
-                                    <th>Benefit</th>
-                                    <th>Subbenefit</th>
-                                    <th>Benefit Name</th>
-                                    <th style="width:15%">Description</th>
-                                    <th style="width:15%">Implementation</th>
-                                    <th>Avail Code</th>
-                                    <th style="width:10%">Business Unit</th>
-                                    <th>Qty Y1</th>
-                                    <th>Qty Y2</th>
-                                    <th>Qty Y3</th>
-                                    <th>Value</th>
-                                    <th class="text-center" style="width:8%">Action</th>
+                                    <th style="width:5%">No</th>
+                                    <th>Name</th>
+                                    <th>Level</th>
+                                    <th>Subject</th>
+                                    <th>Is Active</th>
+                                    <th>Deleted At</th>
+                                    <th class="text-center" style="width:10%">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach($templates as $template): ?>
+                                <?php $no = 1; foreach($books as $book): ?>
                                 <tr>
-                                    <td class="text-center"><?= $template['id_template_benefit'] ?></td>
-                                    <td class="fw-semibold"><?= $template['benefit'] ?></td>
-                                    <td><?= $template['subbenefit'] ?></td>
-                                    <td><?= $template['benefit_name'] ?></td>
-                                    <td><?= $template['description'] ?></td>
-                                    <td><?= $template['pelaksanaan'] ?></td>
-                                    <td><?= $template['avail'] ?></td>
-                                    <td><?= $template['unit_bisnis'] ?></td>
-                                    <td class="text-center"><?= $template['qty1'] ?></td>
-                                    <td class="text-center"><?= $template['qty2'] ?></td>
-                                    <td class="text-center"><?= $template['qty3'] ?></td>
-                                    <td><?= number_format($template['valueMoney'], 0, ',', '.') ?></td>
+                                    <td class="text-center"><?= $no ?></td>
+                                    <td class="fw-semibold"><?= $book['name'] ?></td>
+                                    <td><?= $book['level_name'] ?></td>
+                                    <td><?= $book['subject_name'] ?></td>
+                                    <td class="text-center">
+                                      <?= $book['is_active']
+                                        ? "<i class='fa fa-check-circle text-success'></i>"
+                                        : "<i class='fa fa-minus-circle text-danger'></i>" ?>
+                                    </td>
+                                    <td class="text-center">
+                                      <?= $book['deleted_at']
+                                        ? $book['deleted_at']
+                                        : "-" ?>
+                                    </td>
                                     <td class="text-center">
                                         <div class="dropdown" data-bs-boundary="window">
                                             <i class="fas fa-ellipsis-v text-muted"
@@ -141,18 +135,25 @@
                                             <ul class="dropdown-menu dropdown-menu-end shadow-sm">
                                                 <li>
                                                     <a class="dropdown-item"
-                                                      data-id="<?= $template['id_template_benefit'] ?>"
+                                                      data-id="<?= $book['id'] ?>"
                                                       data-action="edit"
                                                       data-bs-toggle="modal"
-                                                      data-bs-target="#templateModal">
+                                                      data-bs-target="#bookModal">
                                                         <i class="fa fa-pen me-2"></i> Edit
                                                     </a>
                                                 </li>
 
+                                                <li>
+                                                  <a class="dropdown-item text-primary"
+                                                    href="books.php?series_id=<?= $book['id'] ?>">
+                                                      <i class="fa fa-book me-2"></i> View Books
+                                                  </a>
+                                                </li>
+
                                                 <?php if($_SESSION['role'] === 'admin'): ?>
                                                 <li>
-                                                    <a class="dropdown-item text-danger del-template"
-                                                      data-id="<?= $template['id_template_benefit'] ?>">
+                                                    <a class="dropdown-item text-danger del-book"
+                                                      data-id="<?= $book['id'] ?>">
                                                         <i class="fa fa-trash me-2"></i> Delete
                                                     </a>
                                                 </li>
@@ -161,27 +162,27 @@
                                         </div>
                                     </td>
                                 </tr>
-                                <?php endforeach; ?>
+                                <?php $no++; endforeach; ?>
                             </tbody>
                         </table>
                     </div>
-                </div>
 
+                </div>
               </div>
           </div>
       </div>
       <!-- Form End -->
 
-      <div class="modal fade" id="templateModal" tabindex="-1" role="dialog" aria-labelledby="templateModalLabel" aria-hidden="true" data-backdrop="static">
+      <div class="modal fade" id="bookModal" tabindex="-1" role="dialog" aria-labelledby="bookModalLabel" aria-hidden="true" data-backdrop="static">
         <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="templateModalLabel">Modal title</h5>
+                <h5 class="modal-title" id="bookModalLabel">Modal title</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
                 </button>
             </div>
-            <div class="modal-body" id="templateModalBody">
+            <div class="modal-body card" id="bookModalBody">
                 Loading...
             </div>
             </div>
@@ -195,47 +196,47 @@
 
       $('.select2').select2();
 
-      var templateModal = document.getElementById('templateModal');
-      templateModal.addEventListener('show.bs.modal', function (event) {
+      var bookModal = document.getElementById('bookModal');
+      bookModal.addEventListener('show.bs.modal', function (event) {
           var rowid = event.relatedTarget.getAttribute('data-id')
           let action = event.relatedTarget.getAttribute('data-action');
 
-          var modalTitle = templateModal.querySelector('.modal-title')
-          modalTitle.textContent = action == 'create' ?  "Create Template" : "Edit Template";
+          var modalTitle = bookModal.querySelector('.modal-title')
+          modalTitle.textContent = action == 'create' ?  "Create Book" : "Edit Book";
          
           $.ajax({
-              url: 'input-template.php',
+              url: 'input-series.php',
               type: 'POST',
               data: {
-                id_template: rowid,
+                series_id: rowid,
               },
               success: function(data) {
-                  $('#templateModalBody').html(data);
+                  $('#bookModalBody').html(data);
                   $('.select2').select2({
-                    dropdownParent: $('#templateModal')
+                    dropdownParent: $('#bookModal')
                   });
               }
           });
       })
 
-      var addTemplateModal = document.getElementById('add_template');
+      var addTemplateModal = document.getElementById('add_book');
       addTemplateModal.addEventListener('show.bs.modal', function (event) {
           var rowid = 0;
           let action = event.relatedTarget.getAttribute('data-action');
 
           var modalTitle = addTemplateModal.querySelector('.modal-title')
-          modalTitle.textContent = action == 'create' ?  "Create Template" : "Edit Template";
+          modalTitle.textContent = action == 'create' ?  "Create Book" : "Edit Book";
          
           $.ajax({
-              url: 'input-template.php',
+              url: 'input-book.php',
               type: 'POST',
               data: {
-                id_template: rowid,
+                series_id: rowid,
               },
               success: function(data) {
-                  $('#templateModalBody').html(data);
+                  $('#bookModalBody').html(data);
                   $('.select2').select2({
-                    dropdownParent: $('#templateModal')
+                    dropdownParent: $('#bookModal')
                   });
               }
           });
@@ -243,7 +244,7 @@
 
     });
 
-    $('.del-template').on('click', function() {
+    $('.del-book').on('click', function() {
       var id = $(this).data('id');
       Swal.fire({
         title: 'Are you sure?',
@@ -256,10 +257,10 @@
       }).then((result) => {
         if (result.isConfirmed) {
           $.ajax({
-            url: 'delete-template-benefit.php',
+            url: 'delete-series.php',
             type: 'POST',
             data: {
-              id_template_benefit: id
+              id: id
             },
             beforeSend: function() {
               Swal.fire({
@@ -273,7 +274,7 @@
             },
             success: function(res) {
               let data = JSON.parse(res);
-              Swal.close()
+              Swal.close();
               if(data.status == 'success') {
                 Swal.fire({
                   title: "Deleted!",
@@ -297,7 +298,7 @@
     });
 
     $(document).on('click', '.close', function() {
-        $('#templateModal').modal('hide');
+        $('#bookModal').modal('hide');
     });
 
 </script>

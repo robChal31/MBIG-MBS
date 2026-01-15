@@ -31,7 +31,7 @@ $query_program = "SELECT * FROM (
                 ) AS benefit
                     WHERE 
                 benefit.deleted_at IS NULL AND (benefit.year2 IS NULL OR benefit.year2 != $year_selected)
-                OR benefit.deleted_at IS NOT NULL;";
+                OR benefit.deleted_at IS NOT NULL ORDER BY benefit.id_draft DESC;";
 
 $result = $conn->query($query_program);
 

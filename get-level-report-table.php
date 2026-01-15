@@ -106,42 +106,60 @@
 
     $(document).ready(function() {
         $('#table_draft').DataTable({
-            dom: 'Bfrtip',
+            dom: 'Bfrtilp',
             pageLength: 20,
-            order: [
-                [6, 'desc'] 
-            ],
+            lengthMenu: [10, 20, 50, 100],
+            order: [[6, 'desc']],
             buttons: [
                 { 
                     extend: 'copyHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
                     }
                 },
                 { 
                     extend: 'excelHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
                     }
                 },
                 { 
                     extend: 'csvHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
                     }
                 },
                 { 
                     extend: 'pdfHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
                     }
                 }
-            ]
-        })
+            ],
+            initComplete: function () {
+                $('#table_draft_length label').css({
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'gap': '8px',
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'margin-left': '20px',
+                    'margin-top': '8px'
+                });
+
+                $('#table_draft_length select').css({
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'border-radius': '5px',
+                    'padding': '2px 6px',
+                    'border': '1px solid #ccc'
+                });
+            }
+        });
 
         $("#back-to-main").click(function() {
             $('#report-loading').addClass('d-none');

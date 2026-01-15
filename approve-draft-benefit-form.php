@@ -62,11 +62,12 @@
     
     $sql        = "SELECT 
                         da.token, b.generalname as ec_name, a.school_name, a.program, a.segment, da.id_draft_approval,
-                        da.notes, da.status, IFNULL(sc.name, a.school_name) AS school_name2
+                        da.notes, da.status, IFNULL(sc.name, a.school_name) AS school_name2, IFNULL(seg.segment, a.segment) AS new_segment
                     FROM draft_approval da 
                     LEFT JOIN draft_benefit a  on a.id_draft = da.id_draft 
                     LEFT JOIN user b on a.id_ec = b.id_user 
                     LEFT JOIN user c on c.id_user = da.id_user_approver 
+                    LEFT JOIN segments as seg on seg.id = a.segment
                     LEFT JOIN schools AS sc ON sc.id = a.school_name
                     WHERE da.id_draft = $id_draft
                     AND da.token = '$token'";
@@ -88,7 +89,7 @@
     while($row = mysqli_fetch_assoc($result)) {
         $ec_name        = $row['ec_name'];
         $school_name    = $row['school_name2'];
-        $segment        = $row['segment'];
+        $segment        = $row['new_segment'];
         $program        = $row['program'];
         $token          = $row['token'];
         $notes          = $row['notes'];
@@ -113,7 +114,7 @@
                    </div>
                 <?php else: ?>
                     <div class="col-md-7 col-12">
-                        <div class="bg-whites rounded h-100 p-4">
+                        <div class="card rounded h-100 p-4">
                             <h6 class="mb-4"><?= ($role == 'admin') ? 'Verify' : 'Approve' ?> Draft Benefit</h6>    
                             <form action="save-draft-approval.php" method="POST" id="form">
                                 <input type="hidden" name="token" value="<?= $token ?>">

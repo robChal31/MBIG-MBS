@@ -5,9 +5,10 @@ include 'db_con.php';
 $id_draft = $_POST['id_draft'];                                                                      
 $sql = "SELECT 
             b.*, c.*, pk.*,
-            IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name
+            IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name, IFNULL(seg.segment, b.segment) as new_segment
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
+        LEFT JOIN segments as seg on seg.id = b.segment
         LEFT JOIN user as c on c.id_user = b.id_ec
         LEFT JOIN pk on pk.benefit_id = b.id_draft
         LEFT JOIN dash_sa on dash_sa.id_sa = pk.sa_id
@@ -26,7 +27,7 @@ if ($result->num_rows > 0) {
         $ec_name = $row['generalname'];
         $school = $row['school_name2'];
         $program = $row['program'];
-        $segment = $row['segment'];
+        $segment = $row['new_segment'];
         $total_qty = $row['total_qty'];
         $id_pk = $row['id_pk'];
         $no_pk = $row['no_pk'];

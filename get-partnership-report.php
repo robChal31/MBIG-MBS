@@ -43,70 +43,85 @@
 ?>
 
     <!-- Sale & Revenue Start -->
-    <div class="container-fluid p-4">
+    <div class="container-fluid p-1">
         <div class="col-12" id="report-chart">
-            <div class="col-12">
-                <div class="table-responsive">
-                    <table class="table table-striped table-bordered" id="table_data">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th scope="col" style="width: 10%">Nama EC</th>
-                                <th scope="col" style="width: 20%">Nama Sekolah</th>
-                                <th scope="col">Program Category</th>
-                                <th scope="col">Program</th>
-                                <th scope="col">No PK</th>
-                                <th scope="col">Alokasi Benefit</th>
-                                <th scope="col">Total Benfefit</th>
-                                <th scope="col">Active From</th>
-                                <th scope="col">Expired At</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                                $query_program = " AND db.program IN ('$selected_programs') ";
-                                $sql2 = "SELECT db.id_draft, db.alokasi, db.total_benefit, IFNULL(sc.name, db.school_name) as school_name2, prog.name as program_name,
-                                                b.generalname as ec_name, cat.name as program_category, pk.no_pk, pk.start_at, pk.expired_at
-                                            FROM draft_benefit as db 
-                                            LEFT JOIN schools as sc on sc.id = db.school_name
-                                            LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
-                                            LEFT JOIN program_categories as cat on cat.id = prog.program_category_id
-                                            LEFT JOIN user b on db.id_ec = b.id_user
-                                            LEFT JOIN pk as pk on pk.benefit_id = db.id_draft
-                                            WHERE db.deleted_at IS NULL AND db.confirmed = 1
-                                            AND pk.start_at BETWEEN '$startDate' AND '$endDate'
-                                            AND pk.expired_at >= CURDATE()
+          <div class="table-responsive">
+            <table class="table align-middle" id="table_data">
+                <thead>
+                    <tr>
+                        <th style="width:4%">#</th>
+                        <th>Nama EC</th>
+                        <th>Nama Sekolah</th>
+                        <th>Program Category</th>
+                        <th>Program</th>
+                        <th>No PK</th>
+                        <th class="text-center">Alokasi Benefit</th>
+                        <th class="text-center">Total Benefit</th>
+                        <th>Active From</th>
+                        <th>Expired At</th>
+                        <th class="text-center" style="width:10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                <?php
+                    $query_program = " AND db.program IN ('$selected_programs') ";
+                    $sql2 = "SELECT db.id_draft, db.alokasi, db.total_benefit,
+                                    IFNULL(sc.name, db.school_name) as school_name2,
+                                    prog.name as program_name,
+                                    b.generalname as ec_name,
+                                    cat.name as program_category,
+                                    pk.no_pk, pk.start_at, pk.expired_at
+                            FROM draft_benefit as db 
+                            LEFT JOIN schools as sc on sc.id = db.school_name
+                            LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
+                            LEFT JOIN program_categories as cat on cat.id = prog.program_category_id
+                            LEFT JOIN user b on db.id_ec = b.id_user
+                            LEFT JOIN pk as pk on pk.benefit_id = db.id_draft
+                            WHERE db.deleted_at IS NULL 
+                            AND db.confirmed = 1
+                            AND pk.start_at BETWEEN '$startDate' AND '$endDate'
+                            AND pk.expired_at >= CURDATE() 
+                            $query_program";
 
-                                            ";
-                                
-                                $result = mysqli_query($conn, $sql2);
-                                $result = mysqli_query($conn, $sql2);
-                                if (!$result) {
-                                    die("MySQL Error: " . mysqli_error($conn));
-                                }
+                    $result = mysqli_query($conn, $sql2);
+                    if (!$result) {
+                        die("MySQL Error: " . mysqli_error($conn));
+                    }
 
-                                setlocale(LC_MONETARY,"id_ID");
-                                if (mysqli_num_rows($result) > 0) {
-                                    while($row = mysqli_fetch_assoc($result)) {
-                            ?>
-                                    <tr>
-                                        <th style="font-size: 10px; text-align: center; vertical-align: middle"><?= $row['id_draft'] ?></th>
-                                        <td><?= $row['ec_name'] ?></td>
-                                        <td><?= $row['school_name2'] ?></td>
-                                        <td><?= $row['program_category'] ? $row['program_category'] : 'Belum dilengkapi' ?></td>
-                                        <td><?= $row['program_name'] ?></td>
-                                        <td><?= $row['no_pk'] ?></td>
-                                        <td><?= number_format($row['alokasi'], '0', ',', '.') ?></td>
-                                        <td><?= number_format($row['total_benefit'], '0', ',', '.') ?></td>
-                                        <td><?= $row['start_at'] ?></td>
-                                        <td><?= $row['expired_at'] ?></td>
-                                    </tr>
-                                    
-                                <?php } } ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                    if (mysqli_num_rows($result) > 0) {
+                        while ($row = mysqli_fetch_assoc($result)) {
+                ?>
+                    <tr>
+                        <td><?= $row['id_draft'] ?></td>
+                        <td class="fw-semibold"><?= $row['ec_name'] ?></td>
+                        <td><?= $row['school_name2'] ?></td>
+                        <td><?= $row['program_category'] ?: 'Belum dilengkapi' ?></td>
+                        <td><?= $row['program_name'] ?></td>
+                        <td><?= $row['no_pk'] ?></td>
+                        <td class="text-center"><?= number_format($row['alokasi'], 0, ',', '.') ?></td>
+                        <td class="text-center"><?= number_format($row['total_benefit'], 0, ',', '.') ?></td>
+                        <td><?= $row['start_at'] ?></td>
+                        <td><?= $row['expired_at'] ?></td>
+                        <td class="text-center">
+                            <div class="dropdown" data-bs-boundary="window">
+                                <i class="fas fa-ellipsis-v text-muted"
+                                data-bs-toggle="dropdown"
+                                style="cursor:pointer"></i>
+                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                    <li>
+                                        <a class="dropdown-item">
+                                            <i class="fa fa-eye me-2"></i> Detail
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                <?php } } ?>
+                </tbody>
+            </table>
+        </div>
+
         </div>
 
         <div class="col-12 d-none" id="report-loading">
@@ -120,42 +135,60 @@
 <script>
     $(document).ready(function() {
         $('#table_data').DataTable({
-            dom: 'Bfrtip',
+            dom: 'Bfrtilp',
             pageLength: 20,
-            order: [
-                [4, 'desc'] 
-            ],
+            lengthMenu: [10, 20, 50, 100],
+            order: [[4, 'desc']],
             buttons: [
                 { 
                     extend: 'copyHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
                     }
                 },
                 { 
                     extend: 'excelHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
                     }
                 },
                 { 
                     extend: 'csvHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
                     }
                 },
                 { 
                     extend: 'pdfHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
                     }
                 }
-            ]
-        })
+            ],
+            initComplete: function () {
+                $('#table_data_length label').css({
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'gap': '8px',
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'margin-left': '20px',
+                    'margin-top': '8px'
+                });
+
+                $('#table_data_length select').css({
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'border-radius': '5px',
+                    'padding': '2px 6px',
+                    'border': '1px solid #ccc'
+                });
+            }
+        });
     })
 </script>
     

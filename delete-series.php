@@ -17,7 +17,7 @@ function error_json($msg){
 $id = $_POST['id'];
 
 try {
-    $delete_book_q = "UPDATE books SET deleted_at = NOW() WHERE id = $id";
+    $delete_book_q = "UPDATE book_series SET deleted_at = NOW() WHERE id = $id";
     $delete_book_exec = $conn->query($delete_book_q);
     if ($delete_book_exec === false) {
         error_json('Query failed: ' . $conn->error);

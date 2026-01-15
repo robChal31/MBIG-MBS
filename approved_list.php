@@ -14,118 +14,175 @@
     <div class="container-fluid p-4">
         <div class="col-12">
             
-            <div class="bg-whites rounded h-100 p-4">
-                <h6 class="mb-4">Approved Benefit List</h6>                      
-                <div class="table-responsive">
-                    <table class="table table-striped" id="table_id">
-                        <thead>
-                            <tr>
-                                <th>No Draft</th>
-                                <th scope="col" style="width:10%">Nama EC</th>
-                                <th scope="col" style="width: 20%">Nama Sekolah</th>
-                                <th scope="col">Segment</th>
-                                <th scope="col">Tanggal Pembuatan</th>
-                                <th scope="col">Jenis Program</th>
-                                <th scope="col">Jenis PK</th>
-                                <th scope="col" style="width: 13%">Status</th>
-                                <th scope="col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                                $sql_q = " WHERE ";
-                                $id_user = $_SESSION['id_user'];
+<div class="card rounded shadow-sm p-3">
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h6 class="fw-semibold mb-0">Approved Benefit List</h6>
+            <small class="text-muted">Approved & verified draft benefits</small>
+        </div>
+    </div>
 
-                                $sql = "SELECT 
-                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed, b.jenis_pk, c.leadid, c.leadid2, c.leadid3, pk.perubahan_tahun
-                                        FROM draft_benefit b
-                                        LEFT JOIN (
-                                            SELECT *
-                                            FROM draft_approval da
-                                            WHERE da.id_user_approver = $id_user
-                                            AND da.date = (
-                                                SELECT MAX(date)
-                                                FROM draft_approval
-                                                WHERE id_draft = da.id_draft
-                                                AND id_user_approver = $id_user
-                                            )
-                                        ) a ON a.id_draft = b.id_draft
-                                        LEFT JOIN schools sc on sc.id = b.school_name
-                                        LEFT JOIN user c on c.id_user = b.id_ec 
-                                        LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
-                                if($_SESSION['role'] == 'ec'){
-                                    $sql .= " WHERE (a.id_user_approver = $id_user or c.leadid = $id_user or c.leadid2 = $id_user or c.leadid3 = $id_user or b.id_ec = $id_user) ";
-                                    $sql_q = " AND ";
-                                }
+    <!-- TABLE -->
+    <div class="table-responsive">
+        <table class="table align-middle table-hover table-sm" id="table_id" style="font-size:.8rem">
+            <thead class="table-light">
+                <tr>
+                    <th style="width:5%">No Draft</th>
+                    <th style="width:12%">Nama EC</th>
+                    <th style="width:18%">Nama Sekolah</th>
+                    <th>Segment</th>
+                    <th>Tanggal</th>
+                    <th>Jenis Program</th>
+                    <th>Jenis PK</th>
+                    <th style="width:14%">Status</th>
+                    <th class="text-center" style="width:12%">Action</th>
+                </tr>
+            </thead>
 
-                                $sql .= "$sql_q b.status = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
+            <tbody>
+            <?php
+                $sql_q = " WHERE ";
+                $id_user = $_SESSION['id_user'];
 
-                                $result = mysqli_query($conn, $sql);
-                                setlocale(LC_MONETARY,"id_ID");
-                                if (mysqli_num_rows($result) > 0) {
-                                    while($row = mysqli_fetch_assoc($result)) {
-                                        $id_draft = $row['id_draft'];
-                                        $status_class = $row['verified'] == 1 ? 'bg-success' :  'bg-info';
-                                        $status_msg = ($row['verified'] == 1 ? 'Verified' : 'Waiting Verification');
-                                        if($row['verified'] == 1) {
-                                            $status_class = $row['confirmed'] == 1 ? 'bg-success' :  'bg-primary';
-                                            $status_msg = ($row['confirmed'] == 1 ? 'Confirmed' : 'Waiting Confirmation');
-                                        }
+                $sql = "SELECT 
+                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment,
+                            b.program, IFNULL(sc.name, b.school_name) as school_name2,
+                            c.generalname, pk.id as pk_id, b.verified, a.token,
+                            b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed,
+                            b.jenis_pk, c.leadid, c.leadid2, c.leadid3, pk.perubahan_tahun
+                        FROM draft_benefit b
+                        LEFT JOIN (
+                            SELECT *
+                            FROM draft_approval da
+                            WHERE da.id_user_approver = $id_user
+                            AND da.date = (
+                                SELECT MAX(date)
+                                FROM draft_approval
+                                WHERE id_draft = da.id_draft
+                                AND id_user_approver = $id_user
+                            )
+                        ) a ON a.id_draft = b.id_draft
+                        LEFT JOIN schools sc on sc.id = b.school_name
+                        LEFT JOIN user c on c.id_user = b.id_ec 
+                        LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
 
-                                ?>
-                                        <tr>
-                                            <td><?= $id_draft ?></td>
-                                            <td><?= $row['generalname'] ?></td>
-                                            <td><?= $row['school_name2'] ?></td>
-                                            <td><?= ucfirst($row['segment']) ?></td>
-                                            <td><?= $row['date'] ?></td>
-                                            <td><?= $row['program'] ?> <?= $row['perubahan_tahun'] != null ? '(Perubahan Manual Tahun ke '.$row['perubahan_tahun'].')' : '' ?></td>
-                                            <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
-                                           
-                                            <td>
-                                                <span data-id="<?= $row['id_draft'] ?>" data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold <?= $status_class ?> py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'><?= $status_msg  ?></span>
-                                            </td>
-                                            <td scope='col'>
+                if($_SESSION['role'] == 'ec'){
+                    $sql .= " WHERE (a.id_user_approver = $id_user
+                              OR c.leadid = $id_user
+                              OR c.leadid2 = $id_user
+                              OR c.leadid3 = $id_user
+                              OR b.id_ec = $id_user)";
+                    $sql_q = " AND ";
+                }
 
-                                                <div class="d-flex gap-1">
-                                                    <?php if($row['status'] == 1 && $role == 'sa' && $row['pk_id'] == null && $row['verified'] == 0) { ?>
-                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='create' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Create'><i class='fa fa-plus'></i></span>
-                                                    <?php }else if($row['status'] == 1 && $row['pk_id']) { ?>
-                                                        <?php if($role == 'sa' && $row['verified'] == 0) { ?>
-                                                            <span data-id="<?= $row['id_draft'] ?>" data-action='edit' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Edit'><i class='fas fa-pen'></i></span>
-                                                        <?php }else { ?>
-                                                            <span data-id="<?= $row['id_draft'] ?>" data-action='view' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-success btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Detail'><i class='fas fa-eye'></i></span>
-                                                        <?php } ?>
-                                                    <?php } ?>
+                $sql .= "$sql_q b.status = 1 AND b.deleted_at IS NULL ORDER BY id_draft";
+                $result = mysqli_query($conn, $sql);
 
-                                                    <!-- <?php if($row['verified'] == 0 && ($role == 'admin') && $row['file_pk']) {?>
-                                                        <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
-                                                    <?php } ?> -->
+                if (mysqli_num_rows($result) > 0) {
+                    while($row = mysqli_fetch_assoc($result)) {
 
-                                                    <?php if(($role == 'admin') && $row['verified'] == 0 && $row['file_pk']) { ?>
-                                                        <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Verify'><i class='fas fa-fingerprint'></i></a>
+                        $status_class = 'bg-info';
+                        $status_msg   = 'Waiting Verification';
 
-                                                        <a href='#' data-id="<?= $id_draft ?>" class='btn btn-outline-danger btn-sm me-1 delete-btn' style='font-size: .75rem' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
-                                                    <?php } ?>
+                        if($row['verified'] == 1){
+                            $status_class = $row['confirmed'] == 1 ? 'bg-success' : 'bg-primary';
+                            $status_msg   = $row['confirmed'] == 1 ? 'Confirmed' : 'Waiting Confirmation';
+                        }
+            ?>
+                <tr>
+                    <td><?= $row['id_draft'] ?></td>
+                    <td class="fw-semibold"><?= $row['generalname'] ?></td>
+                    <td><?= $row['school_name2'] ?></td>
+                    <td><?= ucfirst($row['segment']) ?></td>
+                    <td><?= $row['date'] ?></td>
+                    <td>
+                        <?= strtoupper($row['program']) ?>
+                        <?= $row['perubahan_tahun'] ? "<br><small class='text-muted'>Perubahan Tahun {$row['perubahan_tahun']}</small>" : '' ?>
+                    </td>
+                    <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
 
-                                                    <?php if($id_user == 5 && $row['verified'] == 1) { ?>
-                                                        <a href='approve-draft-benefit-form.php?id_draft=<?= $id_draft ?>&token=<?= $row['token'] ?>' class='btn btn-outline-primary btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Confirm'><i class='fas fa-fingerprint'></i></a>
-                                                    <?php } ?>
+                    <td>
+                        <span
+                            class="badge <?= $status_class ?>"
+                            style="font-size:.65rem; cursor:pointer"
+                            data-id="<?= $row['id_draft'] ?>"
+                            data-bs-toggle="modal"
+                            data-bs-target="#approvalModal">
+                            <?= $status_msg ?>
+                        </span>
+                    </td>
 
-                                                    <?php if($role != 'ec' && $row['confirmed'] == 1) { ?>
-                                                        <span data-id="<?= $row['id_draft'] ?>" data-action='updatePK' data-bs-toggle='modal' data-bs-target='#pkModal' class='btn btn-outline-warning btn-sm me-1' style='font-size: .75rem' data-toggle='tooltip' title='Update'><i class='fa fa-pen'></i></span>
-                                                    <?php } ?>
-                                                </div>
-                                            </td>
-                                        </tr>
-                               <?php     }
-                                }
-                            ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                    <!-- ACTION -->
+                    <td class="text-center">
+                        <div class="dropdown">
+                            <i class="fas fa-ellipsis-v text-muted"
+                               data-bs-toggle="dropdown"
+                               style="cursor:pointer"></i>
+
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:.75rem">
+
+                                <?php if($row['status'] == 1 && $role == 'sa' && !$row['pk_id'] && !$row['verified']) : ?>
+                                    <li>
+                                        <a class="dropdown-item text-warning"
+                                           data-id="<?= $row['id_draft'] ?>"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#pkModal">
+                                            <i class="fa fa-plus me-2"></i> Create PK
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <?php if($row['pk_id']) : ?>
+                                    <li>
+                                        <a class="dropdown-item text-success"
+                                           data-id="<?= $row['id_draft'] ?>"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#pkModal">
+                                            <i class="fa fa-eye me-2"></i> Detail PK
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <?php if($role == 'admin' && !$row['verified'] && $row['file_pk']) : ?>
+                                    <li>
+                                        <a class="dropdown-item text-primary"
+                                           href="approve-draft-benefit-form.php?id_draft=<?= $row['id_draft'] ?>&token=<?= $row['token'] ?>">
+                                            <i class="fas fa-fingerprint me-2"></i> Verify
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item text-danger delete-btn"
+                                           data-id="<?= $row['id_draft'] ?>">
+                                            <i class="fas fa-trash me-2"></i> Delete
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                                <?php if($role != 'ec' && $row['confirmed'] == 1) : ?>
+                                    <li>
+                                        <a class="dropdown-item text-warning"
+                                           data-id="<?= $row['id_draft'] ?>"
+                                           data-bs-toggle="modal"
+                                           data-bs-target="#pkModal">
+                                            <i class="fa fa-pen me-2"></i> Update PK
+                                        </a>
+                                    </li>
+                                <?php endif; ?>
+
+                            </ul>
+                        </div>
+                    </td>
+                </tr>
+            <?php
+                    }
+                }
+            ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
         </div>
     </div>
     <!-- Sale & Revenue End -->

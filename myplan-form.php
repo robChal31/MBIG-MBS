@@ -1,15 +1,3 @@
-<style>
-  table.dataTable tbody td {
-      padding : 2px !important;
-      vertical-align: middle !important;
-      text-align: center !important;
-      font-size: .9rem !important;
-  }
-
-  table.dataTable thead th {
-      font-size: .9rem !important;
-  }
-</style>
 
 <?php 
   include 'header.php'; 
@@ -17,8 +5,7 @@
   $id_plan  = ISSET($_GET['plan_id']) ? $_GET['plan_id'] : NULL;
   $username = $_SESSION['username'];
   $id_user  = $_SESSION['id_user'];
-  $role  = $_SESSION['role'];
-  $levels = ['tk', 'sd', 'smp', 'sma', 'yayasan', 'other'];
+  $role     = $_SESSION['role'];
 
   $segment = NULL;
   $school_id = NULL;
@@ -29,6 +16,8 @@
   $end_timeline = NULL;
   $omset_projection = NULL;
   $user_id = NULL;
+  $selected_levels = [];
+  $selected_subjects = [];
 
   if($id_plan){
     $sql    = "SELECT * from myplan where id = $id_plan";
@@ -47,11 +36,18 @@
     $omset_projection    = $row['omset_projection'];
     $level               = strtolower(trim($row['level']));
 
-    $selected_lv = array_values(array_filter($levels, function ($lv) use ($level) {
-        return strcasecmp(trim($lv), $level) === 0;
-    }));
+    // levels
+    $q = mysqli_query($conn, "SELECT level_id FROM program_plan_adoption_levels WHERE plan_id = $id_plan");
+    while ($r = mysqli_fetch_assoc($q)) {
+        $selected_levels[] = $r['level_id'];
+    }
 
-    $level2 = count($selected_lv) < 1 ? $level : '';
+    // subjects
+    $q = mysqli_query($conn, "SELECT subject_id FROM program_plan_adoption_subjects WHERE plan_id = $id_plan");
+    while ($r = mysqli_fetch_assoc($q)) {
+        $selected_subjects[] = $r['subject_id'];
+    }
+
   }
 
   $segment_query    = "SELECT * from segments";
@@ -59,135 +55,196 @@
   $segment_rows     = mysqli_fetch_all($result, MYSQLI_ASSOC);
 
 ?>
+
+<style>
+  * {
+    font-size: .9rem !important;
+  }
+
+
+  /* ===== FORM GRID ===== */
+  .plan-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 24px;
+  }
+
+  .plan-form .form-group {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .plan-form .form-group.full {
+    grid-column: span 2;
+  }
+
+  /* ===== LABEL ===== */
+  .plan-form label {
+    font-weight: 600;
+    color: #495057;
+    font-size: .8rem !important;
+    margin-bottom: 6px;
+  }
+
+  .tag-ungu {
+    background: #4f46e5 !important;
+    color: white !important;
+  }
+</style>
+
   <!-- Content Start -->
-  <div class="content">
-    <?php include 'navbar.php'; ?>
+<div class="content">
+  <?php include 'navbar.php'; ?>
 
-    <div class="container-fluid p-4">
-      <div class="row">
-        <div class="col-12">
-          <div class="bg-whites rounded h-100 p-4">
-            <h6 class="mb-4">Create Plan</h6>
-            <form method="POST" action="myplan-save.php" enctype="multipart/form-data" id="myplan-form">
-              <?php
-                if($id_plan) : ?>
-                <Input type='hidden' value="<?= $id_plan ?>" name="plan_id" /> 
-              <?php endif; ?>
-
-              <table class="table table-striped">
-                <?php if($role == 'admin') : ?>
-                  <tr>
-                    <td>Nama EC</td>
-                    <td>:</td>
-                    <td>
-                      <select name="id_user" class="form-select form-select-sm select2">
-                        <?php 
-                          $sql = "SELECT * from user where role='ec' order by generalname ASC"; 
-                          $resultsd1 = mysqli_query($conn, $sql);
-                          while ($row = mysqli_fetch_assoc($resultsd1)) { ?>
-                           <option value="<?= $row['id_user'] ?>" <?= ($user_id == $row['id_user']) ? 'selected' : '' ?>><?= $row['generalname'] ?></option>
-                        <?php } ?>
-                      </select>
-                    </td>
-                  </tr>
-                <?php else : ?> 
-                  <tr>
-                    <td>Nama EC</td>
-                    <td>:</td>
-                    <td>
-                      <?= $username?><input type="hidden" name="id_user" value="<?= $id_user ?>">
-                    </td>
-                  </tr>
-                <?php endif; ?>
-                <tr>
-                  <td>Nama Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Start Timeline Penyelesaian</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" class="form-control form-control-sm dateFilter" name="start_timeline" value="<?= $start_timeline ?>" placeholder="Pick the date" required>
-                  </td>
-                </tr>
-                <tr>
-                  <td>End Timeline Penyelesaian</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" class="form-control form-control-sm dateFilter" name="end_timeline" value="<?= $end_timeline ?>" placeholder="Pick the date" required>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Segment</td>
-                  <td>:</td>
-                  <td>
-                    <select name="segment" class="select2 form-select form-select-sm" required>
-                      <?php foreach($segment_rows as $row) : ?>
-                        <option value="<?= $row['id'] ?>" <?= $segment == $row['id'] ? 'selected' : '' ?>><?= $row['segment'] ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Jenjang Sekolah</td>
-                  <td>:</td>
-                  <td>
-                    <select name="level" class="form-select form-select-sm" required>
-                      <option value="tk" <?= $level == 'tk' ? 'selected' : '' ?>>TK</option>
-                      <option value="sd" <?= $level == 'sd' ? 'selected' : '' ?>>SD</option>
-                      <option value="smp" <?= $level == 'smp' ? 'selected' : '' ?>>SMP</option>
-                      <option value="sma" <?= $level == 'sma' ? 'selected' : '' ?>>SMA</option>
-                      <option value="yayasan" <?= $level == 'yayasan' ? 'selected' : '' ?>>Yayasan</option>
-                      <option value="other" <?= $level2 != '' ? 'selected' : '' ?> id='level_manual_input'>Lainnya (isi sendiri)</option>
-                    </select>
-                    <div class="my-1" id='other_level' style="display: none;">
-                      <input type="text" name="level2" value="<?= $level2 ?>" placeholder="Jenjang..." class="form-control form-control-sm">
-                    </div>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Program</td>
-                  <td>:</td>
-                  <td>
-                    <select name="program" id="program" class="form-select form-select-sm select2" required>
-                    </select>
-                  </td>
-                </tr>
-                <tr>
-                  <td>Wilayah Sekolah</td>
-                  <td>:</td>
-                  <td><input type="text" name="wilayah" value="<?= $wilayah ?>" placeholder="Wilayah" class="form-control form-control-sm" required></td>
-                </tr>
-                <tr>
-                  <td>Proyeksi Omset</td>
-                  <td>:</td>
-                  <td>
-                    <input type="text" name="omset_projection" value="<?= number_format((float)$omset_projection, 0, ',', '.') ?>" placeholder="Proyeksi Omset" class="form-control form-control-sm" oninput="formatNumber(this)" required>
-                  </td>
-                </tr>
-              </table>
-
-              <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
-                <button type="submit" class="btn btn-primary m-2 fw-bold" id="submt">Submit</button>
+  <div class="container-fluid p-4">
+    <div class="row">
+      <div class="col-12">
+        <div class="card p-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center mb-4">
+              <div class="me-3">
+                <i class="fas fa-file-signature text-primary fs-4"></i>
               </div>
-            </form>
+              <div>
+                <h5 class="mb-0 fw-semibold fs-5">Create Plan</h5>
+                <small class="text-muted fs-6">Lengkapi data rencana adopsi program</small>
+              </div>
+            </div>
+
+            <div class="">
+              <a href="myplan.php" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back
+              </a>
+            </div>
           </div>
+
+          <form method="POST" action="myplan-save.php" id="myplan-form">
+            <?php if($id_plan): ?>
+              <input type="hidden" name="plan_id" value="<?= $id_plan ?>">
+            <?php endif; ?>
+
+            <div class="plan-form">
+
+              <div class="form-group">
+                <label>Nama EC</label>
+                <?php if($role == 'admin'): ?>
+                  <select name="id_user" id="select_ec" class="form-select form-select-sm select2">
+                    <option value="" disabled selected>- Select EC -</option>
+                    <?php
+                      $q = mysqli_query($conn,"SELECT * FROM user WHERE role = 'ec' AND is_active = 1 ORDER BY generalname");
+                      while($r=mysqli_fetch_assoc($q)): ?>
+                        <option value="<?= $r['id_user'] ?>" <?= $user_id==$r['id_user']?'selected':'' ?>>
+                          <?= $r['generalname'] ?>
+                        </option>
+                      <?php endwhile; ?>
+                  </select>
+                <?php else: ?>
+                  <input type="text" class="form-control form-control-sm" value="<?= $username ?>" disabled>
+                  <input type="hidden" name="id_user" value="<?= $id_user ?>">
+                <?php endif; ?>
+              </div>
+
+              <div class="form-group">
+                <label>Nama Institusi</label>
+                <div class="select_school_div">
+                  <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
+                    <option value="" disabled selected>Select a school</option>
+                  </select>
+                  <?php if($role == 'admin'): ?>
+                    <small class="d-block mt-1" style="font-size: 11px !important;">
+                      Untuk memuncukkan data, silahkan pilih EC terlebih dahulu
+                    </small>
+                  <?php endif; ?>
+                </div>
+                <div class="loading_school text-center d-none mt-1">
+                  <i class="fas fa-spinner fa-spin text-primary"></i>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Program</label>
+                <select name="program" id="program" class="form-select form-select-sm select2" required>
+                  <option value="" disabled selected>Select a program</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Segment</label>
+                <select name="segment" class="form-select form-select-sm select2" required>
+                  <option value="" disabled selected>Select a segment</option>
+                  <?php foreach($segment_rows as $s): ?>
+                    <option value="<?= $s['id'] ?>" <?= $segment == $s['id'] || (strtolower($segment) == strtolower($s['segment'])) ? 'selected' : '' ?>>
+                      <?= $s['segment'] ?>
+                    </option>
+                  <?php endforeach; ?>
+                </select>
+              </div>
+
+              <!-- ADOPTION LEVEL -->
+              <div class="form-group">
+                <label class="form-label small text-muted">Cakupan Jenjang Program</label>
+                <select name="program_plan_adoption_levels[]" id="adoption_levels" class="form-select form-select-sm select2" multiple required>
+                  <?php
+                    $lvl_sql = "SELECT * FROM levels";
+                    $levelsQ = mysqli_query($conn, $lvl_sql);
+                    while ($row = mysqli_fetch_assoc($levelsQ)) {
+                      echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                    }
+                  ?>
+                </select>
+              </div>
+
+              <!-- ADOPTION SUBJECT -->
+              <div class="form-group">
+                <label class="form-label small text-muted">Cakupan Subjek Program</label>
+                <select name="program_plan_adoption_subjects[]" id="adoption_subjects" class="form-select form-select-sm select2" multiple required>
+                  <?php
+                    $sub_sql = "SELECT * FROM subjects";
+                    $subsq = mysqli_query($conn, $sub_sql);
+                    while ($row = mysqli_fetch_assoc($subsq)) {
+                      echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                    }
+                  ?>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Start Timeline</label>
+                <input type="text" placeholder="Start Timeline" name="start_timeline" value="<?= $start_timeline ?>" class="form-control form-control-sm dateFilter" required>
+              </div>
+
+              <div class="form-group">
+                <label>End Timeline</label>
+                <input type="text" placeholder="End Timeline" name="end_timeline" value="<?= $end_timeline ?>" class="form-control form-control-sm dateFilter" required>
+              </div>
+
+              <div class="form-group">
+                <label>Wilayah Sekolah</label>
+                <input type="text" name="wilayah" placeholder="Ex: Jakarta" value="<?= $wilayah ?>" class="form-control form-control-sm" required>
+              </div>
+
+              <div class="form-group">
+                <label>Proyeksi Omset</label>
+                <input type="text" placeholder="Ex: 100.000.000" name="omset_projection" value="<?= $omset_projection ? number_format((float)$omset_projection,0,',','.') : '' ?>" class="form-control form-control-sm" oninput="formatNumber(this)" required>
+              </div>
+
+            </div>
+
+            <div class="d-flex justify-content-end mt-4">
+              <button type="submit" class="btn btn-primary fw-bold" id="submt">Submit</button>
+            </div>
+
+          </form>
         </div>
       </div>
     </div>
-    <!-- Form End -->
+  </div>
+
+  <!-- Form End -->
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 
 <script>
-  flatpickr(".dateFilter", {
-    dateFormat: "Y-m-d",
-    allowInput: true,
-  });
 
   function formatNumber(el) {
     // Hilangkan semua karakter non-digit
@@ -201,89 +258,158 @@
     el.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
   }
 
-  document.getElementById('myplan-form').addEventListener('submit', function() {
-    const input = this.querySelector('[name="omset_projection"]');
-    input.value = input.value.replace(/\./g, '');
-  });
-  
-  let school_id = "<?= $school_id ?>";
-  school_id = school_id.trim();
-  let program = "<?= $program ?? '' ?>";
+  function fetchShool(email, schoolId = null) {
+    $.ajax({
+      url: `https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`,
+      type: 'GET',
+      dataType: 'json',
+      beforeSend: function () {
+        $('.select_school_div').addClass('d-none');
+        $('.loading_school').removeClass('d-none');
+      },
+      success: function (response) {
+        let options = '<option value="" disabled selected>Select a school</option>';
+        response.forEach(data => {
+          options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`;
+        });
+
+        $('#select_school').html(options).select2({ width: '100%' });
+      },
+      error: function () {
+        alert('Failed to load school');
+      },
+      complete: function () {
+        $('.loading_school').addClass('d-none');
+        $('.select_school_div').removeClass('d-none');
+      }
+    });
+  }
+
+  function loadPrograms(schoolId, programId = false) {
+    if (schoolId !== '' && schoolId !== null) {
+      $.ajax({
+        url: 'get-school-program.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+          school_id: schoolId,
+        },
+        success: function(response) {
+          let options = '<option value="" disabled selected>Select a program</option>';
+          response.map((data) => {
+            const selected = programId ? (data.code == programId ? 'selected' : '') : '';
+            options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
+          });
+
+          $('#program').html(options).select2();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log('Error:', textStatus, errorThrown);
+          alert("Failed to get program");
+        }
+      });
+    } else {
+      alert('No school selected');
+    }
+  }
+
+  async function getUserData(userId) {
+    try {
+      $('.loading_school').removeClass('d-none');
+
+      const res = await $.ajax({
+        url: 'get-user-data.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { id_user: userId }
+      });
+
+      return res;
+
+    } catch (err) {
+      console.error('Error:', err);
+      alert('Failed to get user data');
+      return null;
+
+    } finally {
+      $('.loading_school').addClass('d-none');
+    }
+  }
+
+  async function initPlanUser(userIdPlan, school_id) {
+    if (!userIdPlan) return;
+
+    const user = await getUserData(userIdPlan);
+    if (user) {
+      fetchShool(user.username, school_id);
+    }
+  }
+
+  let school_id   = "<?= $school_id ?>";
+  school_id       = school_id.trim();
+  let role        = "<?= $role ?>";
+  let idPlan      = "<?= $id_plan ?>";
+  let userIdPlan  = "<?= $user_id ?>";
+  let idUser      = "<?= $id_user ?>";
+  let username    = "<?= $username ?>";
+  let program     = "<?= $program ?? '' ?>";
+
+  const selectedLevels = <?= json_encode($selected_levels) ?>;
+  const selectedSubjects = <?= json_encode($selected_subjects) ?>;
+
+  if (selectedLevels.length) {
+    $('#adoption_levels').val(selectedLevels).trigger('change');
+  }
+
+  if (selectedSubjects.length) {
+    $('#adoption_subjects').val(selectedSubjects).trigger('change');
+  }
 
   $(document).ready(function(){
     $('.select2').select2();
 
-    $("select[name='level']").on('change', function() {
-      let value = $(this).val();
-      if(value == 'other') {
-        $('#other_level').show();
-        $('input[name="level2"]').prop('required', true);
-      } else {
-        $('#other_level').hide();
-        $('input[name="level2"]').prop('required', false);
+    $('.select2[multiple]').select2({
+      placeholder: 'Select option',
+      templateSelection: function (data, container) {
+        $(container).addClass('tag-ungu');
+        return data.text;
       }
     });
 
-    $.ajax({
-        url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $username ?>', 
-        type: 'GET', 
-        dataType: 'json', 
-        success: function(response) {
-          let options = '<option value="" disabled selected>Select a school</option>';
-            response.map((data) => {
-                options += `<option value="${data.id}" ${data.id == school_id ? 'selected' : ''}>${data.name}</option>`
-            }) 
-
-            $('#select_school').html(options);
-            $('#select_school').select2();
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            $('#select_school').html('Error: ' + textStatus);
-        }
-    });
-
-    function loadPrograms(schoolId, programId = false) {
-      if (schoolId !== '' && schoolId !== null) {
-        $.ajax({
-            url: 'get-school-program.php',
-            type: 'POST',
-            dataType: 'json',
-            data: {
-                school_id: schoolId,
-            },
-            success: function(response) {
-                let options = '<option value="" disabled>Select a program</option>';
-                response.map((data) => {
-                    const selected = programId ? (data.code == programId ? 'selected' : '') : '';
-                    options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
-                });
-
-                $('#program').html(options).select2();
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.log('Error:', textStatus, errorThrown);
-                alert("Failed to get program");
-            }
-        });
-      } else {
-        alert('No school selected');
+    $('#select_ec').on('change', async function () {
+      const userId = $(this).val();
+      if (!userId) return;
+      const userData = await getUserData(userId);
+      if(userData) {
+        fetchShool(userData.username);
       }
-    }
+    });
 
     if(school_id !== '' && school_id !== null) {
       loadPrograms(school_id, program);
     }
 
     $('#select_school').on('change', function () {
-        const newSchoolId = $(this).val();
-        loadPrograms(newSchoolId);
+      const newSchoolId = $(this).val();
+      loadPrograms(newSchoolId);
     });
 
-    // $('#submt').click(function(){
-    //   $('#submt').prop('disabled',true);
-    //   $('#myplan-form').submit();
-    // });
-    
+    initPlanUser(userIdPlan, school_id);
+
+    if(role == 'ec') {
+      fetchShool(username);
+    }
+
+  });
+
+  document.getElementById('myplan-form').addEventListener('submit', function() {
+    const input = this.querySelector('[name="omset_projection"]');
+    input.value = input.value.replace(/\./g, '');
+  });
+
+  flatpickr(".dateFilter", {
+    dateFormat: "Y-m-d",
+    allowInput: true,
   });
 </script>
 

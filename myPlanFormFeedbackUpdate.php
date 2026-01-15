@@ -189,7 +189,7 @@ if ($result->num_rows > 0) {
         });
 
         $('.close').click(function() {
-          $('#createModal').modal('hide');
+          $('#feedbackModal').modal('hide');
       });
     })
 </script>

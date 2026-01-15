@@ -83,7 +83,7 @@
         <div class="container-fluid p-4">
             <div class="row">
               <div class="col-12">
-                  <div class="bg-whites rounded h-100 p-4">
+                  <div class="card rounded h-100 p-4">
                       <div class="mb-2">
                         <a href="<?= "edit-benefit-ec-input.php?id_draft=$id_draft" ?>">
                             <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-edit me-2"></i>Back to Input Book</button>    

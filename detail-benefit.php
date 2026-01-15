@@ -25,9 +25,10 @@ $role = $_SESSION['role'];
 $id_draft = $_GET['id'];                                                                      
 $sql = "SELECT 
             b.*, c.*, pk.*, prog.is_pk,
-            IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name
+            IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name, IFNULL(seg.segment, b.segment) as segment
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
+        LEFT JOIN segments as seg on seg.id = b.segment
         LEFT JOIN user as c on c.id_user = b.id_ec
         LEFT JOIN pk on pk.benefit_id = b.id_draft
         LEFT JOIN dash_sa on dash_sa.id_sa = pk.sa_id
@@ -71,7 +72,7 @@ if ($result->num_rows > 0) {
     <div class="container-fluid p-4">
         <div class="col-12">
             
-            <div class="bg-whites rounded h-100 p-4 mb-4">
+            <div class="card rounded h-100 p-4 mb-4">
                 <div class="p-2 mb-2">
                     <h6>Detail Agreement</h6>                    
                     <div class="row">
@@ -151,7 +152,7 @@ if ($result->num_rows > 0) {
             </div>
 
             <?php if(!$is_pk) { ?>
-                <div class="bg-whites rounded h-100 p-4 mb-4">
+                <div class="card rounded h-100 p-4 mb-4">
                     <div class="p-2 mb-2">
                         <h6>List of Books Ordered</h6>                    
                         <div class="table-responsive">
@@ -200,7 +201,7 @@ if ($result->num_rows > 0) {
                 </div>
             <?php } ?>
 
-            <div class="bg-whites rounded h-100 p-4">
+            <div class="card rounded h-100 p-4">
                 <div class="p-2 mb-2">
                     <h6>List of Benefit</h6>                    
                     <div class="table-responsive">
@@ -280,7 +281,7 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
 
-            <div class="bg-whites rounded h-100 p-4">
+            <div class="card rounded h-100 p-4">
                 <div class="p-2 mb-2">
                     <div class="d-flex justify-content-between">
                         <h6>Benefit Implementation Report </h6>                        

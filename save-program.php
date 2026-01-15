@@ -35,6 +35,7 @@ $is_pk                  = $_POST['is_pk'];
 $program_category_id    = $_POST['program_category_id'] ?? NULL;
 $is_classified          = $_POST['is_classified'] ?? 1;
 $is_dynamic             = $_POST['is_dynamic'] ?? 1;
+$discount               = $_POST['discount'] ?? 0;
 $schools                = $_POST['schools'] ?? [];
 
 if (preg_match('/\s/', $code)) {
@@ -104,7 +105,8 @@ try {
                     updated_at = NOW(), 
                     is_classified = '$is_classified', 
                     program_category_id = $program_category_id_sql,
-                    is_dynamic = '$is_dynamic'
+                    is_dynamic = '$is_dynamic',
+                    discount = '$discount'
                 WHERE id = '$id_program'";
 
         if (!$conn->query($sql)) {
@@ -143,8 +145,8 @@ try {
             ? 'NULL' 
             : "'" . sanitize_input($conn, $program_category_id) . "'";
 
-        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id, is_dynamic) VALUES (
-            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id_sql, '$is_dynamic')";
+        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id, is_dynamic, discount) VALUES (
+            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id_sql, '$is_dynamic', '$discount')";
         
         if (!$conn->query($sql)) {
             throw new Exception('Query failed: ' . $conn->error);

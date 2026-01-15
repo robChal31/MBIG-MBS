@@ -51,7 +51,7 @@
     <div class="container-fluid p-4">
         <div class="col-12">
 
-            <div class="bg-whites rounded h-100 p-4 mb-4">
+            <div class="card rounded h-100 p-4 mb-4">
                 <h6 style="display: inline-block; border-bottom: 1px solid #ccc; padding-bottom: 5px;">Filter Benefit</h6>
                 <div class="row">
                     <div class="col-md-5 col-12 mb-4">
@@ -79,7 +79,7 @@
                 </div>
             </div>
             
-            <div class="bg-whites rounded h-100 p-4">
+            <div class="card rounded h-100 p-4">
                 <h6 class="mb-4">Benefits</h6>                      
                 <div class="" id="benefits-container"></div>
             </div>

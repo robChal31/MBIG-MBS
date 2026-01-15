@@ -9,98 +9,133 @@
     <?php include 'navbar.php'; ?>
     <!-- Sale & Revenue Start -->
     <div class="container-fluid p-4">
-        <!-- <div class="row justify-content-end">
-            <div class="col-4">
-                <div class="mb-3 text-right">
-                    <label for="searchInput" class="form-label"></label>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search...">
-                </div>
-            </div>
-        </div> -->
-        <div class="col-12">
-            
-            <div class="bg-whites rounded h-100 p-4">
-                <h6 class="mb-4">Draft Benefit Approval List</h6>                      
-                <div class="table-responsive">
-                    <table class="table table-striped" id="table_id">
-                        <thead>
-                            <tr>
-                                <th>No Draft</th>
-                                <th scope="col" style="width:10%">Nama EC</th>
-                                <th scope="col" style="width: 20%">Nama Sekolah</th>
-                                <th scope="col">Segment</th>
-                                <th scope="col">Tanggal Pembuatan</th>
-                                <th scope="col">Jenis Program</th>
-                                <th scope="col">Approver</th>
-                                <th scope="col" style="width: 13%">Status</th>
-                                <th scope="col">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+        <div class="row">
+            <div class="col-12">
+
+                <div class="card rounded h-100 p-4 shadow">
+
+                    <!-- HEADER -->
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0">Draft Benefit Approval</h5>
+                            <small class="text-muted">
+                                Review, approve, or track draft benefit submissions
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- TABLE -->
+                    <div class="table-responsive">
+                        <table class="table align-middle" id="table_id">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>No Draft</th>
+                                    <th>Nama EC</th>
+                                    <th>Nama Sekolah</th>
+                                    <th>Segment</th>
+                                    <th>Tanggal</th>
+                                    <th>Program</th>
+                                    <th>Approver</th>
+                                    <th>Status</th>
+                                    <th class="text-center" style="width:10%">Action</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
                             <?php
                                 $sql_q      = " WHERE ";
                                 $id_user    = $_SESSION['id_user'];
+
                                 $sql = "SELECT 
-                                            a.id_draft_approval, a.id_draft, a.status, a.token, b.status as draft_status, b.verified, b.year,
-                                            b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, d.generalname as leadername, a.token, d.id_user as id_user_approver, b.deleted_at, c.leadId, c.leadid2, c.leadid3
-                                        FROM `draft_approval` a 
-                                        INNER JOIN draft_benefit b on a.id_draft = b.id_draft
-                                        LEFT JOIN schools as sc on sc.id = b.school_name 
-                                        LEFT JOIN user c on c.id_user = b.id_ec 
-                                        LEFT JOIN user d on d.id_user = a.id_user_approver 
+                                            a.id_draft_approval, a.id_draft, a.status, a.token,
+                                            b.status as draft_status, b.verified, b.year, b.date,
+                                            b.id_user, b.id_ec, b.school_name, b.segment, b.program,
+                                            IFNULL(sc.name, b.school_name) as school_name2,
+                                            c.generalname, d.generalname as leadername,
+                                            d.id_user as id_user_approver, b.deleted_at,
+                                            IFNULL(seg.segment, b.segment) as segment_name
+                                        FROM draft_approval a
+                                        INNER JOIN draft_benefit b ON a.id_draft = b.id_draft
+                                        LEFT JOIN schools sc ON sc.id = b.school_name
+                                        LEFT JOIN segments seg ON seg.id = b.segment
+                                        LEFT JOIN user c ON c.id_user = b.id_ec
+                                        LEFT JOIN user d ON d.id_user = a.id_user_approver
                                         LEFT JOIN (
-                                            SELECT 
-                                                id_draft,
-                                                MAX(date) AS max_date,
-                                                id_user_approver
-                                            FROM `draft_approval`
+                                            SELECT id_draft, MAX(date) AS max_date
+                                            FROM draft_approval
                                             GROUP BY id_draft
-                                        ) latest_approval ON a.id_draft = latest_approval.id_draft ";
+                                        ) latest_approval
+                                        ON a.id_draft = latest_approval.id_draft";
+
                                 if($_SESSION['role'] == 'ec'){
-                                    // $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or c.leadid2 = $id_user or c.leadid3 = $id_user) ";
-                                    $sql .= " WHERE (a.id_user_approver = $id_user) ";
+                                    $sql .= " WHERE a.id_user_approver = $id_user ";
                                     $sql_q = " AND ";
                                 }
 
-                                $sql .= "$sql_q b.deleted_at IS NULL AND (a.date = latest_approval.max_date OR latest_approval.max_date IS NULL) AND b.status <> 1 ORDER BY id_draft";
+                                $sql .= "$sql_q
+                                        b.deleted_at IS NULL
+                                        AND (a.date = latest_approval.max_date OR latest_approval.max_date IS NULL)
+                                        AND b.status <> 1
+                                        ORDER BY a.id_draft";
 
                                 $result = mysqli_query($conn, $sql);
-                                setlocale(LC_MONETARY,"id_ID");
+
                                 if (mysqli_num_rows($result) > 0) {
                                     while($row = mysqli_fetch_assoc($result)) {
-                                        $id_draft = $row['id_draft'];
-                                        $token = $row['token'];
-                                        $programe_name = $row['year'] == 1 ? $row['program'] : ($row['program'] . " Perubahan Tahun Ke " . $row['year']);
-                                        echo "<tr>";
-                                            echo "<td>$id_draft</td>";
-                                            echo "<td>".$row['generalname']."</td>";
-                                            echo "<td>".$row['school_name2']."</td>";
-                                            echo "<td>". ucfirst($row['segment'])."</td>";
-                                            echo "<td>".$row['date']."</td>";
-                                            echo "<td>". strtoupper($programe_name) ."</td>";
-                                            echo "<td>".$row['leadername']."</td>";
-                                            $status_class = $row['draft_status'] == 0 ? 'bg-warning' : ($row['draft_status'] == 1 ? 'bg-success' : 'bg-danger');
-                                            $status_msg = $row['draft_status'] == 0 ? 'Waiting Approval' : ($row['draft_status'] == 1 ? 'Approved' : 'Rejected');
-                                            $status_msg = $row['verified'] == 1 && $status_msg == 'Approved' ? 'Verified' : ($row['verified'] == 0 && $status_msg == 'Approved' ? 'Waiting Verification' : $status_msg);
-                                            echo "<td><span data-id='" . $row['id_draft'] . "' data-bs-toggle='modal' data-bs-target='#approvalModal' class='fw-bold $status_class py-1 px-2 text-white rounded' style='cursor:pointer; font-size:.65rem'>". ($status_msg) ."</span></td>";
-                                            if($row['status'] < 1 && $row['id_user_approver'] == $id_user) {
-                                                echo "<td scope='col'><a target='_blank' href='approve-draft-benefit-form.php?id_draft=$id_draft&token=$token' class='btn btn-outline-primary btn-sm' style='font-size: .7rem' data-toggle='tooltip' title='Approve'><i class='fas fa-fingerprint'></i> Approve</a></td>";
-                                            }else{
-                                                echo "<td></td>";
-                                            }
-                                            
-                                            
-                                        echo "</tr>";
-                                    }
-                                }
+
+                                        $program_name = $row['year'] == 1
+                                            ? $row['program']
+                                            : $row['program'] . " Perubahan Tahun Ke " . $row['year'];
+
+                                        $status_text = $row['draft_status'] == 0 ? 'Waiting Approval'
+                                            : ($row['draft_status'] == 1 ? 'Approved' : 'Rejected');
+
+                                        $status_text = ($row['verified'] == 1 && $status_text == 'Approved')
+                                            ? 'Verified'
+                                            : ($row['verified'] == 0 && $status_text == 'Approved'
+                                                ? 'Waiting Verification'
+                                                : $status_text);
+
+                                        $status_class = $row['draft_status'] == 0 ? 'warning'
+                                            : ($row['draft_status'] == 1 ? 'success' : 'danger');
                             ?>
-                        </tbody>
-                    </table>
+                                <tr>
+                                    <td><?= $row['id_draft'] ?></td>
+                                    <td class="fw-semibold"><?= $row['generalname'] ?></td>
+                                    <td><?= $row['school_name2'] ?></td>
+                                    <td><?= ucfirst($row['segment_name']) ?></td>
+                                    <td><?= $row['date'] ?></td>
+                                    <td><?= strtoupper($program_name) ?></td>
+                                    <td><?= $row['leadername'] ?></td>
+
+                                    <!-- STATUS -->
+                                    <td>
+                                        <span class="badge bg-<?= $status_class ?>">
+                                            <?= $status_text ?>
+                                        </span>
+                                    </td>
+
+                                    <!-- ACTION -->
+                                    <td class="text-center">
+                                        <?php if($row['status'] < 1 && $row['id_user_approver'] == $id_user) { ?>
+                                            <a target="_blank" href="approve-draft-benefit-form.php?id_draft=<?= $row['id_draft'] ?>&token=<?= $row['token'] ?>" class="btn btn-outline-primary btn-sm" style="font-size: .7rem;">
+                                                <i class="fas fa-fingerprint"></i> Approve
+                                            </a>
+                                        <?php } else { ?>
+                                            <span class="text-muted">—</span>
+                                        <?php } ?>
+                                    </td>
+                                </tr>
+                            <?php } } ?>
+                            </tbody>
+                        </table>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
+
     <!-- Sale & Revenue End -->
 
     <!-- Modal -->

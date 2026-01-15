@@ -88,40 +88,87 @@
     <!-- Content Start -->
     <div class="content">
         <?php include 'navbar.php'; ?>
-        <!-- Sale & Revenue Start -->
         <div class="container-fluid p-4">
-            <div class="row">
-                <div class="col-md-10 col-12">
-                    <div class="bg-whites rounded h-100 p-4">
-                        <h4 class="mb-4">Benefit Setting</h4>    
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-12">
+                    <div class="card rounded shadow-sm p-4">
+
+                        <!-- HEADER -->
+                        <div class="mb-4">
+                            <h5 class="fw-semibold mb-1">Benefit Setting</h5>
+                            <small class="text-muted">Configure global benefit and pricing limitations</small>
+                        </div>
+
                         <form method="POST" id="form">
-                            <div class="my-2 py-2">
-                                <label for="max_price_percentage" class="form-label px-1 mb-0 pb-0" style="font-size: .85rem;">Max Program Price Percentage From Normal Price</label>
-                                <input type="number" id="max_price_percentage" name="max_price_percentage" value="<?= $benefitSetting['max_price_percentage']; ?>" placeholder="input percentage..." class="form-control form-control-sm" required>
+                            <!-- FIELD -->
+                            <div class="mb-3">
+                                <label for="max_price_percentage" class="form-label small fw-semibold">
+                                    Max Program Price (% from normal price)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number"
+                                        id="max_price_percentage"
+                                        name="max_price_percentage"
+                                        value="<?= $benefitSetting['max_price_percentage']; ?>"
+                                        class="form-control"
+                                        placeholder="e.g. 80"
+                                        required>
+                                    <span class="input-group-text">%</span>
+                                </div>
                                 <div class="invalid-feedback">Please enter a valid percentage</div>
                             </div>
-                            <div class="my-2 py-2">
-                                <label for="max_discount_percentage" class="form-label px-1 mb-0 pb-0" style="font-size: .85rem;">Max Program Discount Percentage</label>
-                                <input type="number" id="max_discount_percentage" name="max_discount_percentage" value="<?= $benefitSetting['max_discount_percentage']; ?>" placeholder="input percentage..." class="form-control form-control-sm" required>
+
+                            <!-- FIELD -->
+                            <div class="mb-3">
+                                <label for="max_discount_percentage" class="form-label small fw-semibold">
+                                    Max Program Discount (%)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number"
+                                        id="max_discount_percentage"
+                                        name="max_discount_percentage"
+                                        value="<?= $benefitSetting['max_discount_percentage']; ?>"
+                                        class="form-control"
+                                        placeholder="e.g. 20"
+                                        required>
+                                    <span class="input-group-text">%</span>
+                                </div>
                                 <div class="invalid-feedback">Please enter a valid percentage</div>
                             </div>
-                            <div class="my-2 py-2">
-                                <label for="max_benefit_percentage" class="form-label px-1 mb-0 pb-0" style="font-size: .85rem;">Max Benefit Percentage From Allocation</label>
-                                <input type="number" id="max_benefit_percentage" name="max_benefit_percentage" value="<?= $benefitSetting['max_benefit_percentage']; ?>" placeholder="input percentage..." class="form-control form-control-sm" required>
+
+                            <!-- FIELD -->
+                            <div class="mb-3">
+                                <label for="max_benefit_percentage" class="form-label small fw-semibold">
+                                    Max Benefit (% from allocation)
+                                </label>
+                                <div class="input-group input-group-sm">
+                                    <input type="number"
+                                        id="max_benefit_percentage"
+                                        name="max_benefit_percentage"
+                                        value="<?= $benefitSetting['max_benefit_percentage']; ?>"
+                                        class="form-control"
+                                        placeholder="e.g. 50"
+                                        required>
+                                    <span class="input-group-text">%</span>
+                                </div>
                                 <div class="invalid-feedback">Please enter a valid percentage</div>
                             </div>
-                            
-                            <div class="d-flex justify-content-end mt-4">
-                                <button type="submit" class="btn btn-sm btn-primary" id="btn-submit">
-                                    Submit
+
+                            <!-- ACTION -->
+                            <div class="d-flex justify-content-end pt-3 border-top mt-4">
+                                <button type="submit"
+                                        class="btn btn-primary btn-sm px-4 fw-semibold"
+                                        id="btn-submit">
+                                    <i class="fa fa-save me-1"></i> Save Changes
                                 </button>
                             </div>
                         </form>
+
                     </div>
                 </div>
             </div>
         </div>
-        <!-- Sale & Revenue End -->
+
 
 <?php include 'footer.php';?>
 <script>

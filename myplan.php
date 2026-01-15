@@ -13,44 +13,49 @@
         <div class="container-fluid p-4">
             <div class="row">
                 <div class="col-12">
-                    <div class="bg-whites rounded h-100 p-4">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <h6 class="mb-4">My Plan</h6>
-                            <?php
-                                if($role == 'admin' || $role == 'ec') { ?>
-                                    <div class="d-flex align-items-center">
-                                        <a href="myplan-form.php">
-                                            <button type="button" class="btn btn-primary m-2 btn-sm"><i class="fas fa-plus me-2"></i>Create Plan</button>    
-                                        </a>
-                                    </div>
+                    <div class="card rounded h-100 p-4 shadow">
+
+                        <!-- HEADER -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div>
+                                <h5 class="fw-bold mb-0">My Plan</h5>
+                                <small class="text-muted">Manage and track plan progress</small>
+                            </div>
+
+                            <?php if ($role == 'admin' || $role == 'ec') { ?>
+                                <a href="myplan-form.php" class="btn btn-primary btn-sm fw-semibold">
+                                <i class="fas fa-plus me-2"></i> Create Plan
+                                </a>
                             <?php } ?>
                         </div>
-                        
 
+                        <!-- TABLE -->
                         <div class="table-responsive">
-                            <table class="table table-striped table-bordered" id="table_draft">
-                                <thead>
+                            <table class="table align-middle" id="table_draft">
+                                <thead class="table-light">
                                     <tr>
-                                        <th scope="col">ID</th>
-                                        <th scope="col" style="width: 10%">Nama EC</th>
-                                        <th scope="col" style="width: 20%">Nama Sekolah</th>
-                                        <th scope="col">Segment</th>
-                                        <th scope="col">Start Timeline Penyelesaian</th>
-                                        <th scope="col">End Timeline Penyelesaian</th>
-                                        <th scope="col">Program</th>
-                                        <th scope="col">Proyeksi Omset</th>
-                                        <th scope="col">Status</th>
-                                        <th scope="col">Created at</th>
-                                        <th scope="col">Updated at</th>
-                                        <th scope="col">Action</th>
+                                        <th>ID</th>
+                                        <th>Nama EC</th>
+                                        <th>Nama Sekolah</th>
+                                        <th>Segment</th>
+                                        <th>Start</th>
+                                        <th>End</th>
+                                        <th>Program</th>
+                                        <th>Proyeksi Omset</th>
+                                        <th>Status</th>
+                                        <th>Created</th>
+                                        <th>Updated</th>
+                                        <th class="text-center">Action</th>
                                     </tr>
                                 </thead>
+
                                 <tbody>
                                     <?php
-
-                                        $sql = "SELECT mp.*, user.*, sc.name as school_name, db.id_draft as id_draft, db.fileUrl, db.status, db.verified, db.confirmed,
-                                                IFNULL(seg.segment, mp.segment) as new_segment, IFNULL(prog.name, mp.program) as new_program
-                                                    FROM myplan AS mp
+                                        $sql = "SELECT mp.*, user.*, sc.name as school_name, db.id_draft as id_draft, db.fileUrl,
+                                                db.status, db.verified, db.confirmed,
+                                                IFNULL(seg.segment, mp.segment) as new_segment,
+                                                IFNULL(prog.name, mp.program) as new_program
+                                                FROM myplan AS mp
                                                 LEFT JOIN schools AS sc ON sc.id = mp.school_id
                                                 LEFT JOIN draft_benefit AS db ON mp.id = db.myplan_id
                                                 LEFT JOIN user ON mp.user_id = user.id_user
@@ -58,58 +63,106 @@
                                                 LEFT JOIN segments AS seg ON seg.id = mp.segment
                                                 WHERE mp.deleted_at IS NULL";
 
-                                        if($role == 'ec'){
-                                            $sql .=" AND (mp.user_id = $id_user OR user.leadId = $id_user OR user.leadId2 = $id_user OR user.leadId3 = $id_user)";
+                                        if ($role == 'ec') {
+                                            $sql .= " AND (mp.user_id = $id_user 
+                                                    OR user.leadId = $id_user 
+                                                    OR user.leadId2 = $id_user 
+                                                    OR user.leadId3 = $id_user)";
                                         }
 
-                                        $sql .= " ORDER BY mp.created_at ASC";
-
+                                        $sql .= " ORDER BY mp.created_at DESC";
                                         $result = mysqli_query($conn, $sql);
-                                        setlocale(LC_MONETARY,"id_ID");
-                                        if (mysqli_num_rows($result) > 0) {
-                                            while($row = mysqli_fetch_assoc($result)) {
-                                                $stat = ($row['status'] == 0 && $row['fileUrl']) ? 'Waiting Approval': ($row['status'] == 1 ? 'Approved' : 'Rejected');
-                                                $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
-                                                $status_class = $row['status'] == 0 ? 'bg-warning' : ($row['status'] == 1 ? 'bg-success' : 'bg-danger');
-                                                $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'bg-primary' : $status_class;
 
-                                                $stat = ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0) ? 'Waiting Confirmation' : ($row['verified'] == 0 && $row['status'] == 1 ? 'Waiting Verification' : $stat);
-                                                $is_ec_the_creator = $_SESSION['id_user'] == $row['user_id'] || $role == 'admin';
+                                        if (mysqli_num_rows($result) > 0) {
+                                            while ($row = mysqli_fetch_assoc($result)) {
+
+                                            $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft'
+                                                    : ($row['status'] == 0 ? 'Waiting Approval'
+                                                    : ($row['status'] == 1 ? 'Approved' : 'Rejected'));
+
+                                            if ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0) {
+                                                $stat = 'Waiting Confirmation';
+                                            } elseif ($row['verified'] == 0 && $row['status'] == 1) {
+                                                $stat = 'Waiting Verification';
+                                            }
+
+                                            $badgeClass = match ($stat) {
+                                                'Draft' => 'bg-primary',
+                                                'Approved' => 'bg-success',
+                                                'Rejected' => 'bg-danger',
+                                                'Waiting Approval', 'Waiting Verification', 'Waiting Confirmation' => 'bg-warning text-dark',
+                                                default => 'bg-primary'
+                                            };
+
+                                            $isCreator = $_SESSION['id_user'] == $row['user_id'] || $role == 'admin';
                                     ?>
-                                                <tr>
-                                                    <td><?= $row['id'] ?></td>
-                                                    <td><?= $row['generalname'] ?></td>
-                                                    <td><?= $row['school_name'] ?></td>
-                                                    <td><?= ucfirst($row['new_segment']) ?></td>
-                                                    <td><?= ($row['start_timeline']) ?></td>
-                                                    <td><?= ($row['end_timeline']) ?></td>
-                                                    <td><?= strtoupper($row['new_program']) ?></td>
-                                                    <td><?= number_format($row['omset_projection']) ?></td>
-                                                    <td>
-                                                        <span style="cursor: pointer;" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>  data-bs-target='#approvalModal' class="<?= $status_class ?> fw-bold py-1 px-2 text-white rounded"><?= $stat ?></span>
-                                                    </td>
-                                                    <td><?= $row['created_at'] ?></td>
-                                                    <td><?= $row['updated_at'] ?></td>
-                                                    <td>
-                                                        <?php
-                                                            if($is_ec_the_creator || $_SESSION['role'] == 'admin'){ ?>
-                                                                <a href="myplan-updates.php?plan_id=<?=$row['id']?>" class="text-primary me-1"><i class="fa fa-calendar" data-bs-toggle="tooltip" data-bs-placement="top" title="Add Update Plan"></i></a>
-                                                                <a href="myplan-form.php?plan_id=<?=$row['id']?>" class="text-success me-1"><i class="fas fa-edit" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"></i></a>
-                                                                <a href='#' data-id="<?= $row['id'] ?>" class='delete-btn text-danger me-1' data-toggle='tooltip' title='Delete'><i class='fas fa-trash'></i></a>
-                                                        <?php }else { ?>
-                                                            <a href="myplan-updates.php?plan_id=<?=$row['id']?>" class="text-primary me-1"><i class="fa fa-search" data-bs-toggle="tooltip" data-bs-placement="top" title="View Update Plan"></i></a>
-                                                        <?php } ?>
-                                                    </td>
-                                                </tr>
-                                            
-                                        <?php } } ?>
+                                    <tr>
+                                        <td><?= $row['id'] ?></td>
+                                        <td><?= $row['generalname'] ?></td>
+                                        <td><?= $row['school_name'] ?></td>
+                                        <td><?= ucfirst($row['new_segment']) ?></td>
+                                        <td><?= $row['start_timeline'] ?></td>
+                                        <td><?= $row['end_timeline'] ?></td>
+                                        <td><?= strtoupper($row['new_program']) ?></td>
+                                        <td><?= number_format($row['omset_projection']) ?></td>
+
+                                        <!-- STATUS -->
+                                        <td>
+                                            <span class="badge <?= $badgeClass ?>" style="cursor:pointer" data-id="<?= $row['id_draft'] ?>"
+                                            <?= $stat === 'Draft' ? '' : "data-bs-toggle='modal' data-bs-target='#approvalModal'" ?>>
+                                            <?= $stat ?>
+                                            </span>
+                                        </td>
+
+                                        <td><?= $row['created_at'] ?></td>
+                                        <td><?= $row['updated_at'] ?></td>
+
+                                        <!-- ACTION -->
+                                        <td class="text-center">
+                                            <div class="dropdown">
+                                                <i class="fas fa-ellipsis-v text-muted"
+                                                    data-bs-toggle="dropdown"
+                                                    style="cursor:pointer"></i>
+
+                                                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                                                    <li>
+                                                        <a href="myplan-updates.php?plan_id=<?= $row['id'] ?>"
+                                                            class="dropdown-item">
+                                                            <i class="fa fa-calendar me-2"></i>
+                                                            <?= $isCreator ? 'Add Update Plan' : 'View Update Plan' ?>
+                                                        </a>
+                                                    </li>
+
+                                                    <?php if ($isCreator) { ?>
+                                                    <li>
+                                                        <a href="myplan-form.php?plan_id=<?= $row['id'] ?>"
+                                                            class="dropdown-item text-success">
+                                                            <i class="fas fa-edit me-2"></i> Edit
+                                                        </a>
+                                                    </li>
+
+                                                    <li>
+                                                        <a href="#"
+                                                            class="dropdown-item text-danger delete-btn"
+                                                            data-id="<?= $row['id'] ?>">
+                                                            <i class="fas fa-trash me-2"></i> Delete
+                                                        </a>
+                                                    </li>
+                                                    <?php } ?>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                <?php } } ?>
                                 </tbody>
                             </table>
                         </div>
+
                     </div>
                 </div>
             </div>
         </div>
+
 
         <div class="modal fade" id="approvalModal" tabindex="-1" role="dialog" aria-labelledby="approvalModalLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg" role="document">
@@ -218,42 +271,60 @@
 
     $(document).ready(function() {
         $('#table_draft').DataTable({
-            dom: 'Bfrtip',
+            dom: 'Bfrtilp',
             pageLength: 20,
-            order: [
-                [4, 'desc'] 
-            ],
+            lengthMenu: [10, 20, 50, 100],
+            order: [[9, 'desc']],
             buttons: [
                 { 
                     extend: 'copyHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
                     }
                 },
                 { 
                     extend: 'excelHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
                     }
                 },
                 { 
                     extend: 'csvHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
                     }
                 },
                 { 
                     extend: 'pdfHtml5',
                     className: 'btn-custom',
                     attr: {
-                        style: 'font-size: .7rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
                     }
                 }
-            ]
-        })
+            ],
+            initComplete: function () {
+                $('#table_draft_length label').css({
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'gap': '8px',
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'margin-left': '20px',
+                    'margin-top': '8px'
+                });
+
+                $('#table_draft_length select').css({
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'border-radius': '5px',
+                    'padding': '2px 6px',
+                    'border': '1px solid #ccc'
+                });
+            }
+        });
     })
 </script>
        

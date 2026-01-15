@@ -21,7 +21,7 @@ $program_category = $program_categories[0] ?? [];
         <!-- <h6>Detail Benefit</h6> -->
         <form action="save-program-category.php" method="POST" enctype="multipart/form-data" id="form_program">
             <div class="row">
-                <div class="col-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Program Category Name</label>
                     <input type="text" name="name" class="form-control form-control-sm" value="<?= $program_category['name'] ?? '' ?>" placeholder="program category name..." required>
                 </div>

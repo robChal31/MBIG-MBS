@@ -26,7 +26,7 @@ $posts      = $_POST ?? NULL;
     <div class="container-fluid p-4">
 
       <div class="row">
-        <div class="bg-whites rounded h-100 p-4">
+        <div class="card rounded h-100 p-4">
           <div class="col-12">
             <div class="container py-4" style="font-size: .85rem;">
               <h5 class="text-center mb-4">REGULASI PERUBAHAN MANFAAT PROGRAM TAHUN KE-2 ATAU 3</h5>
