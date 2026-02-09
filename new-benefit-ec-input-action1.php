@@ -11,14 +11,16 @@
     $id_draft       = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : NuLL;
     $program_ref    = ISSET($_POST['program_reffered']) ? $_POST['program_reffered'] : NuLL;
 
-    $id_user        = $_POST['id_user'];
-    $school_name    = $_POST['nama_sekolah'];
-    $segment        = $_POST['segment'];
-    $program        = $_POST['program'];
-    $inputEC        = $_POST['inputEC'];
-    $aloks          = $_POST['alokasi'];
-    $book_titles    = $_POST['titles'];
-    $wilayah        = $_POST['wilayah'];
+    $id_user     = isset($_POST['id_user'])        ? $_POST['id_user']        : null;
+    $school_name = isset($_POST['nama_sekolah'])   ? $_POST['nama_sekolah']   : null;
+    $segment     = isset($_POST['segment'])        ? $_POST['segment']        : null;
+    $program     = isset($_POST['program'])        ? $_POST['program']        : null;
+    $inputEC     = isset($_POST['inputEC'])        ? $_POST['inputEC']        : null;
+    $aloks       = isset($_POST['alokasi'])        ? $_POST['alokasi']        : [];
+    $book_titles = isset($_POST['titles'])         ? $_POST['titles']         : [];
+    $wilayah     = isset($_POST['wilayah'])        ? $_POST['wilayah']        : null;
+    $cashback    = isset($_POST['cashback'])       ? $_POST['cashback']       : 0;
+
     $program_year   = ISSET($_POST['program_year']) ? $_POST['program_year'] : 1;
     $level          = ISSET($_POST['level']) ? $_POST['level'] : '';
     $myplan_id      = ISSET($_POST['myplan_id']) && $_POST['myplan_id'] != '' ? $_POST['myplan_id'] : NuLL;
@@ -85,6 +87,7 @@
                         myplan_id = '$myplan_id',
                         total_benefit = '0',
                         selisih_benefit = '0',
+                        cashback = '$cashback',
                         fileUrl = '',
                         updated_at = current_timestamp(),
                         status = '0',
@@ -97,10 +100,10 @@
 
         } else {
             $sql = "INSERT INTO draft_benefit (
-                        id_user, id_ec, school_name, segment, program, date, status, alokasi, wilayah, level, myplan_id, ref_id, year
+                        id_user, id_ec, school_name, segment, program, date, status, alokasi, wilayah, level, myplan_id, ref_id, year, cashback
                     ) VALUES (
                         '$id_user', '$inputEC', '$id_school', '$segment', '$program',
-                        current_timestamp(), '0', $alokasi, '$wilayah', '$level', '$myplan_id', '$program_ref', '$program_year'
+                        current_timestamp(), '0', $alokasi, '$wilayah', '$level', '$myplan_id', '$program_ref', '$program_year', '$cashback'
                     )";
 
             if (mysqli_query($conn, $sql)) {
@@ -140,7 +143,10 @@
             $jumlah_siswas[$i]  = preg_replace("/[^0-9]/", "", $jumlah_siswas[$i]);
             $usulan_hargas[$i]  = preg_replace("/[^0-9]/", "", $usulan_hargas[$i]);
             $normals[$i]        = preg_replace("/[^0-9]/", "", $normals[$i]);
-            $diskons[$i]        = preg_replace("/[^0-9]/", "", $diskons[$i]);
+            $value = $diskons[$i];
+            $value = trim($value);
+            $value = str_replace(['.', ','], ['','.' ], $value);
+            $diskons[$i] = (float) $value;
             $aloks[$i]          = preg_replace("/[^0-9-]/", "", $aloks[$i]);
             $book_ids[$i]       = $book_ids[$i];
             // $new_title          = $book_titles[$i]." | ".$book_levels[$i]." | ".$book_type[$i];

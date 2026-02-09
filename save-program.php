@@ -28,15 +28,17 @@ function sanitize_input($conn, $input) {
     return mysqli_real_escape_string($conn, str_replace(["&#13;", "&#10;"], ["\r", "\n"], $input));
 }
 
-$id_program             = sanitize_input($conn, $_POST['id_program']);
-$name                   = sanitize_input($conn, $_POST['name']);
-$code                   = trim(sanitize_input($conn, $_POST['code']));
-$is_pk                  = $_POST['is_pk'];
-$program_category_id    = $_POST['program_category_id'] ?? NULL;
-$is_classified          = $_POST['is_classified'] ?? 1;
-$is_dynamic             = $_POST['is_dynamic'] ?? 1;
-$discount               = $_POST['discount'] ?? 0;
-$schools                = $_POST['schools'] ?? [];
+$id_program                 = sanitize_input($conn, $_POST['id_program']);
+$name                       = sanitize_input($conn, $_POST['name']);
+$code                       = trim(sanitize_input($conn, $_POST['code']));
+$is_pk                      = $_POST['is_pk'];
+$program_category_id        = $_POST['program_category_id'] ?? NULL;
+$is_classified              = $_POST['is_classified'] ?? 1;
+$is_dynamic                 = $_POST['is_dynamic'] ?? 1;
+$discount                   = $_POST['discount'] ?? 0;
+$schools                    = $_POST['schools'] ?? [];
+$has_omzet_scheme_discount  = $_POST['has_omzet_scheme_discount'] ?? 0;
+$ranges = $_POST['ranges'] ?? [];
 
 if (preg_match('/\s/', $code)) {
     error_json('Program code cannot contain spaces.');
@@ -44,6 +46,10 @@ if (preg_match('/\s/', $code)) {
 
 try {
     mysqli_begin_transaction($conn);
+
+    if ($has_omzet_scheme_discount && empty($ranges)) {
+        throw new Exception('Omzet scheme enabled but no ranges provided');
+    }
 
     $school_data = [];
     if(count($schools) > 0) {
@@ -69,7 +75,6 @@ try {
         $school_data = json_decode($response, true);
     }
    
-
     $program_exist_query = "SELECT * FROM programs WHERE id = '$id_program'";
     $is_program_exist_exec = $conn->query($program_exist_query);
     if ($is_program_exist_exec === false) {
@@ -106,7 +111,8 @@ try {
                     is_classified = '$is_classified', 
                     program_category_id = $program_category_id_sql,
                     is_dynamic = '$is_dynamic',
-                    discount = '$discount'
+                    discount = '$discount',
+                    has_omzet_scheme_discount = '$has_omzet_scheme_discount'
                 WHERE id = '$id_program'";
 
         if (!$conn->query($sql)) {
@@ -145,8 +151,8 @@ try {
             ? 'NULL' 
             : "'" . sanitize_input($conn, $program_category_id) . "'";
 
-        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id, is_dynamic, discount) VALUES (
-            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id_sql, '$is_dynamic', '$discount')";
+        $sql = "INSERT INTO programs (name, code, is_pk, created_at, is_classified, program_category_id, is_dynamic, discount, has_omzet_scheme_discount) VALUES (
+            '$name', '$code', '$is_pk', NOW(), '$is_classified', $program_category_id_sql, '$is_dynamic', '$discount', '$has_omzet_scheme_discount')";
         
         if (!$conn->query($sql)) {
             throw new Exception('Query failed: ' . $conn->error);
@@ -187,6 +193,93 @@ try {
                 throw new Exception('Query failed: ' . $conn->error);
             }
 
+        }
+    }
+
+
+    $rangeIds = [];
+    $q = $conn->query("SELECT id FROM program_omzet_ranges WHERE program_id = $id_program");
+    while ($r = $q->fetch_assoc()) {
+        $rangeIds[] = $r['id'];
+    }
+
+    // delete discounts dulu (child)
+    if (!empty($rangeIds)) {
+        $ids = implode(',', $rangeIds);
+        $conn->query("DELETE FROM program_discounts WHERE omzet_range_id IN ($ids)");
+    }
+
+    // delete ranges (parent)
+    $conn->query("DELETE FROM program_omzet_ranges WHERE program_id = $id_program");
+
+    $openEndedUsed = false;
+
+    // urutin dulu biar validasi overlap gampang
+    usort($ranges, function ($a, $b) {
+        return (int) str_replace('.', '', $a['omzet_min'])
+            <=> (int) str_replace('.', '', $b['omzet_min']);
+    });
+
+    foreach ($ranges as $range) {
+
+        // wajib ada omzet_min
+        if (!isset($range['omzet_min']) || $range['omzet_min'] === '') {
+            throw new Exception('Omzet min is required');
+        }
+
+        $omzet_min = (int) str_replace('.', '', $range['omzet_min']);
+
+        $omzet_max = isset($range['omzet_max']) && $range['omzet_max'] !== ''
+            ? (int) str_replace('.', '', $range['omzet_max'])
+            : null;
+
+        $max_discount = isset($range['max_discount'])
+            ? (float) $range['max_discount']
+            : 0;
+
+        $discounts = array_map('floatval', $range['discounts'] ?? []);
+
+        // ===== VALIDASI =====
+
+        // max harus > min (kalau ada)
+        if ($omzet_max !== null && $omzet_max <= $omzet_min) {
+            throw new Exception('Omzet max must be greater than omzet min');
+        }
+
+        // hanya boleh 1 open-ended range
+        if ($omzet_max === null) {
+            if ($openEndedUsed) {
+                throw new Exception('Only one omzet range may have empty max');
+            }
+            $openEndedUsed = true;
+        }
+
+        // ===== SIMPAN RANGE =====
+        $sql = "INSERT INTO program_omzet_ranges (program_id, omzet_min, omzet_max, max_discount)
+            VALUES (
+                $id_program,
+                $omzet_min,
+                " . ($omzet_max === null ? 'NULL' : $omzet_max) . ",
+                $max_discount
+            )
+        ";
+
+        if (!$conn->query($sql)) {
+            throw new Exception('Failed insert omzet range: ' . $conn->error);
+        }
+
+        $range_id = $conn->insert_id;
+
+        // ===== SIMPAN DISCOUNTS =====
+        foreach ($discounts as $d) {
+            if ($d <= 0 || $d > $max_discount) {
+                continue;
+            }
+
+            $conn->query("
+                INSERT INTO program_discounts (omzet_range_id, amount)
+                VALUES ($range_id, $d)
+            ");
         }
     }
 

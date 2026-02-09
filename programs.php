@@ -190,55 +190,55 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
-
+    let existingRanges = [];
     $(document).ready(function(){
 
       $('.select2').select2();
 
       var programModal = document.getElementById('programModal');
       programModal.addEventListener('show.bs.modal', function (event) {
-          var rowid = event.relatedTarget.getAttribute('data-id')
-          let action = event.relatedTarget.getAttribute('data-action');
+        var rowid = event.relatedTarget.getAttribute('data-id')
+        let action = event.relatedTarget.getAttribute('data-action');
 
-          var modalTitle = programModal.querySelector('.modal-title')
-          modalTitle.textContent = action == 'create' ?  "Create Program" : "Edit Program";
-         
-          $.ajax({
-              url: 'input-program.php',
-              type: 'POST',
-              data: {
-                id_program: rowid,
-              },
-              success: function(data) {
-                  $('#programModalBody').html(data);
-                  $('.select2').select2({
-                    dropdownParent: $('#programModal')
-                  });
-              }
-          });
+        var modalTitle = programModal.querySelector('.modal-title')
+        modalTitle.textContent = action == 'create' ?  "Create Program" : "Edit Program";
+        
+        $.ajax({
+          url: 'input-program.php',
+          type: 'POST',
+          data: {
+            id_program: rowid,
+          },
+          success: function(data) {
+            $('#programModalBody').html(data);
+            $('.select2').select2({
+              dropdownParent: $('#programModal')
+            });
+          }
+        });
       })
 
       var addProgramModal = document.getElementById('add_program');
       addProgramModal.addEventListener('show.bs.modal', function (event) {
-          var rowid = 0;
-          let action = event.relatedTarget.getAttribute('data-action');
+        var rowid = 0;
+        let action = event.relatedTarget.getAttribute('data-action');
 
-          var modalTitle = addProgramModal.querySelector('.modal-title')
-          modalTitle.textContent = action == 'create' ?  "Create Program" : "Edit Program";
-         
-          $.ajax({
-              url: 'input-program.php',
-              type: 'POST',
-              data: {
-                id_program: rowid,
-              },
-              success: function(data) {
-                  $('#programModalBody').html(data);
-                  $('.select2').select2({
-                    dropdownParent: $('#programModal')
-                  });
-              }
-          });
+        var modalTitle = addProgramModal.querySelector('.modal-title')
+        modalTitle.textContent = action == 'create' ?  "Create Program" : "Edit Program";
+        
+        $.ajax({
+          url: 'input-program.php',
+          type: 'POST',
+          data: {
+            id_program: rowid,
+          },
+          success: function(data) {
+            $('#programModalBody').html(data);
+            $('.select2').select2({
+              dropdownParent: $('#programModal')
+            });
+          }
+        });
       })
 
     });
@@ -298,7 +298,7 @@
     });
 
     $(document).on('click', '.close', function() {
-        $('#programModal').modal('hide');
+      $('#programModal').modal('hide');
     });
 
 </script>

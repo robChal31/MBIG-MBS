@@ -81,11 +81,11 @@
 
                                         $stat = ($row['status'] == 0 && $row['fileUrl']) ? 'Waiting Approval'
                                             : ($row['status'] == 1 ? 'Approved' : 'Rejected');
-                                        $stat = ($row['status'] == 0 && !$row['fileUrl']) ? 'Draft' : $stat;
+                                        $stat = ($row['status'] == 0 && !$row['fileUrl'] || $row['status'] == 9) ? 'Draft' : $stat;
 
                                         $status_class = $row['status'] == 0 ? 'warning'
                                                     : ($row['status'] == 1 ? 'success' : 'danger');
-                                        $status_class = ($row['status'] == 0 && !$row['fileUrl']) ? 'primary' : $status_class;
+                                        $status_class = ($row['status'] == 0 && !$row['fileUrl'] || $row['status'] == 9) ? 'primary' : $status_class;
 
                                         $stat = ($row['verified'] == 1 && $row['status'] == 1 && $row['confirmed'] == 0)
                                             ? 'Waiting Confirmation'
@@ -96,7 +96,7 @@
                                         $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
                                         $programe_name = $row['year'] == 1 ? $row['program_name'] : ($row['program_name'] . " Perubahan Tahun Ke " . $row['year']);
 
-                                        $isDraft     = $row['status'] == 0 && !$row['fileUrl'];
+                                        $isDraft     = ($row['status'] == 0 && !$row['fileUrl'] || $row['status'] == 9);
                                         $isRejected  = $row['status'] == 2;
                                         $isActive    = empty($row['deleted_at']);
 

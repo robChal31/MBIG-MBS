@@ -7,7 +7,7 @@
   $use_template_as_default = false;
 
   if($_GET['edit'] == 'edit'){ 
-    $id_draft = $_GET['id_draft'];
+    $id_draft = (int) $_GET['id_draft'];
     $sql      = "SELECT db.*, sc.name as school_name2
                 FROM draft_benefit as db 
                 LEFT JOIN schools as sc on sc.id = db.school_name
@@ -405,7 +405,6 @@
       </div>
     </div>
 
-    <!-- Form End -->
     <template id="row-template">
       <tr>
         <td>
@@ -499,6 +498,14 @@
   let use_template_as_default = '<?= $use_template_as_default ?? false; ?>';
   let refId = JSON.parse('<?php echo json_encode($ref_id); ?>');
 
+  function initEditCalculation() {
+    $('input[name="member[]"]').each(function () {
+      updateDisabledField(this);
+    });
+
+    accumulateValues();
+  }
+
   function removeNonDigits(numberString) {
     let nonDigitRegex = /\D/g;
 
@@ -548,11 +555,11 @@
         row.find('input[name="member[]"]').val(formatNumber(data[0].qty1));
         row.find('input[name="member2[]"]').val(formatNumber(data[0].qty2));
         row.find('input[name="member3[]"]').val(formatNumber(data[0].qty3));
-        if(data[0].editable_qty == 0){
-          row.find('input[name="member[]"]').prop("readonly", true);
-          row.find('input[name="member2[]"]').prop("readonly", true);
-          row.find('input[name="member3[]"]').prop("readonly", true);
-        }
+
+        row.find('input[name="member[]"]').prop("readonly", data[0].editable_qty == 0);
+        row.find('input[name="member2[]"]').prop("readonly", data[0].editable_qty == 0);
+        row.find('input[name="member3[]"]').prop("readonly", data[0].editable_qty == 0);
+        
         var program = '<?= $program ?>';
         if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
 
@@ -624,9 +631,9 @@
   function updateDisabledField(element) {
     var row = $(element).closest('tr');
     var disabledField = row.find('input[name="calcValue[]"]');
-    var member1 = row.find('input[name="member[]"]').val();
-    var member2 = row.find('input[name="member2[]"]').val();
-    var member3 = row.find('input[name="member3[]"]').val();
+    var member1 = parseInt(row.find('input[name="member[]"]').val()) || 0;
+    var member2 = parseInt(row.find('input[name="member2[]"]').val()) || 0;
+    var member3 = parseInt(row.find('input[name="member3[]"]').val()) || 0;
 
     handleInput(row.find('input[name="valben[]"]'));
     var disabledField2 = row.find('input[name="valben[]"]');
@@ -874,6 +881,9 @@
         addRow(tpl);
       });
     }
+    setTimeout(() => {
+      initEditCalculation();
+    }, 0);
   });
 
 

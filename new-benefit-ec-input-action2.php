@@ -106,11 +106,11 @@
     
     mysqli_autocommit($conn, false);
 
-
+    $temp_status = $save_as_draft ? 9 : 0;
     try {
 
         //update value benefit di table draft_benefit
-        $sql = "UPDATE draft_benefit set alokasi = $sumalok, total_benefit = $total_benefit, selisih_benefit = $selisih_benefit, status = 0, fileUrl = NULL, updated_at = current_timestamp() where id_draft = $id_draft";
+        $sql = "UPDATE draft_benefit set alokasi = $sumalok, total_benefit = $total_benefit, selisih_benefit = $selisih_benefit, status = $temp_status, fileUrl = NULL, updated_at = current_timestamp() where id_draft = $id_draft";
         mysqli_query($conn,$sql);
         
         if($editmode == 'true'){
@@ -139,300 +139,348 @@
         $ec_name = $ec_row['generalname'] ?? 'EC';
         $id_ec_r = $ec_row['id_user'] ?? $_SESSION['id_user'];
         $ec_email = $ec_row['username'] ?? $_SESSION['username'];
-        
+    
+
+        if ($segment !== '' && is_numeric($segment)) {
+            $segment_id = (int) $segment;
+
+            $q_segment = "SELECT * FROM segments WHERE id = $segment_id LIMIT 1";
+            $r_segment = mysqli_query($conn, $q_segment);
+
+            if ($r_segment && mysqli_num_rows($r_segment) === 1) {
+                $segment_data = mysqli_fetch_assoc($r_segment);
+                $segment_name = $segment_data['segment'];
+            }
+        }
+
+        $q_program = "SELECT * FROM programs WHERE code = '$program' OR name = '$program' LIMIT 1";
+        $r_program = mysqli_query($conn, $q_program);
+        $has_omzet_scheme_discount = false;
+        if ($r_program && mysqli_num_rows($r_program) === 1) {
+            $selected_program = mysqli_fetch_assoc($r_program);
+            $has_omzet_scheme_discount = $selected_program['has_omzet_scheme_discount'] == 1;
+        }
+
         //create excel
-        if(!$save_as_draft) {
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
 
-            if ($segment !== '' && is_numeric($segment)) {
-                $segment_id = (int) $segment;
+        $sheet->setCellValue('A2', 'PERHITUNGAN HARGA DAN BENEFIT');
+        $sheet->mergeCells('A2:J2');
 
-                $q_segment = "SELECT * FROM segments WHERE id = $segment_id LIMIT 1";
-                $r_segment = mysqli_query($conn, $q_segment);
+        $sheet->setCellValue(
+            'A3',
+            "PROGRAM " . strtoupper($program_name) .
+            ($program_year != 1
+                ? ($program_year == 2 ? " PERUBAHAN TAHUN KE 2" : " PERUBAHAN TAHUN KE 3")
+                : " TAHUN KE I")
+        );
+        $sheet->mergeCells('A3:J3');
 
-                if ($r_segment && mysqli_num_rows($r_segment) === 1) {
-                    $segment_data = mysqli_fetch_assoc($r_segment);
-                    $segment_name = $segment_data['segment'];
-                }
+        $sheet->setCellValue('A4', 'TAHUN AJARAN');
+        $sheet->mergeCells('A4:J4');
+        $sheet->getStyle('A2:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+
+        $sheet->setCellValue('A5', 'Nama Sekolah');
+        $sheet->setCellValue('B5', ': '.$school_name);
+        $sheet->setCellValue('A6', 'Nama EC');
+        $sheet->setCellValue('B6', ': '.$ec_name);
+        $sheet->setCellValue('A7', 'Program');
+        $sheet->setCellValue('B7', ': '. strtoupper($program_name));
+        $sheet->setCellValue('A8', 'Segment');
+        $sheet->setCellValue('B8', ': '.ucfirst($segment_name));
+        $sheet->setCellValue('A9', 'Tanggal Dibuat');
+        $sheet->setCellValue('B9', ': '.date('d M Y'));
+
+        $priceCol = [
+            'mapel' => 'A',
+            'judul' => 'B',
+            'qty'   => 'C',
+        ];
+
+        if(!$has_omzet_scheme_discount){
+            $priceCol += [
+                'usulan' => 'D',
+                'normal' => 'E',
+                'disc'   => 'F',
+                'after'  => 'G',
+                'rev_n'  => 'H',
+                'rev_d'  => 'I',
+                'alok'   => 'J',
+            ];
+        }else{
+            $priceCol += [
+                'normal' => 'D',
+                'disc'   => 'E',
+                'after'  => 'F',
+                'rev_d'  => 'G',
+                'alok'   => 'H',
+            ];
+        }
+
+        $sheet->setCellValue($priceCol['mapel'].'10','Mata Ajar');
+        $sheet->setCellValue($priceCol['judul'].'10','Judul Buku');
+        $sheet->setCellValue($priceCol['qty'].'10','Jumlah Siswa');
+
+        if(!$has_omzet_scheme_discount){
+            $sheet->setCellValue($priceCol['usulan'].'10','Usulan Harga Program');
+        }
+
+        $sheet->setCellValue($priceCol['normal'].'10','Harga Buku Normal');
+        $sheet->setCellValue($priceCol['disc'].'10','Standard Discount (%)');
+        $sheet->setCellValue($priceCol['after'].'10','Harga Buku Setelah Diskon');
+
+        if(!$has_omzet_scheme_discount){
+            $sheet->setCellValue($priceCol['rev_n'].'10','Total Revenue Dengan Harga Normal');
+        }
+
+        $sheet->setCellValue($priceCol['rev_d'].'10','Total Revenue Dengan Harga Diskon');
+        $sheet->setCellValue($priceCol['alok'].'10','Alokasi Manfaat Dengan Harga Program');
+
+        $sql = "SELECT * FROM calc_table WHERE id_draft = $id_draft";
+        $result = $conn->query($sql);
+
+        $row = 11;
+        $totalqty = 0;
+        $totalrevenuenormal = 0;
+        $totalrevenuediskon = 0;
+
+        while ($data = $result->fetch_assoc()) {
+
+            $sheet->setCellValue($priceCol['judul'].$row, $data['book_title']);
+            $sheet->setCellValue($priceCol['qty'].$row, $data['qty']);
+
+            if(!$has_omzet_scheme_discount){
+                $sheet->setCellValue($priceCol['usulan'].$row, $data['usulan_harga']);
             }
 
-            $q_program = "SELECT * FROM programs WHERE code = '$program_code' OR name = '$program_code' LIMIT 1";
-            $r_program = mysqli_query($conn, $q_program);
+            $sheet->setCellValue($priceCol['normal'].$row, $data['normalprice']);
+            $sheet->setCellValue($priceCol['disc'].$row, $data['discount']);
 
-            if ($r_program && mysqli_num_rows($r_program) === 1) {
-                $program_name = mysqli_fetch_assoc($r_program);
-                $program_name = $program_name['name'];
+            $after = $data['normalprice'] - ($data['discount']/100 * $data['normalprice']);
+            $sheet->setCellValue($priceCol['after'].$row, $after);
+
+            if(!$has_omzet_scheme_discount){
+                $revNormal = $data['usulan_harga'] * $data['qty'];
+                $sheet->setCellValue($priceCol['rev_n'].$row, $revNormal);
+                $totalrevenuenormal += $revNormal;
             }
-            
-            $spreadsheet = new Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-            $sheet->setCellValue('A2', 'PERHITUNGAN HARGA DAN BENEFIT');
-            // $sheet->setCellValue('A2', 'FORM PERHITUNGAN HARGA DAN BENEFIT');
-            $sheet->mergeCells('A2:J2');
-            // $sheet->setCellValue('A3', 'PROGRAM COMPETENCY BASED LEARNING SOLUTION (CBLS ) 2023');
-            $sheet->setCellValue('A3', "PROGRAM " . strtoupper($program_name) . ($program_year != 1 ? ($program_year == 2 ? " PERUBAHAN TAHUN KE 2" : " PERUBAHAN TAHUN KE 3") : " TAHUN KE I"));
-            $sheet->mergeCells('A3:J3');
-            $sheet->setCellValue('A4', 'TAHUN AJARAN');
-            $sheet->mergeCells('A4:J4');
-            $sheet->getStyle('A2:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
-            $sheet->setCellValue('A5', 'Nama Sekolah');
-            $sheet->setCellValue('B5', ': '.$school_name);
-            $sheet->setCellValue('A6', 'Nama EC');
-            $sheet->setCellValue('B6', ': '.$ec_name);
-            $sheet->setCellValue('A7', 'Program');
-            $sheet->setCellValue('B7', ': '. strtoupper($program_name));
-            $sheet->setCellValue('A8', 'Segment');
-            $sheet->setCellValue('B8', ': '.ucfirst($segment_name));
-            $sheet->setCellValue('A9', 'Tanggal Dibuat');
-            $sheet->setCellValue('B9', ': '.date('d M Y'));
-            
-            $sheet->setCellValue('A10','Mata Ajar');
-            $sheet->setCellValue('B10','Judul Buku');
-            $sheet->setCellValue('C10','Jumlah Siswa');
-            $sheet->setCellValue('D10','Usulan Harga Program');
-            $sheet->setCellValue('E10','Harga Buku Normal');
-            $sheet->setCellValue('F10','Standard Discount (%)');
-            $sheet->setCellValue('G10','Harga Buku Setelah Diskon');
-            $sheet->setCellValue('H10','Total Revenue Dengan Harga Normal');
-            $sheet->setCellValue('I10','Total Revenue Dengan Harga Diskon');
-            $sheet->setCellValue('J10','Alokasi Manfaat Dengan Harga Program');
-        
-            $sql = "SELECT * FROM calc_table where id_draft = $id_draft";
-            $result = $conn->query($sql);
-            $row = 11; // Start from row 2 for data
-            $totalqty = 0;
-            $totalnormal = 0;
-            $totalrevenuenormal = 0;
-            $totalrevenuediskon = 0;
-        
-            while ($data = $result->fetch_assoc()) {
-                $sheet->setCellValue('B' . $row, $data['book_title']);
-                $sheet->setCellValue('C' . $row, $data['qty']);
-                $sheet->setCellValue('D' . $row, $data['usulan_harga']);
-                $sheet->setCellValue('E' . $row, $data['normalprice']);
-                $sheet->setCellValue('F' . $row, $data['discount']);
-                $sheet->setCellValue('G' . $row, $data['normalprice']-($data['discount']/100*$data['normalprice']));
-                $sheet->setCellValue('H' . $row, $data['usulan_harga']*$data['qty']);
-                $totalrevenuenormal = $totalrevenuenormal + $data['usulan_harga']*$data['qty'];
-                $sheet->setCellValue('I'.$row, $data['qty']*($data['normalprice']-($data['discount']/100*$data['normalprice'])));
-                $totalrevenuediskon = $totalrevenuediskon + ($data['qty']*($data['normalprice']-($data['discount']/100*$data['normalprice'])));
-                $sheet->setCellvalue('J'.$row, $data['alokasi']);
-                $sheet->getStyle('D'.$row.':J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-                $row++;
-                $totalqty=$totalqty+(int)$data['qty'];
-            }
-            $sheet->setCellValue('B'.$row, 'Jumlah');
-            $sheet->setCellValue('C'.$row, $totalqty);
-            $sheet->setCellValue('H'.$row, $totalrevenuenormal);
-            $sheet->setCellValue('I'.$row, $totalrevenuediskon);
-            $sheet->getStyle('D'.$row.':L'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            
+
+            $revDiskon = $data['qty'] * $after;
+            $sheet->setCellValue($priceCol['rev_d'].$row, $revDiskon);
+            $totalrevenuediskon += $revDiskon;
+
+            $sheet->setCellValue($priceCol['alok'].$row, $data['alokasi']);
+            $sheet->getStyle('D'.$row.':J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            $totalqty += (int)$data['qty'];
             $row++;
+        }
+
+        $sheet->setCellValue($priceCol['judul'].$row, 'Jumlah');
+        $sheet->setCellValue($priceCol['qty'].$row, $totalqty);
+
+        if(!$has_omzet_scheme_discount){
+            $sheet->setCellValue($priceCol['rev_n'].$row, $totalrevenuenormal);
+        }
+        $sheet->getStyle('D'.$row.':L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+
+        $sheet->setCellValue($priceCol['rev_d'].$row, $totalrevenuediskon);
+        $sheet->getStyle('D'.$row.':L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $row++;
+
+        if(!$has_omzet_scheme_discount){
             $sheet->setCellValue('I'.$row, 'Total alokasi benefit per tahun');
             $sheet->setCellValue('J'.$row, $sumalok);
-
             $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $row++;
-            $row++;
-            $row++;
-            
-            $sheet->setCellValue('A'.$row, 'Manfaat/fasilitas pengembangan sekolah');
-            $sheet->mergeCells('A'.$row.':F'.$row);
-            $sheet->setCellValue('G'.$row, 'Harga satuan per unit');
-            $sheet->setCellValue('H'.$row, 'Satuan');
-            // $sheet->mergeCells('G'.$row.':H'.$row);
-            $sheet->setCellValue('I'.$row, 'Usulan Total (durasi/guru/ siswa)');
-            $sheet->setCellValue('J'.$row, 'Total Tahun 1');
-            if($program == 'prestasi'){
-                $sheet->setCellValue('K'.$row, 'Total Tahun 2');
-                $sheet->setCellValue('L'.$row, 'Total Tahun 3');
-            }
-            $row++;
-            $sql = "SELECT 
-                        a.status, a.benefit_name, a.subbenefit, a.description, a.keterangan, a.qty, a.qty2, a.qty3, 
-                        a.manualValue, a.pelaksanaan, b.valueMoney, a.calcValue 
-                    FROM `draft_benefit_list` a 
-                    LEFT JOIN draft_template_benefit AS b on a.id_template = b.id_template_benefit
-                    where a.id_draft = $id_draft";
-            $result = $conn->query($sql);
-            $j = 1;
-            while ($data = $result->fetch_assoc()) {
-                $benefit_name = explode(' - ', $data['benefit_name']);
-                $sheet->setCellValue('A'.$row,$j);
-                // $sheet->setCellValue('B'.$row,$data['subbenefit']." - ".$data['benefit_name']);
-                // $sheet->setCellValue('B'.$row, $benefit_name[0]);
-                $sheet->setCellValue('B'.$row, $data['benefit_name']);
-                $sheet->mergeCells('B'.$row.':C'.$row);
-                $sheet->setCellValue('D'.$row,$data['description']);
-                $sheet->mergeCells('D'.$row.':F'.$row);
-        
-                /*somwhere around here*/
-                if($data['manualValue'] == 0){
-                    if($editmode != 'true'){
-                        if($data['valueMoney'] == 0){
-                            $data['valueMoney'] = $data['calcValue'];
-                        }
-                        $sheet->setCellValue('G'.$row, $data['valueMoney']);
-                    }else{
-                        if($data['valueMoney'] == 0){
-                            $data['valueMoney'] = (int)$data['calcValue']/((int)$data['qty']+(int)$data['qty2']+(int)$data['qty3']);
-                        }
-                        $sheet->setCellValue('G'.$row, $data['valueMoney']);
-                    }
-                    
-                    $sheet->setCellValue('J'.$row, ($data['qty'] * $data['valueMoney']));
-                    if($program == 'prestasi'){
-                        $sheet->setCellValue('K'.$row, ($data['qty2'] * $data['valueMoney']));
-                        $sheet->setCellValue('L'.$row, ($data['qty3'] * $data['valueMoney']));
-                    }
-                    
-                }else{
-                    $sheet->setCellValue('G'.$row, $data['manualValue']);
-                    $sheet->setCellValue('J'.$row, $data['manualValue'] * $data['qty']);
-                    if($program == 'prestasi'){
-                        $sheet->setCellValue('K'.$row, $data['manualValue'] * $data['qty2']);
-                        $sheet->setCellValue('L'.$row, $data['manualValue'] * $data['qty3']);
-                    }
+        }else {
+                $sheet->setCellValue('G'.$row, 'Total alokasi benefit per tahun');
+                $sheet->setCellValue('H'.$row, $sumalok);
+                $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        }
+       
+        $row += 3;
+
+        $sheet->setCellValue('A'.$row, 'Manfaat/fasilitas pengembangan sekolah');
+        $sheet->mergeCells('A'.$row.':F'.$row);
+        $sheet->setCellValue('G'.$row, 'Harga satuan per unit');
+        $sheet->setCellValue('H'.$row, 'Satuan');
+        $sheet->setCellValue('I'.$row, 'Usulan Total (durasi/guru/ siswa)');
+        $sheet->setCellValue('J'.$row, 'Total Tahun 1');
+        if($program == 'prestasi'){
+            $sheet->setCellValue('K'.$row, 'Total Tahun 2');
+            $sheet->setCellValue('L'.$row, 'Total Tahun 3');
+        }
+        $row++;
+
+        $sql = "SELECT 
+                    a.status, a.benefit_name, a.subbenefit, a.description, a.keterangan,
+                    a.qty, a.qty2, a.qty3, a.manualValue, a.pelaksanaan,
+                    b.valueMoney, a.calcValue
+                FROM draft_benefit_list a
+                LEFT JOIN draft_template_benefit b
+                    ON a.id_template = b.id_template_benefit
+                WHERE a.id_draft = $id_draft";
+        $result = $conn->query($sql);
+
+        $j = 1;
+        while ($data = $result->fetch_assoc()) {
+            $description = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
+            $description = str_replace(["&#13;", "\r", "\n"], PHP_EOL, $description);
+
+            $sheet->setCellValue('A'.$row, $j);
+            $sheet->setCellValue('B'.$row, $data['benefit_name']);
+            $sheet->mergeCells('B'.$row.':C'.$row);
+            $sheet->setCellValue('D'.$row, $description);
+            $sheet->getStyle('D'.$row)->getAlignment()->setWrapText(true);
+            $sheet->mergeCells('D'.$row.':F'.$row);
+
+            if($data['manualValue'] == 0){
+                $valueMoney = $data['valueMoney'] ?: (
+                    $editmode != 'true'
+                        ? $data['calcValue']
+                        : ((int)$data['calcValue'] / max(1, ((int)$data['qty']+(int)$data['qty2']+(int)$data['qty3'])))
+                );
+                $sheet->setCellValue('G'.$row, $valueMoney);
+                $sheet->setCellValue('J'.$row, $data['qty'] * $valueMoney);
+
+                if($program == 'prestasi'){
+                    $sheet->setCellValue('K'.$row, $data['qty2'] * $valueMoney);
+                    $sheet->setCellValue('L'.$row, $data['qty3'] * $valueMoney);
                 }
-                
-                $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-                $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
-                $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            }else{
+                $sheet->setCellValue('G'.$row, $data['manualValue']);
+                $sheet->setCellValue('J'.$row, $data['manualValue'] * $data['qty']);
 
-                $sheet->setCellValue('H'.$row,$data['pelaksanaan']);
-                if($program=='prestasi' || $program=='cbls3' || $program=='bsp'){
-                    $text = "Tahun 1 : ".$data['qty']." | Tahun 2 : ".$data['qty2']." | Tahun 3 : ".$data['qty3'];
-                    $sheet->setCellValue('I'.$row, $text);
-                    
-                }else{
-                    $sheet->setCellValue('I'.$row,$data['qty']);
+                if($program == 'prestasi'){
+                    $sheet->setCellValue('K'.$row, $data['manualValue'] * $data['qty2']);
+                    $sheet->setCellValue('L'.$row, $data['manualValue'] * $data['qty3']);
                 }
-                
-                $sheet->getStyle('G'.$row.':I'.$row)->getNumberFormat()->setFormatCode('#,##0');
-                $j++; $row++;
-            }
-            $sheet->setCellValue('A'.$row, 'TOTAL MANFAAT');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $sheet->setCellValue('J'.$row, $total_benefit1);
-
-            if($program == 'prestasi'){
-                $sheet->setCellValue('K'.$row, $total_benefit2);
-                $sheet->setCellValue('L'.$row, $total_benefit3);
             }
 
+            $sheet->setCellValue('H'.$row, $data['pelaksanaan']);
+
+            if(in_array($program, ['prestasi','cbls3','bsp'])){
+                $sheet->setCellValue('I'.$row, "Tahun 1 : {$data['qty']} | Tahun 2 : {$data['qty2']} | Tahun 3 : {$data['qty3']}");
+            }else{
+                $sheet->setCellValue('I'.$row, $data['qty']);
+            }
+
+            $sheet->getStyle('G'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle('I'.$row)->getNumberFormat()->setFormatCode('#,##0');
             $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            $j++;
+            $row++;
+        }
 
-            $row++;
-            $sheet->setCellValue('I'.$row,'Total Alokasi Benefit');
-            $sheet->setCellValue('J'.$row, $sumalok);
-            
-            if($program == 'prestasi'){
-                $sheet->setCellValue('K'.$row, $sumalok);
-                $sheet->setCellValue('L'.$row, $sumalok);
-            }
+        $sheet->setCellValue('A'.$row, 'TOTAL MANFAAT');
+        $sheet->mergeCells('A'.$row.':I'.$row);
+        $sheet->setCellValue('J'.$row, $total_benefit1);
+        $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
 
-            $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $row++;
+        if($program == 'prestasi'){
+            $sheet->setCellValue('K'.$row, $total_benefit2);
+            $sheet->setCellValue('L'.$row, $total_benefit3);
+        }
 
-            $sheet->setCellValue('I'.$row, 'Total Benefit');
-            $sheet->setCellValue('J'.$row, $total_benefit1);
+        $row++;
+        $sheet->setCellValue('I'.$row,'Total Alokasi Benefit');
+        $sheet->setCellValue('J'.$row, $sumalok);
+        $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        if($program == 'prestasi'){
+            $sheet->setCellValue('K'.$row, $sumalok);
+            $sheet->setCellValue('L'.$row, $sumalok);
+        }
 
-            if($program == 'prestasi'){
-                $sheet->setCellValue('K'.$row, $total_benefit2);
-                $sheet->setCellValue('L'.$row, $total_benefit3);
-            }
+        $row++;
+        $sheet->setCellValue('I'.$row, 'Total Benefit');
+        $sheet->setCellValue('J'.$row, $total_benefit1);
+        $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        if($program == 'prestasi'){
+            $sheet->setCellValue('K'.$row, $total_benefit2);
+            $sheet->setCellValue('L'.$row, $total_benefit3);
+        }
 
-            $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $row++;
+        $sheet->setCellValue('I'.$row,'Selisih Margin');
+        $sheet->setCellValue('J'.$row, ($sumalok - $total_benefit1));
+        $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        if($program == 'prestasi'){
+            $sheet->setCellValue('K'.$row, ($sumalok - $total_benefit2));
+            $sheet->setCellValue('L'.$row, ($sumalok - $total_benefit3));
+        }
 
-            $row++;
-            $sheet->setCellValue('I'.$row,'Selisih Margin');
-            $sheet->setCellValue('J'.$row, ($sumalok - $total_benefit1));
+        $row++;
+        $sheet->setCellValue('A'.$row,'Catatan Penting');
+        $sheet->mergeCells('A'.$row.':I'.$row);
+        $row++;
 
-            
-            if($program == 'prestasi'){
-                $sheet->setCellValue('K'.$row, ($sumalok - $total_benefit2));
-                $sheet->setCellValue('L'.$row, ($sumalok - $total_benefit3));
-            }
-            
-            $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
-            
-            $row++;
-            $sheet->setCellValue('A'.$row,'Catatan Penting');
+        $notes = [
+            'Maksimal diskon yang diberikan untuk sekolah sebesar 20%-25% berdasarkan qty (min 75 cps/level ke atas)',
+            'Pemberian program & qty/durasi disesuaikan dengan kebutuhan sekolah',
+            'Jika EC mengajukan free copy, EC wajib melampirkan list buku',
+            'Tidak ada dana cashback untuk perorangan/individu',
+            'Jika ada budget lebih, tidak dapat dialihkan',
+            'EC tidak diperbolehkan mengubah benefit',
+            'Tidak berlaku sistem retur',
+            'Total benefit memotong komisi EC',
+            'Semua benefit diinput setelah PI ditandatangani'
+        ];
+
+        foreach($notes as $note){
+            $sheet->setCellValue('A'.$row, $note);
             $sheet->mergeCells('A'.$row.':I'.$row);
             $row++;
-            $sheet->setCellValue('A'.$row,'Maksimal diskon yang diberikan untuk sekolah sebesar 20%-25% berdasarkan qty ( min 75 cps/ level ke atas- diskon bisa 25%)');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Pemberian program & qty/durasi disesuaikan dengan kebutuhan sekolah, jika terdapat kelebihan budget benefit maka sisa budget akan menjadi margin perusahaan.');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Jika EC mengajukan free copy, maka EC harus melampirkan list buku dan total nilai Price list');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Tidak ada dana cashback untuk perorangan/individu');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Jika ada budget lebih, tidak dapat dialihkan ke benefit sponsorship dan program lain');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'EC tidak diperbolehkan mengubah/menambahkan benefit selain yang tertera dalam PI yang sudah ditandatangani');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Tidak berlaku sistem retur dalam program ini');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Total benefit dari harga program yang diberikan ke sekolah akan memotong perhitungan komisi/insentif EC');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $sheet->setCellValue('A'.$row,'Semua benefit dan nominal akan di input di sistem setelah PI di tandatangani sekolah');
-            $sheet->mergeCells('A'.$row.':I'.$row);
-            $row++;
-            $row++;
-        
-            $sheet->setCellValue('A'.$row,'Dibuat oleh EC');
-            $sheet->setCellValue('E'.$row,'Dicek dan disetujui oleh Pimpinan (HOR / HOS)');
-            $sheet->setCellValue('I'.$row,'Disetujui oleh Pimpinan (Top Leader)');
-            $row=$row+6;
-            $sheet->setCellValue('A'.$row,'Nama');
-            $sheet->setCellValue('E'.$row,'HOR / HOS');
-            $sheet->setCellValue('I'.$row,'Dwinanto Setiawan');
-            $row++;
-            $sheet->setCellValue('A'.$row,'E-signature *wajib');
-            $sheet->setCellValue('E'.$row,'E-signature *wajib');
-            $sheet->setCellValue('I'.$row,'E-signature *wajib');
-            
-            // for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
-            //     $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
-            // }
-            $columnIndexes = range('A','L');
-            foreach($columnIndexes as $columnIndex) {
-                $sheet->getColumnDimension($columnIndex)->setWidth(18);
-                $sheet->getStyle($columnIndex)->getAlignment()->setWrapText(true);
-                $sheet->getStyle($columnIndex)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-            }
-            $sheet->getRowDimension(10)->setRowHeight(50);
-            // $rowStyle = $sheet->getStyle('A10:Z10');
-            // $rowStyle->getAlignment()->setWrapText(true);
-            // $rowStyle->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
-        
-            $writer = new Xlsx($spreadsheet);
-            $pattern = '/[^a-zA-Z0-9\s]/';
-            $school_name_file = preg_replace($pattern, '', $school_name);
-            $fileName = "Draft Benefit - ".$school_name_file."-".$ec_name.'-'.date('Ymd');
-            $fileName = addslashes($fileName);
-        
-            $excelFile = 'draft-benefit/'.$fileName.'.xlsx';
-            $writer->save($excelFile);
-            $sql = "UPDATE draft_benefit set fileUrl = '$fileName', updated_at = current_timestamp() where id_draft = '$id_draft'";
-            
-            mysqli_query($conn,$sql);
+        }
+
+        $row += 2;
+        $sheet->setCellValue('A'.$row,'Dibuat oleh EC');
+        $sheet->setCellValue('E'.$row,'Dicek & disetujui HOR/HOS');
+        $sheet->setCellValue('I'.$row,'Disetujui Top Leader');
+
+        $row += 6;
+        $sheet->setCellValue('A'.$row,'Nama');
+        $sheet->setCellValue('E'.$row,'HOR / HOS');
+        $sheet->setCellValue('I'.$row,'Dwinanto Setiawan');
+
+        $row++;
+        $sheet->setCellValue('A'.$row,'E-signature *wajib');
+        $sheet->setCellValue('E'.$row,'E-signature *wajib');
+        $sheet->setCellValue('I'.$row,'E-signature *wajib');
+
+        $columnIndexes = range('A','L');
+        foreach($columnIndexes as $colIndex){
+            $sheet->getColumnDimension($colIndex)->setWidth(18);
+            $sheet->getStyle($colIndex)->getAlignment()->setWrapText(true);
+            $sheet->getStyle($colIndex)->getAlignment()->setVertical(Alignment::VERTICAL_CENTER);
+        }
+        $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('D'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('E'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('F'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('G'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('I'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getRowDimension(10)->setRowHeight(50);
+
+        $writer = new Xlsx($spreadsheet);
+        $pattern = '/[^a-zA-Z0-9\s]/';
+        $school_name_file = preg_replace($pattern, '', $school_name);
+        $fileName = "Draft Benefit - ".$school_name_file."-".$ec_name.'-'.date('Ymd');
+        $fileName = addslashes($fileName);
+
+        $excelFile = 'draft-benefit/'.$fileName.'.xlsx';
+        $writer->save($excelFile);
+
+        $sql = "UPDATE draft_benefit 
+                SET fileUrl = '$fileName', updated_at = current_timestamp() 
+                WHERE id_draft = '$id_draft'";
+        mysqli_query($conn, $sql);
+
+
+        if(!$save_as_draft) {
             //add approval
             $tokenLeader = generateRandomString(16);
             
@@ -599,7 +647,7 @@
     } catch (\Throwable $th) {
         mysqli_rollback($conn);
         $_SESSION['toast_status'] = 'Error';
-        $_SESSION['toast_msg'] = 'Transaksi gagal: '.$e->getMessage();
+        $_SESSION['toast_msg'] = 'Transaksi gagal: '.$th->getMessage();
         header('Location: ./draft-benefit.php');
         exit();
     }
