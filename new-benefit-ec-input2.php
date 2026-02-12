@@ -393,7 +393,10 @@
                     <button type="submit"
                       class="btn btn-primary fw-semibold px-4 d-flex align-items-center gap-2"
                       id="submt">
-                      <i class="bi bi-check-lg"></i>
+                      <span class="btn-icon">
+                        <i class="bi bi-arrow-right"></i>
+                      </span>
+
                       Submit
                     </button>
                   </div>

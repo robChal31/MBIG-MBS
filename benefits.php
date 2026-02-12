@@ -118,9 +118,7 @@
                         <h6 class="fw-semibold mb-0">Filter Benefit</h6>
                         <small class="text-muted">Refine data based on benefit type</small>
                     </div>
-                    <button class="btn btn-sm btn-outline-secondary"
-                            data-bs-toggle="collapse"
-                            data-bs-target="#filterBenefitBody">
+                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterBenefitBody">
                         <i class="fa fa-sliders-h me-1"></i> Toggle
                     </button>
                 </div>
@@ -133,10 +131,7 @@
                         <div class="col-12 <?= $role == 'ec' ? 'd-none' : '' ?>">
                             <label class="form-label small fw-semibold">Benefit Type</label>
 
-                            <select class="form-select form-select-sm select2"
-                                    id="benefitType"
-                                    name="type[]"
-                                    multiple>
+                            <select class="form-select form-select-sm select2" id="benefitType" name="type[]" multiple>
                                 <?php foreach($types as $type) : ?>
                                     <option value="<?= $type['id_templates'] ?>" selected>
                                         <?= $type['benefit'] ?>
@@ -146,14 +141,10 @@
 
                             <!-- helper buttons -->
                             <div class="d-flex gap-2 mt-1">
-                                <button type="button"
-                                        class="btn btn-outline-secondary btn-xs"
-                                        id="selectAllBenefit">
+                                <button type="button" class="btn btn-outline-secondary btn-xs" id="selectAllBenefit">
                                     Select All
                                 </button>
-                                <button type="button"
-                                        class="btn btn-outline-secondary btn-xs"
-                                        id="clearAllBenefit">
+                                <button type="button" class="btn btn-outline-secondary btn-xs" id="clearAllBenefit">
                                     Clear
                                 </button>
                             </div>
@@ -162,10 +153,7 @@
                         <!-- USAGE YEAR (NO SELECT ALL) -->
                         <div class="col-md-6 col-12">
                             <label class="form-label small fw-semibold">Usage Year</label>
-                            <select class="form-select form-select-sm select2"
-                                    id="usageYear"
-                                    name="usage_year[]"
-                                    multiple>
+                            <select class="form-select form-select-sm select2" id="usageYear" name="usage_year[]" multiple>
                                 <option value="1">Year 1</option>
                                 <option value="2">Year 2</option>
                                 <option value="3">Year 3</option>
@@ -174,8 +162,7 @@
 
                         <!-- ACTION -->
                         <div class="col-md-6 col-12 d-flex justify-content-md-end align-items-end">
-                            <button class="btn btn-primary btn-sm px-4 fw-semibold"
-                                    id="filter-btn">
+                            <button class="btn btn-primary btn-sm px-4 fw-semibold" id="filter-btn">
                                 <i class="fa fa-filter me-1"></i> Apply Filter
                             </button>
                         </div>
@@ -374,7 +361,7 @@
         let usage_year = $('select[name="usage_year[]"]').val();
 
         $.ajax({
-            url: './get-confirmed-benefits-bu.php',
+            url: './get-confirmed-benefits.php',
             type: 'POST',
             data: {
                 types: selectedType,

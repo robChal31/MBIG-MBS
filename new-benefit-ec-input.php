@@ -804,7 +804,8 @@
         success: function(response) {
           let options = '<option value="" selected>Select a plan</option>';
           response.map((data, index) => {
-            let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : (index === 0 ? 'selected' : '');
+            // let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : (index === 0 ? 'selected' : '');
+            let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : ('');
             options += `<option value="${data.value}" ${selected}>${data.label}</option>`
           }) 
 
@@ -900,8 +901,10 @@
     var normal = removeNonDigits(row.find('input[name="harganormal[]"]').val()) || 0;
     var diskon = parseIndoNumber(row.find('input[name="diskon[]"]').val()) || 0;
     if(programOmzetSettings && programOmzetSettings.enabled) {
-
-      const maxDiscountAlocatedForbenefit = 30;
+      
+      const totalOmzet = calculateTotalOmzet();
+      const range = resolveOmzetRange(totalOmzet);
+      const maxDiscountAlocatedForbenefit = range?.max_discount ?? 30;
 
       const cashback = Number($('#modalCashback').val()) || 0;
 
@@ -1315,7 +1318,7 @@
   function reevaluateOmzetDiscount() {
     if (!programOmzetSettings?.enabled) return;
     if (isRecalculatingOmzet) return;
-    console.log('reevaluateOmzetDiscount');
+
     const totalOmzet = calculateTotalOmzet();
     const range = resolveOmzetRange(totalOmzet);
     const rangeId = range?.id ?? null;
@@ -1341,6 +1344,14 @@
     ) || 0;
   }
 
+  async function initPlanRef(userId = null) {
+    const userData = await getUserData(userId);
+    if (!userData) return;
+
+    await fetchShool(userData.username);
+    getMyPlanRef();
+  }
+
 </script>
 <script>
   let schoolReady     = false;
@@ -1352,7 +1363,7 @@
   let schoolId        = '<?= $school_name ?? 'null' ?>';
   let programCode     = '<?= $program ?? 'null' ?>';
   let booksBySeries   = <?= json_encode($books) ?>;
-
+  let userRole        = '<?= $role ?>';
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
   let programOmzetSettings = null;
@@ -1658,7 +1669,6 @@
 
             books.forEach(book => {
               const savedBook = savedBooks.filter(el => el.book_id === book.id);
-
               if(savedBook.length <= 0) return;
               let selectedBook = savedBook[0];
               const bookTpl   = document.getElementById('bookRowTemplate');
@@ -1687,7 +1697,6 @@
               hargaNormalInput.value = formatNumber(bookPrice);
 
               bookList.appendChild(bookClone);
-              console.log('sini kan: ', additionalPriceToAdd);
 
               additionalPriceToAdd = additionalPrice;
             });
@@ -1745,6 +1754,10 @@
 
     }
 
+    if(userRole == 'ec' && !idDraft) {
+      let ecId = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
+      initPlanRef(ecId);
+    }
   });
 
   document.addEventListener('click', function (e) {

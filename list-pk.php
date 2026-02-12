@@ -97,8 +97,8 @@
                                                 <label class="form-label fw-semibold">Program <small class="text-muted" style="font-size: 12px;">(You can select multiple programs)</small></label>
                                                 <select name="programs[]" id="program" class="form-control select2" multiple>
                                                     <?php foreach ($programs as $program) { ?>
-                                                        <option value="<?= trim($program['name']) ?>"
-                                                            <?= !$selected_program ? '' : (in_array($program['name'], $selected_program) ? 'selected' : '') ?>>
+                                                        <option value="<?= trim($program['code']) ?>"
+                                                            <?= !$selected_program ? '' : (in_array($program['code'], $selected_program) ? 'selected' : '') ?>>
                                                             <?= $program['name'] ?>
                                                         </option>
                                                     <?php } ?>
@@ -159,13 +159,14 @@
                                                 b.alokasi, b.year, c.generalname, pk.id as pk_id,
                                                 b.verified, b.confirmed, b.jenis_pk,
                                                 pk.no_pk, pk.start_at, pk.expired_at, pk.created_at,
-                                                IFNULL(seg.segment, b.segment) as new_segment
+                                                IFNULL(seg.segment, b.segment) as new_segment, prog.name as program_name
                                             FROM draft_benefit b
                                             LEFT JOIN draft_approval a ON a.id_draft = b.id_draft
                                             LEFT JOIN segments seg ON seg.id = b.segment
                                             LEFT JOIN schools sc ON sc.id = b.school_name
                                             LEFT JOIN user c ON c.id_user = b.id_ec
-                                            LEFT JOIN pk pk ON pk.benefit_id = b.id_draft";
+                                            LEFT JOIN pk pk ON pk.benefit_id = b.id_draft
+                                            LEFT JOIN programs as prog ON prog.name = b.program or prog.code = b.program";
 
                                     if($_SESSION['role'] == 'ec'){
                                         $sql .= " WHERE (a.id_user_approver = $id_user
@@ -191,8 +192,8 @@
                                         while($row = mysqli_fetch_assoc($result)) {
 
                                             $program_name = $row['year'] == 1
-                                                ? $row['program']
-                                                : $row['program']." Perubahan Tahun Ke ".$row['year'];
+                                                ? $row['program_name']
+                                                : $row['program_name']." Perubahan Tahun Ke ".$row['year'];
 
                                             $status_class = $row['confirmed'] == 1 ? 'success' : 'warning';
                                             $status_text  = $row['confirmed'] == 1 ? 'Confirmed' : 'Waiting';

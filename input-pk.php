@@ -103,7 +103,7 @@ if ($result->num_rows > 0) {
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Sales Admin</label>
-                    <select name="id_sa" id="id_sa" class="form-control form-control-sm" required>
+                    <select name="id_sa" id="id_sa" class="form-control form-control-sm select2" required>
                         <?php while ($sa_list = $sa_exec_query->fetch_assoc()) { ?>
                             <option value="<?= $sa_list['id_sa'] ?>" <?= $id_sa == $sa_list['id_sa'] ? 'selected' : ''  ?>><?= $sa_list['sa_name'] ?></option>
                         <?php } ?>
@@ -151,6 +151,10 @@ if ($result->num_rows > 0) {
 
 <script>
     $(document).ready(function() {
+        $('.select2').select2({
+            width: '100%'
+        });
+        
         let role = '<?= $role ?>';
         if(role == 'ec') {
             $('input').attr('disabled', true);

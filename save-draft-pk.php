@@ -83,7 +83,8 @@
     $jenis_pk       = $_POST['jenis_pk'];
     $level          = $_POST['level'] == 'other' ? $_POST['level2'] : $_POST['level'];
     $id_school      = $school_name;
-
+    $program_adoption_levels   = $_POST['program_adoption_levels'] ?? [];
+    $program_adoption_subjects = $_POST['program_adoption_subjects'] ?? [];
     $uc_program = strtoupper($program);
 
     //benefit lists
@@ -168,8 +169,7 @@
 
             mysqli_query($conn, $sql);
 
-            mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
-            mysqli_query($conn, "DELETE FROM draft_approval WHERE id_draft = '$id_draft';");
+
 
             $update_sql = "UPDATE school_pic SET 
                                 name = '$pic_name',
@@ -184,18 +184,47 @@
             mysqli_query($conn,$sql);
             $id_draft = mysqli_insert_id($conn);
 
-            mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
-            mysqli_query($conn, "DELETE FROM draft_approval WHERE id_draft = '$id_draft';");
-
             $pic_sql = "INSERT INTO `school_pic` (`id`, `id_draft`, `name`, `jabatan`, `no_tlp`, `email`) VALUES (NULL, '$id_draft', '$pic_name', '$jabatan', '$no_tlp', '$email_pic');";
             mysqli_query($conn, $pic_sql);
         }
+
+        mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
+        mysqli_query($conn, "DELETE FROM draft_approval WHERE id_draft = '$id_draft';");
 
         foreach($benefits as $key => $benefit) {
             $sql = "INSERT INTO `draft_benefit_list` (`id_benefit_list`, `id_draft`, `status`, `isDeleted`, `benefit_name`, `subbenefit`, `description`, `keterangan`, `qty`, `qty2`, `qty3`, `pelaksanaan`, `type`,`manualValue`,`calcValue`, `id_template`) VALUES (NULL, '$id_draft', '0', '0', '".$benefit_names[$key]."', '".$subbenefits[$key]."', '".$descriptions[$key]."', '', '".$qty1s[$key]."', '".$qty2s[$key]."', '".$qty3s[$key]."', '".$pelaksanaans[$key]."', '".$benefits[$key]."','0','0', '".$id_templates[$key]."');";
             mysqli_query($conn,$sql);
         }
 
+        // ===============================
+        // RESET ADOPTION DATA
+        // ===============================
+        mysqli_query($conn, "DELETE FROM program_adoption_levels WHERE draft_id = '$id_draft'");
+        mysqli_query($conn, "DELETE FROM program_adoption_subjects WHERE draft_id = '$id_draft'");
+
+        // ===============================
+        // INSERT LEVELS
+        // ===============================
+        foreach ($program_adoption_levels as $lvl) {
+            $lvl = mysqli_real_escape_string($conn, $lvl);
+            $sql = "INSERT INTO program_adoption_levels (draft_id, level_id)
+                    VALUES ('$id_draft', '$lvl')";
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception(mysqli_error($conn));
+            }
+        }
+
+        // ===============================
+        // INSERT SUBJECTS
+        // ===============================
+        foreach ($program_adoption_subjects as $subj) {
+            $subj = mysqli_real_escape_string($conn, $subj);
+            $sql = "INSERT INTO program_adoption_subjects (draft_id, subject_id)
+                    VALUES ('$id_draft', '$subj')";
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception(mysqli_error($conn));
+            }
+        }
 
         $tokenLeader = generateRandomString(16);
         

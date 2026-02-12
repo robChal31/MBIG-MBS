@@ -31,6 +31,7 @@
                             <table class="table align-middle" id="table_draft">
                                 <thead class="table-light">
                                     <tr>
+                                        <th>ID</th>
                                         <th>Nama EC</th>
                                         <th>Nama Sekolah</th>
                                         <th>Segment</th>
@@ -88,6 +89,7 @@
                                             $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
                                 ?>
                                     <tr>
+                                        <td><?= $row['id_draft'] ?></td>
                                         <td class="fw-semibold"><?= $row['generalname'] ?></td>
                                         <td><?= $row['school_name2'] ?></td>
                                         <td><?= ucfirst($row['new_segment']) ?></td>

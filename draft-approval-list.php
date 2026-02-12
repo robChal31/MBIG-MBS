@@ -110,7 +110,13 @@
 
                                     <!-- STATUS -->
                                     <td>
-                                        <span class="badge bg-<?= $status_class ?>">
+
+                                        <span
+                                            class="badge bg-<?= $status_class ?>"
+                                            style="font-size:.65rem; cursor:pointer"
+                                            data-id="<?= $row['id_draft'] ?>"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#approvalModal">
                                             <?= $status_text ?>
                                         </span>
                                     </td>

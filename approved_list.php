@@ -1,12 +1,24 @@
 <?php include 'header.php'; ?>
 <style>
-  table.dataTable tbody td {
-      vertical-align: middle !important;
-  }
+    table.dataTable tbody td {
+        vertical-align: middle !important;
+    }
+
+    .select2-container {
+        z-index: 2050 !important;
+    }
+
+    .modal {
+        z-index: 1050;
+    }
+
+    .modal-backdrop {
+        z-index: 1040;
+    }
 </style>
 <?php 
     $role = $_SESSION['role'];
-  
+    $user_id = $_SESSION['id_user'];
 ?>
 
 <div class="content">
@@ -151,10 +163,19 @@
                                             <i class="fas fa-fingerprint me-2"></i> Verify
                                         </a>
                                     </li>
-                                    <li>
+                                    <!-- <li>
                                         <a class="dropdown-item text-danger delete-btn"
                                            data-id="<?= $row['id_draft'] ?>">
                                             <i class="fas fa-trash me-2"></i> Delete
+                                        </a>
+                                    </li> -->
+                                <?php endif; ?>
+
+                                <?php if($role == 'sa' && $row['verified'] && $user_id == 5 && !$row['confirmed']) : ?>
+                                    <li>
+                                        <a class="dropdown-item text-primary"
+                                           href="approve-draft-benefit-form.php?id_draft=<?= $row['id_draft'] ?>&token=<?= $row['token'] ?>">
+                                            <i class="fas fa-fingerprint me-2"></i> Verify
                                         </a>
                                     </li>
                                 <?php endif; ?>
@@ -347,7 +368,9 @@
     })
 
     $(document).ready(function() {
-    
+        $('.select2').select2({
+            width: '100%'
+        });
     })
 
     $(document).on('click', '.close', function() {

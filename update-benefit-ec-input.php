@@ -990,6 +990,35 @@
         $(this).val(formattedValue);
     });
 
+    $(document).on('input', '.only_decimal', function () {
+      let val = $(this).val();
+
+      // hapus semua kecuali angka & koma
+      val = val.replace(/[^0-9,]/g, '');
+
+      // cuma boleh 1 koma
+      const parts = val.split(',');
+      if (parts.length > 2) {
+        val = parts[0] + ',' + parts.slice(1).join('');
+      }
+
+      // max 2 digit desimal
+      if (parts[1]) {
+        parts[1] = parts[1].slice(0, 2);
+        val = parts.join(',');
+      }
+
+      // format ribuan (bagian sebelum koma)
+      let integerPart = parts[0].replace(/\./g, '');
+      integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+      val = parts[1] !== undefined
+        ? integerPart + ',' + parts[1]
+        : integerPart;
+
+      $(this).val(val);
+    });
+
     $("#program_year").change(function () {
       var year = $(this).val();
 
@@ -1081,6 +1110,34 @@
       });
 
       accumulateAlokasi();
+    });
+
+    $('#discount_program').on('input', function () {
+      let discountProgram = parseFloat($(this).val()) || 0;
+
+      if (programOmzetSettings && programOmzetSettings.enabled) {
+        // update SEMUA input diskon[]
+        $('input[name="diskon[]"]').each(function () {
+          $(this).val(discountProgram);
+        });
+        $('.book-row').each(function () {
+          updateDisabledField(
+            $(this).find('[name="jumlahsiswa[]"]')[0]
+          );
+        });
+      } else {
+        if (discountProgram > 100) {
+          $(this).val(100);
+        }
+      }
+    });
+
+    $('#cashbackinput').on('input', function () {
+      $('.book-row').each(function () {
+        updateDisabledField(
+          $(this).find('[name="jumlahsiswa[]"]')[0]
+        );
+      });
     });
 
     $('#submt').on('click', function (e) {
@@ -1190,6 +1247,7 @@
         series.remove();
       }
       accumulateAlokasi();
+      reevaluateOmzetDiscount();
       return;
     }
 
@@ -1201,14 +1259,22 @@
       const prevRow    = bookList.querySelector('.book-row:last-child');
 
       if (!seriesId) {
-        alert('Series ID not found');
+        Swal.fire({
+          title: "Failed!",
+          text: 'Series ID not found',
+          icon: "error"
+        })
         return;
       }
 
       $.getJSON('get_books.php', { series_id: seriesId }, function (books) {
 
         if (!books || books.length === 0) {
-          alert('Tidak ada buku untuk series ini');
+          Swal.fire({
+            title: "Failed!",
+            text: 'Tidak ada buku untuk series ini',
+            icon: "error"
+          })
           return;
         }
 
@@ -1218,6 +1284,7 @@
         const row = clone.querySelector('.book-row');
 
         const bookSelect  = row.querySelector('.book');
+
         $(bookSelect).select2({
           width: '100%',
           placeholder: 'Select book',
@@ -1236,33 +1303,42 @@
           </option>`;
         });
 
+        const els = row.querySelectorAll('.remove_if_has_omzet_scheme');
+        const omzetWrapper = row.querySelectorAll('.omzet_wrapper');
+
+        els.forEach(el => {
+          el.classList.toggle('d-none', programOmzetSettings.enabled);
+        });
+
+        omzetWrapper.forEach(omzet => {
+          omzet.classList.toggle('d-none', !programOmzetSettings.enabled);
+        });
+
+        row.querySelector('[name="jumlahsiswa[]"]').value = prevRow.querySelector('[name="jumlahsiswa[]"]').value || '';
+        row.querySelector('[name="diskon[]"]').value = prevRow.querySelector('[name="diskon[]"]').value || '';
+        row.querySelector('[name="diskon[]"]').readOnly = programOmzetSettings.enabled;
+
         // onchange buku → auto isi field lain
-        $(bookSelect).on('change', function (e) {
+        $(bookSelect).on('change', function () {
           const opt = $(this).find(':selected');
           if (!opt.length) return;
 
           hiddenBook.value = opt.data('id');
 
           levelSelect.innerHTML = `<option value="${opt.data('level')}">${opt.data('level')}</option>`;
+          typeSelect.innerHTML  = `<option value="${opt.data('type')}">${opt.data('type')}</option>`;
 
-          typeSelect.innerHTML = `<option value="${opt.data('type')}">${opt.data('type')}</option>`;
+          const basePrice = Number(opt.data('price')) || 0;
+          const additionalPriceVal = removeNonDigits($('#additional_price').val()) || 0;
 
-          const additionalPrice   = $('#additional_price').val();
+          const finalPrice = basePrice + additionalPriceVal;
 
-          let bookPrice = (book.price + (additionalPrice ? removeNonDigits(additionalPrice) : 0));
           const hargaNormalInput = row.querySelector('[name="harganormal[]"]');
-          hargaNormalInput.dataset.bookPrice = book.price;
-          hargaNormalInput.value = formatNumber(bookPrice);
+          hargaNormalInput.dataset.bookPrice = basePrice;
+          hargaNormalInput.value = formatNumber(finalPrice);
 
-          if (prevRow) {
-            row.querySelector('[name="jumlahsiswa[]"]').value =
-              prevRow.querySelector('[name="jumlahsiswa[]"]').value || '';
-
-            row.querySelector('[name="usulanharga[]"]').value =
-              prevRow.querySelector('[name="usulanharga[]"]').value || '';
-
-            row.querySelector('[name="diskon[]"]').value =
-              prevRow.querySelector('[name="diskon[]"]').value || '';
+          if (prevRow && !programOmzetSettings.enabled) {
+            row.querySelector('[name="usulanharga[]"]').value = prevRow.querySelector('[name="usulanharga[]"]').value || '';
           }
 
           updateDisabledField(

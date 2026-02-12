@@ -92,7 +92,7 @@
                                             : ($row['verified'] == 0 && $row['status'] == 1
                                                 ? 'Waiting Verification'
                                                 : $stat);
-
+                                        $stat = $row['confirmed'] == 1 ? 'Confirmed' : ($row['verified'] == 1 ? 'Verified' : $stat);
                                         $is_ec_the_creator = $_SESSION['id_user'] == $row['id_ec'] || $role == 'admin';
                                         $programe_name = $row['year'] == 1 ? $row['program_name'] : ($row['program_name'] . " Perubahan Tahun Ke " . $row['year']);
 
@@ -111,14 +111,9 @@
                                     <td><?= $row['updated_at'] ?></td>
 
                                     <td>
-                                    <span
-                                        class="badge bg-<?= $status_class ?>"
-                                        style="cursor:pointer"
-                                        data-id="<?= $row['id_draft'] ?>"
-                                        <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?>
-                                        data-bs-target="#approvalModal">
-                                        <?= $stat ?>
-                                    </span>
+                                        <span class="badge bg-<?= $status_class ?>" style="cursor:pointer" data-id="<?= $row['id_draft'] ?>" <?= $stat == 'Draft' ? '' : "data-bs-toggle='modal'" ?> data-bs-target="#approvalModal"> 
+                                            <?= $stat ?>
+                                        </span>
                                     </td>
 
                                     <!-- ACTION -->

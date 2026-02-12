@@ -148,7 +148,8 @@ try {
                     WHERE benefit_id = $id_draft";
         }
 
-        if (mysqli_query($conn, $sql)) {
+        $query_exec = mysqli_query($conn, $sql);
+        if ($query_exec) {
             $result = mysqli_query($conn, "SELECT * FROM pk WHERE benefit_id = $id_draft");
             $data_pk = mysqli_fetch_assoc($result);
 
@@ -201,7 +202,8 @@ try {
                 'message' => 'Saved successfully'
             ]);
         } else {
-            file_pk_error_session("Gagal menambahkan PK, error query: " . $conn->error);
+            file_pk_error_session("SQL ERROR: " . mysqli_error($conn) . " | QUERY: " . $sql);
+            exit();
         }
     } elseif ($is_no_pk_exist) {
         echo json_encode([
@@ -209,7 +211,11 @@ try {
             'message' => 'Gagal menambahkan PK, nomor PK sudah ada!'
         ]);
     } else {
-        file_pk_error_session("Gagal menambahkan PK, error query: " . $conn->error);
+        if($uploadOk == 0){
+            file_pk_error_session("Gagal menambahkan PK, error upload file");
+        }else {
+            file_pk_error_session("Gagal menambahkan PK, error query: " . $conn->error);
+        }
     }
 } catch (\Throwable $th) {
     file_pk_error_session("Gagal menambahkan PK, error query: " . $th->getMessage());

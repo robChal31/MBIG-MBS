@@ -159,6 +159,7 @@
         if ($r_program && mysqli_num_rows($r_program) === 1) {
             $selected_program = mysqli_fetch_assoc($r_program);
             $has_omzet_scheme_discount = $selected_program['has_omzet_scheme_discount'] == 1;
+            $program_name = $selected_program['name'];
         }
 
         //create excel

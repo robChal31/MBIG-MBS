@@ -44,6 +44,19 @@
     * {
       font-size: .9rem !important;
     }
+
+    .is-invalid {
+      border-color: #dc3545 !important;
+    }
+
+    .is-invalid:focus {
+      box-shadow: 0 0 0 .25rem rgba(220,53,69,.25);
+    }
+
+    .select2-selection.is-invalid {
+      border-color: #dc3545 !important;
+      box-shadow: 0 0 0 .25rem rgba(220,53,69,.25);
+    }
 </style>
 
 <?php
@@ -56,7 +69,14 @@
   $level        = '';
   $wilayah      = '';
   $program      = '';
-
+  $jenis_pk     = '';
+  $selected_levels = [];
+  $selected_subjects = [];
+  $pic_name     = '';
+  $pic_email    = '';
+  $pic_phone    = '';
+  $jabatan      = '';
+  
   if($id_draft) {
     $sql = "SELECT *
               FROM draft_benefit as db
@@ -87,6 +107,18 @@
       $_SESSION['toast_msg'] = 'Unauthorized Access';
       header('Location: ./draft-pk.php');
       exit();
+    }
+
+    // levels
+    $q = mysqli_query($conn, "SELECT level_id FROM program_adoption_levels WHERE draft_id = $id_draft");
+    while ($r = mysqli_fetch_assoc($q)) {
+        $selected_levels[] = $r['level_id'];
+    }
+
+    // subjects
+    $q = mysqli_query($conn, "SELECT subject_id FROM program_adoption_subjects WHERE draft_id = $id_draft");
+    while ($r = mysqli_fetch_assoc($q)) {
+        $selected_subjects[] = $r['subject_id'];
     }
   }
   
@@ -125,24 +157,23 @@
     <div class="container-fluid p-4 f-1">
       <div class="row justify-content-center">
         <div class="col-12">
-          <div class="card rounded-4 shadow-sm p-4">
+          <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
+            <div class="card rounded-4 shadow-sm p-4">
 
-            <div class="d-flex align-items-center mb-4">
-              <div class="me-3">
-                <i class="fas fa-file-signature text-primary fs-4"></i>
+              <div class="d-flex align-items-center mb-4 border-bottom border-2 border-primary p-2">
+                <div class="me-3">
+                  <i class="fas fa-file-signature text-primary fs-4"></i>
+                </div>
+                <div>
+                  <h5 class="mb-0 fw-semibold fs-5">Create Draft Benefit PK</h5>
+                  <small class="text-muted fs-6">Lengkapi data sekolah & PIC</small>
+                </div>
               </div>
-              <div>
-                <h5 class="mb-0 fw-semibold fs-5">Create Draft Benefit PK</h5>
-                <small class="text-muted fs-6">Lengkapi data sekolah & PIC</small>
-              </div>
-            </div>
 
-            <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
-
-              <!-- INPUTTER -->
-              <div class="row mb-3 align-items-center">
-                <label class="col-md-3 col-form-label fw-semibold">EC</label>
-                <div class="col-md-9">
+              <div class="row g-4 border rounded shadow-md p-3 m-2 mb-4">
+                <!-- INPUTTER -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">EC</label>
                   <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"> 
                   <?php if($_SESSION['role'] != 'admin') { ?>
                     <div class="form-control form-control-sm bg-light">
@@ -150,7 +181,7 @@
                     </div>
                     <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
                   <?php } else { ?>
-                    <select name="inputEC" class="form-select form-select-sm select2" required style="width:100%;">
+                    <select name="inputEC" class="form-select form-select-sm select2" required>
                       <?php foreach($ecs as $ec) { ?>
                         <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>>
                           <?= $ec['generalname'] ?>
@@ -159,12 +190,10 @@
                     </select>
                   <?php } ?>
                 </div>
-              </div>
 
-              <!-- NAMA SEKOLAH -->
-              <div class="row mb-3">
-                <label class="col-md-3 col-form-label fw-semibold">Nama Sekolah</label>
-                <div class="col-md-9">
+                <!-- NAMA SEKOLAH -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Nama Sekolah</label>
                   <div id="select_school_div">
                     <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width:100%;"></select>
                   </div>
@@ -172,90 +201,131 @@
                     <i class="fas fa-spinner fa-spin text-primary"></i>
                   </div>
                 </div>
-              </div>
-              <!-- PK & PROGRAM -->
-              <div class="row mb-3">
-                <label class="col-md-3 col-form-label fw-semibold">Jenis PK</label>
-                <div class="col-md-9">
+                
+                <!-- PK & PROGRAM -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Jenis PK</label>
                   <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
                     <option value="">-- Pilih Jenis PK --</option>
-                    <option value="1">PK Baru</option>
-                    <option value="2">Amandemen</option>
+                    <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
+                    <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
                   </select>
                 </div>
-              </div>
 
-              <div class="row mb-3">
-                <label class="col-md-3 col-form-label fw-semibold">Program</label>
-                <div class="col-md-9">
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Program</label>
                   <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
                 </div>
-              </div>
-              <!-- MY PLAN -->
-              <div class="row mb-3">
-                <label class="col-md-3 col-form-label fw-semibold">My Plan Ref</label>
-                <div class="col-md-9">
+                
+                <!-- MY PLAN -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">My Plan Ref</label>
                   <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2" style="width:100%;"></select>
                 </div>
-              </div>
 
-              <!-- SEGMENT & JENJANG -->
-              <div class="row mb-3">
-                <label class="col-md-3 col-form-label fw-semibold">Segment Sekolah</label>
-                <div class="col-md-9">
-                  <select name="segment" class="form-select form-select-sm select2" required style="width:100%;">
-                    <option value="national" <?= $segment == 'national' ? 'selected' : '' ?>>National</option>
-                    <option value="national plus" <?= $segment == 'national plus' ? 'selected' : '' ?>>National Plus</option>
-                    <option value="internasional/spk" <?= $segment == 'internasional/spk' ? 'selected' : '' ?>>International / SPK</option>
+                <!-- SEGMENT -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Segment</label>
+                  <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
+                    <option value="" disabled selected>- Select Segment -</option>
+                    <?php 
+                      $seg_sql = "SELECT * FROM segments";
+                      $segQ = mysqli_query($conn, $seg_sql);
+                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
+                    <?php endwhile; ?>
                   </select>
                 </div>
-              </div>
 
-              <div class="row mb-3">
-                <label class="col-md-3 col-form-label fw-semibold">Jenjang Sekolah</label>
-                <div class="col-md-9">
-                  <select name="level" class="form-select form-select-sm select2" required style="width:100%;">
-                    <option value="tk">TK</option>
-                    <option value="sd">SD</option>
-                    <option value="smp">SMP</option>
-                    <option value="sma">SMA</option>
-                    <option value="yayasan">Yayasan</option>
-                    <option value="other" id="level_manual_input">Lainnya (isi sendiri)</option>
+                <!-- ADOPTION LEVEL -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Cakupan Jenjang Program</label>
+                  <select name="program_adoption_levels[]" id="adoption_levels" class="form-select form-select-sm select2" multiple required>
+                    <?php
+                      $lvl_sql = "SELECT * FROM levels";
+                      $levelsQ = mysqli_query($conn, $lvl_sql);
+                      while ($row = mysqli_fetch_assoc($levelsQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?=  ($level == $row['id'] || $level == strtolower($row['name'])) ? 'selected' : '' ?>><?= $row['name'] ?></option>
+                    <?php endwhile; ?>
                   </select>
-                  <div class="mt-2" id="other_level" style="display:none;">
-                    <input type="text" name="level2" class="form-control form-control-sm" placeholder="Jenjang lainnya...">
-                  </div>
+                </div>
+
+                <!-- ADOPTION SUBJECT -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Cakupan Subjek Program</label>
+                  <select name="program_adoption_subjects[]" id="adoption_subjects" class="form-select form-select-sm select2" multiple required>
+                    <?php
+                      $sub_sql = "SELECT * FROM subjects";
+                      $subsq = mysqli_query($conn, $sub_sql);
+                      while ($row = mysqli_fetch_assoc($subsq)) {
+                        echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                      }
+                    ?>
+                  </select>
                 </div>
               </div>
 
               <!-- PIC SECTION -->
-              <hr class="my-4">
-              <h6 class="fw-semibold mb-3">Informasi PIC</h6>
-
-              <div class="row g-3">
-                <div class="col-md-6">
-                  <label class="form-label">Nama Lengkap</label>
-                  <input type="text" name="pic_name" class="form-control form-control-sm" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Jabatan</label>
-                  <input type="text" name="jabatan" class="form-control form-control-sm" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">No. Telepon</label>
-                  <input type="text" name="no_tlp" class="form-control form-control-sm" required>
-                </div>
-                <div class="col-md-6">
-                  <label class="form-label">Email</label>
-                  <input type="email" name="email_pic" class="form-control form-control-sm" required>
+              <div class="border rounded shadow-md p-3 m-2">
+                <h6 class="fw-bold mb-3 border-bottom border-2 border-primary d-inline-block" style="font-size: 18px !important;">Informasi PIC</h6>
+                <div class="row g-4 ">
+                  <div class="col-md-6">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" name="pic_name" value="<?= $pic_name ?>" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Jabatan</label>
+                    <input type="text" name="jabatan" value="<?= $jabatan ?>" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">No. Telepon</label>
+                    <input type="text" name="no_tlp" value="<?= $pic_phone ?>" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email_pic" value="<?= $pic_email ?>" class="form-control form-control-sm" required>
+                  </div>
                 </div>
               </div>
+            
+            </div>
 
-              <div class="mt-4" id="benefit_container"></div>
+            <div class="col-12 mt-4">
+              <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong style="font-size: 16px;">📚 Benefit List</strong>
+                    <div class="small opacity-75">Benefit yang akan digunakan dalam program</div>
+                  </div>
 
-            </form>
+                  <!-- <button type="button" id="btnAddTitle" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="" disabled>
+                    <i class="bi bi-plus"></i> Add Title
+                  </button> -->
+                </div>
+                <div class="position-relative" id="contentWrapper">
+                <div id="benefit_container">
+                  <div class="p-4">
 
-          </div>
+                    <!-- EMPTY STATE -->
+                    <div id="emptyState" class="text-center text-muted py-5 border rounded bg-light">
+                      <i class="bi bi-book-half fs-1 mb-3 d-block"></i>
+
+                      <p class="mb-3" style="max-width: 420px; margin: 0 auto;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                      <small>
+                        Silakan <strong>pilih program terlebih dahulu, </strong>
+                      </small> untuk menampilkan benefit yang tersedia.
+                      </p>
+
+                      <span class="badge bg-warning text-dark px-3 py-2">
+                        ⚠️ Program wajib dipilih
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
     </div>
@@ -267,6 +337,16 @@
 
   const idDraft = '<?= $id_draft ?>';
   const program = '<?= $program ?>';
+  const selectedLevels = <?= json_encode($selected_levels) ?>;
+  const selectedSubjects = <?= json_encode($selected_subjects) ?>;
+
+  if (selectedLevels.length) {
+    $('#adoption_levels').val(selectedLevels).trigger('change');
+  }
+
+  if (selectedSubjects.length) {
+    $('#adoption_subjects').val(selectedSubjects).trigger('change');
+  }
 
   function getMyPlanRef(schoolPlanId = null) {
     const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
@@ -374,7 +454,9 @@
 
   $(document).ready(function(){
 
-    $('.select2').select2();
+    $('.select2').select2({
+      width: '100%'
+    });
 
     $('#select_school').on('change', function() {
       var schoolId = $(this).val();

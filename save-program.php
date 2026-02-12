@@ -137,7 +137,7 @@ try {
         }
 
         $name_up = strtoupper($name);
-        $sql = "UPDATE draft_benefit SET program = '$name_up' WHERE program = '$old_name'";
+        $sql = "UPDATE draft_benefit SET program = '$code' WHERE program = '$old_name' or program = '$old_code'";
         if (!$conn->query($sql)) {
             throw new Exception('Query failed on update draft benefit: ' . $conn->error);
         }

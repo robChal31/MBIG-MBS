@@ -121,13 +121,12 @@ td span{
   <div class="col-12">
     <?php if($id_draft || $program) { ?>
 
-      <div class="benefit-wrapper border p-3">
-        <div class="benefit-title fs-5 fw-semibold">Benefits</div>
+      <div class="benefit-wrapper border">
 
         <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
         <input type="hidden" value="<?= $program ?>" name="program">
 
-        <div class="table-responsive benefit-table">
+        <div class="table-responsive benefit-table p-2">
           <table class="table table-borderless dataTable no-footer" id="input_form">
             <thead>
               <td>Benefit</td>
@@ -189,8 +188,13 @@ td span{
           </table>
         </div>
 
-        <div class="benefit-actions">
-          <button type="submit" class="btn btn-primary" id="submt">Submit</button>
+        <div class="benefit-actions m-4">
+          <button type="submit" class="btn btn-primary" id="submt">
+            <span class="btn-icon">
+              <i class="bi bi-arrow-right"></i>
+            </span>  
+            Submit
+          </button>
         </div>
       </div>
 
@@ -290,10 +294,97 @@ td span{
         dropdown.html(data);
       }
     });
-
-    $('#input_form_benefit').submit(function(e) {
-      $('#submt').prop('disabled', true);
-    })
   }
+
+  $('#submt').on('click', function (e) {
+    const form = document.getElementById('input_form_benefit');
+    const $btn = $(this);
+
+    e.preventDefault();
+
+    // reset error
+    $(form).find('.is-invalid').removeClass('is-invalid');
+    $('.select2-selection').removeClass('is-invalid');
+
+    let invalidFields = [];
+    let firstInvalid = null;
+
+    // =========================
+    // CEK BENEFIT LIST ADA / TIDAK
+    // =========================
+    if ($('#input_form tbody tr').length === 0) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Benefit belum dipilih',
+        text: 'Silakan pilih program dan pastikan benefit sudah muncul.'
+      });
+      return;
+    }
+
+    // =========================
+    // HTML5 REQUIRED VALIDATION
+    // =========================
+    $(form).find('[required]').each(function () {
+      const el = this;
+
+      if (!el.checkValidity()) {
+        if (!firstInvalid) firstInvalid = el;
+
+        let label =
+          $(el).closest('.col-md-6, .col-md-12')
+            .find('label')
+            .first()
+            .text()
+            .trim() || el.name;
+
+        invalidFields.push(label);
+
+        // select2 handling
+        if ($(el).hasClass('select2')) {
+          $(el)
+            .next('.select2-container')
+            .find('.select2-selection')
+            .addClass('is-invalid');
+        } else {
+          $(el).addClass('is-invalid');
+        }
+      }
+    });
+
+    // =========================
+    // JIKA ADA ERROR
+    // =========================
+    if (invalidFields.length > 0) {
+      Swal.fire({
+        icon: 'error',
+        title: 'Form belum lengkap',
+        html: `
+          <div style="text-align:left">
+            <p>Field berikut wajib diisi:</p>
+            <ul>
+              ${invalidFields.map(f => `<li>${f}</li>`).join('')}
+            </ul>
+          </div>
+        `
+      });
+
+      if (firstInvalid) {
+        $('html, body').animate({
+          scrollTop: $(firstInvalid).offset().top - 120
+        }, 300);
+      }
+
+      return;
+    }
+
+    // =========================
+    // VALID → SUBMIT
+    // =========================
+    $btn.prop('disabled', true);
+    $btn.find('.btn-icon').addClass('d-none');
+    $btn.append('<span class="spinner-border spinner-border-sm ms-2"></span>');
+
+    form.submit();
+  });
 
 </script>

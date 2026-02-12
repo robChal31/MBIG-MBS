@@ -72,7 +72,7 @@
                                     ORDER BY b.id_draft DESC";
 
                             $result = mysqli_query($conn, $sql);
-
+                            
                             if (mysqli_num_rows($result) > 0) {
                                 while($row = mysqli_fetch_assoc($result)) {
                         ?>
@@ -119,7 +119,7 @@
 
                                             <?php if($row['is_pk']) : ?>
                                                 <li>
-                                                    <a class="dropdown-item text-success"
+                                                    <a class="dropdown-item text-primary"
                                                     href="https://mentaripartner.com"
                                                     target="_blank"
                                                     title="Qty manfaat PK3 refill tiap Juli">
