@@ -52,7 +52,7 @@
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $message;
-            $mail->send();
+            // $mail->send();
             
         } catch (Exception $e) {
             $_SESSION['toast_status'] = "Error";

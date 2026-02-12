@@ -605,7 +605,7 @@
                 $uc_program = strtoupper($program_name);
                 $mail->Subject = 'Keren, '.$ec_name.' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
                 $mail->Body    = $message;
-                $mail->send();
+                // $mail->send();
                 
             } catch (Exception $e) {
                 echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
@@ -633,7 +633,7 @@
                 $uc_program = strtoupper($program_name); 
                 $mail->Subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program. '  ' . $school_name;
                 $mail->Body    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
-                $mail->send();
+                // $mail->send();
         
             } catch (Exception $e) {
                 echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
