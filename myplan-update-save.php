@@ -42,7 +42,7 @@
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $message;
-            // $mail->send();
+            $mail->send();
             
         } catch (Exception $th) {
             $response['status']     = false;

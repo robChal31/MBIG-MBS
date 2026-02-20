@@ -58,7 +58,7 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
         $mail->isHTML(true);
         $mail->Subject = $subject;
         $mail->Body    = $message;
-        // $mail->send();
+        $mail->send();
     } catch (Exception $e) {
         echo json_encode([
             'status' => 'error',

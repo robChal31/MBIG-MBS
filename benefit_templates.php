@@ -63,7 +63,7 @@
 
   
   $templates = [];
-  $draft_templates_q = "SELECT * 
+  $draft_templates_q = "SELECT dtb.*, dtb.benefit as benefit_name , br.unit_bisnis
                         FROM draft_template_benefit AS dtb
                         LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit
                         WHERE dtb.is_active = 1";
@@ -121,7 +121,7 @@
                                 <?php foreach($templates as $template): ?>
                                 <tr>
                                     <td class="text-center"><?= $template['id_template_benefit'] ?></td>
-                                    <td class="fw-semibold"><?= $template['benefit'] ?></td>
+                                    <td class="fw-semibold"><?= $template['benefit_name'] ?></td>
                                     <td><?= $template['subbenefit'] ?></td>
                                     <td><?= $template['benefit_name'] ?></td>
                                     <td><?= $template['description'] ?></td>

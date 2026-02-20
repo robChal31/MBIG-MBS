@@ -40,7 +40,7 @@ try {
                 db.segment,
                 db.level,
                 db.wilayah,
-
+                db.cashback,
                 GROUP_CONCAT(DISTINCT dal.level_id)   AS level_ids,
                 GROUP_CONCAT(DISTINCT das.subject_id) AS subject_ids
 

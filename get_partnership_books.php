@@ -39,7 +39,7 @@ try {
               FROM calc_table AS calc
               LEFT JOIN books AS b ON b.id = calc.book_id
               LEFT JOIN book_series AS bs ON bs.id = b.book_series_id
-              WHERE calc.id_draft = $id_draft
+              WHERE calc.id_draft = $id_draft AND bs.is_active = 1
             ";
 
     $result = mysqli_query($conn, $query);

@@ -86,7 +86,7 @@
   $books_query = "SELECT bs.id, bs.name, lv.name AS level
                     FROM book_series bs
                     LEFT JOIN levels lv ON lv.id = bs.level_id
-                    WHERE bs.is_active = 1
+                    WHERE bs.is_active = 1 and bs.deleted_at IS NULL
                 ";
 
   $book_lists = $conn->query($books_query);
@@ -282,7 +282,7 @@
 
                   <!-- SEGMENT -->
                   <div class="col-md-6">
-                    <label class="form-label small text-muted d-block">Segment</label>
+                    <label class="form-label small text-muted d-block">Segment EC</label>
                     <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
                       <option value="" disabled selected>- Select Segment -</option>
                       <?php 
@@ -305,6 +305,7 @@
                           <option value='<?= $row['id'] ?>' <?=  ($level == $row['id'] || $level == strtolower($row['name'])) ? 'selected' : '' ?>><?= $row['name'] ?></option>
                       <?php endwhile; ?>
                     </select>
+                    <small class="d-block mt-1" style="font-size: 11px !important;">Bisa dipilih lebih dari satu, disesuaikan adopsi sekolah</small>
                   </div>
 
                   <!-- ADOPTION SUBJECT -->
@@ -319,6 +320,7 @@
                         }
                       ?>
                     </select>
+                    <small class="d-block mt-1" style="font-size: 11px !important;">Bisa dipilih lebih dari satu, disesuaikan adopsi sekolah per jenjang</small>
                   </div>
 
                   <!-- WILAYAH -->
@@ -337,15 +339,15 @@
                   </div>
 
                   <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?>">
-                    <label class="form-label small text-muted">Additional Price</label>
+                    <label class="form-label small text-muted">Ongkir</label>
                     <input placeholder="Ex: 5000" id="additional_price" type="text" name="additional_price" class="form-control form-control-sm only_number">
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
-                      Penambahan harga ini, akan digunakan untuk penyesuaian harga dasar setiap judul buku tergantung pada wilayah sekolah
+                      Ec menginput biaya ongkir yang disesuaikan dengan wilayah pengiriman ke sekolah
                     </small>
                   </div>
 
                   <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?> d-none" id="fieldCashback">
-                    <label class="form-label small text-muted">Cashback (%)</label>
+                    <label class="form-label small text-muted">Cashback(Dana Pengembangan) (%)</label>
                     <input type="text" value="<?= $cashback ?>" name="cashback" placeholder="0 - 100" id="modalCashback" class="form-control form-control-sm only_decimal">
                   </div>
 
@@ -736,7 +738,6 @@
           });
 
           const cols = bookClone.querySelectorAll('.col-md-2');
-
 
           let bookPrice = (book.price + (additionalPrice ? removeNonDigits(additionalPrice) : 0));
           const hargaNormalInput = bookClone.querySelector('[name="harganormal[]"]');
@@ -1306,7 +1307,7 @@
       const maxOk = r.omzet_max === null || totalOmzet <= r.omzet_max;
       return minOk && maxOk;
     });
-
+    console.log('matched', matched);
     if (!matched.length) return null;
 
     // 🔥 ambil yang omzet_min paling tinggi

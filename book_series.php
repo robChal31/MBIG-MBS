@@ -85,14 +85,14 @@
                             <h6 class="fw-semibold mb-0">Book Series</h6>
                             <small class="text-muted">Manage book series and classifications</small>
                         </div>
-                        <button type="button"
-                                class="btn btn-primary btn-sm fw-semibold"
-                                data-action="create"
-                                data-bs-toggle="modal"
-                                data-bs-target="#bookModal"
-                                id="add_book">
-                            <i class="fa fa-plus me-1"></i> Add Series
-                        </button>
+                        <div class="">
+                          <a href="books.php" class="btn btn-success btn-sm fw-semibold cursor-pointer" data-action="view">
+                            <i class="fa fa-book me-1"></i>All Books
+                          </a>
+                          <button type="button" class="btn btn-primary btn-sm fw-semibold" data-action="create" data-bs-toggle="modal" data-bs-target="#bookModal" id="add_book">
+                              <i class="fa fa-plus me-1"></i> Add Series
+                          </button>
+                        </div>
                     </div>
 
                     <!-- TABLE -->

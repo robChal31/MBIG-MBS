@@ -52,7 +52,7 @@
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $message;
-            // $mail->send();
+            $mail->send();
             
         } catch (Exception $e) {
             $_SESSION['toast_status'] = "Error";
@@ -158,7 +158,7 @@
                 $subject = $year ==  1 ? "Mantap! Formulir PK $school_name kamu sudah disetujui oleh Leader" : "Mantap! Formulir Perubahan PK Tahun Ke-$year $school_name kamu sudah disetujui oleh Leader";
                 $message = "<p>Mantap! Formulir kamu sudah disetujui oleh Leader, sekarang kita akan ajukan formulir kerja sama $program untuk $school_name ke Leader $leadname.</p><p> Jika ada yang perlu direvisi atau disetujui, kita bakal kasih tau kamu lewat email.</p><p> Terima kasih.</p>";
 
-                // sendEmail($email, $ecname, $subject, $message, $config, $fileUrl);
+                sendEmail($email, $ecname, $subject, $message, $config, $fileUrl);
                 
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid2."', '0');";
                 mysqli_query($conn,$sql);
@@ -195,7 +195,7 @@
                                         </div>
                                     </div>
                                 ";
-                // sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
+                sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
                 
                 $mail = new PHPMailer(true);
                 
@@ -245,7 +245,7 @@
                         'name' => $sa_name
                     ];
                 }
-                // sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
+                sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
         
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
                 mysqli_query($conn,$sql);
@@ -283,7 +283,7 @@
                             </div>
                         ";
 
-                // sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
+                sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
             }else if($leadid3 == $approver_id) {
                 //mail for ec
                 $subject = $year == 1 ? "Yeay, formulir $school_name sudah disetujui!" : "Yeay, formulir perubahan PK Tahun Ke-$year $school_name sudah disetujui!";
@@ -318,7 +318,7 @@
                     'name' => "Novi"
                 ];
 
-                // sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
+                sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
 
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
                 mysqli_query($conn,$sql);
@@ -340,7 +340,7 @@
                             <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
         
         
-                // sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
+                sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
             }else if($role == 'admin' && $draft_status == 0) {
                 $sql = "SELECT * from user where id_user = $leadid3";
                 $result = mysqli_query($conn,$sql);
@@ -375,7 +375,7 @@
                     'name' => 'Santo'
                 ];
 
-                // sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
+                sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
         
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leadid3."', '0');";
                 mysqli_query($conn,$sql);
@@ -413,7 +413,7 @@
                             </div>
                         ";
 
-                // sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
+                sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
             }else if($approver_id == 5) {
                 $sql = "UPDATE draft_benefit set confirmed = 1 where id_draft = '$id_draft';";
                 mysqli_query($conn, $sql);
@@ -534,7 +534,7 @@
                             <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
         
         
-                // sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
+                sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
             }
 
         }else if($status == 2) {
@@ -542,7 +542,15 @@
 
             // this is for ec mail when rejected
             $subject = $year == 1 ? "Pengajuan $uc_program $school_name BELUM DISETUJUI" : "Pengajuan perubahan PK Tahun Ke-$year $school_name BELUM DISETUJUI";
-            $message = 'Wah, sedikit lagi nih! Formulir yang kamu ajukan masih perlu diperbaiki. SEGERA Lakukan revisi sesuai notes dari Leader kamu dan ajukan kembali ke Top Leader. Kamu pasti bisa, semangat ya!';
+            $message = 'Wah, sedikit lagi nih! Formulir yang kamu ajukan masih perlu diperbaiki. 
+            SEGERA Lakukan revisi sesuai notes dari Leader kamu dan ajukan kembali ke Top Leader. 
+            Kamu pasti bisa, semangat ya!<br><br>
+
+            <strong>Notes dari Approver:</strong><br>
+            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
+                '.nl2br(htmlspecialchars($notes)).'
+            </div>';
+
             $approver_query = "SELECT u.generalname as name, u.username as email 
                                 FROM `draft_approval` AS da 
                                 LEFT JOIN user as u on u.id_user = da.id_user_approver
@@ -560,7 +568,7 @@
             }
             }
 
-            // sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
+            sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
             $sql = "UPDATE draft_benefit set status = 2, verified = 0 where id_draft = '$id_draft';";
             mysqli_query($conn, $sql);
 

@@ -20,6 +20,20 @@
   if ($result && mysqli_num_rows($result) > 0) {
     $benefitSetting = mysqli_fetch_assoc($result);
   }
+
+  $book_series = [];
+
+  $books_query = "SELECT bs.id, bs.name, lv.name AS level
+                    FROM book_series bs
+                    LEFT JOIN levels lv ON lv.id = bs.level_id
+                    WHERE bs.is_active = 1 and bs.deleted_at IS NULL
+                ";
+
+  $book_lists = $conn->query($books_query);
+
+  while ($row = $book_lists->fetch_assoc()) {
+      $book_series[] = $row;
+  }
   
 ?>
 <style>
@@ -216,7 +230,7 @@
 
                 <!-- SEGMENT -->
                 <div class="col-md-6">
-                  <label class="form-label small text-muted d-block">Segment</label>
+                  <label class="form-label small text-muted d-block">Segment EC</label>
                   <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
                     <option value="" disabled selected>- Select Segment -</option>
                     <?php 
@@ -239,6 +253,7 @@
                         <option value='<?= $row['id'] ?>'><?= $row['name'] ?></option>
                     <?php endwhile; ?>
                   </select>
+                  <small class="d-block mt-1" style="font-size: 11px !important;">Bisa dipilih lebih dari satu, disesuaikan adopsi sekolah</small>
                 </div>
 
                 <!-- ADOPTION SUBJECT -->
@@ -253,29 +268,35 @@
                       }
                     ?>
                   </select>
+                  <small class="d-block mt-1" style="font-size: 11px !important;">Bisa dipilih lebih dari satu, disesuaikan adopsi sekolah per jenjang</small>
                 </div>
 
                 <!-- WILAYAH -->
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label small text-muted">Wilayah Sekolah</label>
                   <input type="text" id="wilayah" name="wilayah" class="form-control form-control-sm" placeholder="Ex: Jakarta" required>
                 </div>
 
                 <!-- DISCOUNT -->
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label small text-muted">Discount Program (%)</label>
                   <input id="discount_program" type="number" name="discount_program" class="form-control form-control-sm" max="100" placeholder="0 - 100">
-                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
                     Diskon ini akan digunakan pada semua judul, untuk memberikan diskon khusus pada judul tertentu, silahkan tambahkan diskon ketika menambahkan judul pada book list
                   </small>
                 </div>
 
-                <div class="col-md-4">
-                  <label class="form-label small text-muted">Additional Price</label>
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Ongkir</label>
                   <input placeholder="Ex: 5000" id="additional_price" type="text" name="additional_price" class="form-control form-control-sm only_number">
                   <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
-                    Penambahan harga ini, akan digunakan untuk penyesuaian harga dasar setiap judul buku tergantung pada wilayah sekolah
+                    Ec menginput biaya ongkir yang disesuaikan dengan wilayah pengiriman ke sekolah
                   </small>
+                </div>
+
+                <div class="col-md-6 d-none" id="fieldCashback">
+                  <label class="form-label small text-muted">Cashback(Dana Pengembangan) (%)</label>
+                  <input type="text" name="cashback" placeholder="0 - 100" id="modalCashback" class="form-control form-control-sm only_decimal">
                 </div>
 
                 </div>
@@ -295,7 +316,7 @@
 
           </div>
 
-          <div class="col-12 mt-4 d-none" id="contentWrapper">
+          <div class="col-12 mt-4" id="contentWrapper">
             <div class="card shadow-sm border-0">
               <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                 <div>
@@ -340,10 +361,16 @@
 
                   <!-- FOOTER -->
                   <div class="d-flex justify-content-between align-items-center mt-4">
-                    <h5 class="mb-0">
-                      Total Alokasi Benefit:
-                      <span id="accumulated_values" class="fw-bold text-primary">0</span>
-                    </h5>
+                    <div class="">
+                      <h5 class="mb-0 d-none" id="show_if_has_omzet">
+                        Total Omzet:
+                        <span id="accumulated_omzet" class="fw-bold text-primary">0</span>
+                      </h5>
+                      <h5 class="mb-0">
+                        Total Alokasi Benefit:
+                        <span id="accumulated_values" class="fw-bold text-primary">0</span>
+                      </h5>
+                    </div>
 
                     <button type="submit" class="btn btn-primary btn-submit fw-semibold px-4 d-flex align-items-center gap-2" id="submt" disabled>
 
@@ -424,11 +451,11 @@
           </div>
 
           <div class="col-md-2">
-            <label class="form-label small">Jumlah Siswa</label>
+            <label class="form-label small">Quantity</label>
             <input type="text" name="jumlahsiswa[]" class="form-control form-control-sm only_number" onchange="updateDisabledField(this)">
           </div>
 
-          <div class="col-md-2">
+          <div class="col-md-2 remove_if_has_omzet_scheme">
             <label class="form-label small">Usulan Harga</label>
             <input type="text" name="usulanharga[]" class="form-control form-control-sm only_number" onchange="updateDisabledField(this)">
           </div>
@@ -440,26 +467,36 @@
 
           <div class="col-md-2">
             <label class="form-label small">Diskon (%)</label>
-            <input type="text" name="diskon[]" class="form-control form-control-sm only_number" onchange="updateDisabledField(this)">
+            <input type="text" name="diskon[]" class="form-control form-control-sm only_decimal" onchange="updateDisabledField(this)">
           </div>
 
-          <div class="col-md-2">
+          <div class="col-md-3 d-none omzet_wrapper">
+            <label class="form-label small">Omzet Gross</label>
+            <input type="text" name="omzetgross[]" class="form-control form-control-sm only_number" readonly>
+          </div>
+
+          <div class="col-md-3 d-none omzet_wrapper">
+            <label class="form-label small">Omzet Net</label>
+            <input type="text" name="omzetnet[]" class="form-control form-control-sm only_number" readonly>
+          </div>
+
+          <div class="col-md-2 remove_if_has_omzet_scheme">
             <label class="form-label small">Harga Diskon</label>
             <input type="text" name="aftd[]" class="form-control form-control-sm" readonly>
           </div>
 
-          <div class="col-md-2">
+          <div class="col-md-2 remove_if_has_omzet_scheme">
             <label class="form-label small">Revenue Program</label>
             <input type="text" name="afto[]" class="form-control form-control-sm" readonly>
           </div>
 
-          <div class="col-md-2">
+          <div class="col-md-2 remove_if_has_omzet_scheme">
             <label class="form-label small">Revenue Normal</label>
             <input type="text" name="befo[]" class="form-control form-control-sm" readonly>
           </div>
 
           <div class="col-md-2">
-            <label class="form-label small">Alokasi Sekolah</label>
+            <label class="form-label small">Alokasi Benefit</label>
             <input type="text" name="alokasi[]" class="form-control form-control-sm" readonly>
           </div>
 
@@ -477,66 +514,58 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
           </div>
 
-            <div class="modal-body">
-              <div class="row g-3">
-                <div class="col-md-7">
-                  <label class="form-label fw-semibold">Series</label>
-                  <select class="form-select form-select-sm select2" id="modalBookSeries">
-                    <option value="">Select series</option>
-                    <?php
-                      $sql = "SELECT bs.id, bs.name, lv.name as level 
-                              FROM book_series as bs
-                              LEFT JOIN levels as lv on lv.id = bs.level_id
-                                WHERE bs.is_active = 1";
-                      $result = $conn->query($sql);
-                      while ($row = $result->fetch_assoc()) {
-                        echo '<option value="' . $row['id'] . '">' . $row['name'] . ' - [' . $row['level'] . ']</option>';
-                      }
-                    ?>
-                  </select>
-                </div>
+          <div class="modal-body">
+            <div class="row g-3">
 
-                <div class="col-md-5">
-                  <label class="form-label fw-semibold">Type</label>
-                  <select class="form-select form-select-sm select2" id="modalBookType" multiple>
-                    <option value="workbook">Workbook</option>
-                    <option value="textbook">Textbook</option>
-                    <option value="teacher guide">Teacher Guide</option>
-                    <option value="other">Other</option>
-                  </select>
-                  <small class="d-block mt-1" style="font-size: 11px !important;">
-                    Kosongkan jika ingin mengambil semua jenis buku
-                  </small>
-                </div>
-
-                <div class="col-md-4">
-                  <label class="form-label small">Jumlah Siswa</label>
-                  <input type="text" id="modalJumlah" class="form-control form-control-sm only_number">
-                </div>
-
-                <div class="col-md-4">
-                  <label class="form-label small">Usulan Harga</label>
-                  <input type="text" id="modalHarga" class="form-control form-control-sm only_number">
-                </div>
-
-                <div class="col-md-4">
-                  <label class="form-label small">Diskon (%)</label>
-                  <input type="text" id="modalDiskon" class="form-control form-control-sm only_number">
-                  <small class="d-block mt-1" style="font-size: 11px !important;">
-                    Diskon ini digunakan hanya pada series yang akan dipilih, kosongkan jika ingin menggunakan diskon program pada input sebelumnya(jika ada)
-                  </small>
-                </div>
+              <div class="col-md-7">
+                <label class="form-label fw-semibold">Series</label>
+                <select class="form-select form-select-sm select2" id="modalBookSeries">
+                  <option value="">Select series</option>
+                  <?php foreach ($book_series as $row): ?>
+                    <option value="<?= $row['id'] ?>">
+                      <?= $row['name'] ?> - [<?= $row['level'] ?>]
+                    </option>
+                  <?php endforeach ?>
+                </select>
               </div>
-            </div>
 
-            <div class="modal-footer">
-              <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
-              <button type="button" class="btn btn-primary btn-sm" onclick="addTitleCard();">Add</button>
+              <div class="col-md-5">
+                <label class="form-label fw-semibold">Type</label>
+                <select class="form-select form-select-sm select2" id="modalBookType" multiple>
+                  <option value="workbook">Workbook</option>
+                  <option value="textbook">Textbook</option>
+                  <option value="teacher guide">Teacher Guide</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small">Quantity</label>
+                <input type="text" id="modalJumlah" class="form-control form-control-sm only_number">
+              </div>
+
+              <!-- Usulan Harga -->
+              <div class="col-md-4" id="fieldHarga">
+                <label class="form-label small">Usulan Harga</label>
+                <input type="text" id="modalHarga" class="form-control form-control-sm only_number">
+              </div>
+
+              <div class="col-md-4">
+                <label class="form-label small">Diskon (%)</label>
+                <input type="text" id="modalDiskon" class="form-control form-control-sm only_decimal">
+              </div>
+
             </div>
+          </div>
+
+          <div class="modal-footer">
+            <button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary btn-sm" onclick="addTitleCard()">Add</button>
+          </div>
 
         </div>
       </div>
-    </div>  
+    </div> 
 
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
@@ -576,16 +605,25 @@
     const bookType          = $('#modalBookType').val();
     const jumlah            = $('#modalJumlah').val();
     const harga             = $('#modalHarga').val();
+    const cashback          = $('#modalCashback').val();
     const diskon            = $('#modalDiskon').val();
     const additionalPrice   = $('#additional_price').val();
     const discountProgram   = $('#discount_program').val();
 
-    if (!seriesId) return alert('Select book series');
-    if (!jumlah) return alert('Input jumlah siswa');
-    if (!harga) return alert('Input harga usulan');
-
-    if (document.querySelector(`.series-card[data-series-id="${seriesId}"]`)) {
-      return alert('Series already added');
+    let messageAlert = ""
+    if(programOmzetSettings == null) messageAlert = "Pilih program terlebih dahulu";
+    if (!seriesId) messageAlert = "Select book series";
+    if (!jumlah) messageAlert = "Input quantity";
+    if (!harga && !programOmzetSettings.enabled) messageAlert = "Input harga usulan" ;
+    
+    if (document.querySelector(`.series-card[data-series-id="${seriesId}"]`)) messageAlert = "Series already added";
+    if(messageAlert != "") {
+      Swal.fire({
+        title: "Failed!",
+        text: messageAlert,
+        icon: "error"
+      })
+      return
     }
 
     $.getJSON('get_books.php', { series_id: seriesId, book_type: bookType }, function (books) {
@@ -619,6 +657,20 @@
           bookClone.querySelector('[name="usulanharga[]"]').value = harga;
           bookClone.querySelector('[name="diskon[]"]').value = diskon || discountProgram;
 
+          bookClone.querySelector('[name="diskon[]"]').readOnly = programOmzetSettings.enabled;
+
+          const els = bookClone.querySelectorAll('.remove_if_has_omzet_scheme');
+          const omzetWrapper = bookClone.querySelectorAll('.omzet_wrapper');
+
+          els.forEach(el => {
+            el.classList.toggle('d-none', programOmzetSettings.enabled);
+          });
+
+          omzetWrapper.forEach(omzet => {
+            omzet.classList.toggle('d-none', !programOmzetSettings.enabled);
+          });
+
+          const cols = bookClone.querySelectorAll('.col-md-2');
           let bookPrice = (book.price + (additionalPrice ? removeNonDigits(additionalPrice) : 0));
           const hargaNormalInput = bookClone.querySelector('[name="harganormal[]"]');
           hargaNormalInput.dataset.bookPrice = book.price;
@@ -636,6 +688,7 @@
 
         document.getElementById('titleList').appendChild(seriesClone);
         accumulateAlokasi();
+        reevaluateOmzetDiscount();
       }
 
     });
@@ -660,8 +713,8 @@
         // $('#program').select2();
       },
       error: function(jqXHR, textStatus, errorThrown) {
-          console.log('Error:', textStatus, errorThrown);
-          alert("Failed to get program")
+        console.log('Error:', textStatus, errorThrown);
+        alert("Failed to get program")
       }
     });
   }
@@ -669,7 +722,7 @@
   function removeNonDigits(numberString) {
     let nonDigitRegex = /[^\d-]/g;
 
-    let result = numberString.replace(nonDigitRegex, '');
+    let result = numberString && numberString.replace(nonDigitRegex, '');
 
     return result ? parseInt(result) : 0;
   }
@@ -681,36 +734,72 @@
     var aftd = row.find('input[name="aftd[]"]');
     var befo = row.find('input[name="befo[]"]');
     var afto = row.find('input[name="afto[]"]');
-
-    var benefitSetting = <?php echo json_encode($benefitSetting); ?>;
-
-    let maxProgramPrice = benefitSetting.max_price_percentage ?? 100;
-    let maxDiscount     = benefitSetting.max_discount_percentage ?? 30;
-
+    var omzetgross = row.find('input[name="omzetgross[]"]');
+    var omzetnet = row.find('input[name="omzetnet[]"]');
+    
     var jumlah = removeNonDigits(row.find('input[name="jumlahsiswa[]"]').val()) || 0;
     var usulan = removeNonDigits(row.find('input[name="usulanharga[]"]').val()) || 0;
     var normal = removeNonDigits(row.find('input[name="harganormal[]"]').val()) || 0;
-    var diskon = removeNonDigits(row.find('input[name="diskon[]"]').val()) || 0;
+    var diskon = row.find('input[name="diskon[]"]').val() || 0;
 
-    if (diskon > maxDiscount) {
-      diskon = maxDiscount;
-      alert("Diskon melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih");
-      row.find('input[name="diskon[]"]').val(maxDiscount);
+    diskon = diskon.toString().replace('.', ',');
+
+    row.find('input[name="diskon[]"]').val(diskon);
+    diskon = diskon.replace(',', '.');
+    if(programOmzetSettings && programOmzetSettings.enabled) {
+      
+      const totalOmzet = calculateTotalOmzet();
+      const range = resolveOmzetRange(totalOmzet);
+      const maxDiscountAlocatedForbenefit = range?.max_discount ?? 30;
+
+      const cashback = Number($('#modalCashback').val()) || 0;
+
+      const totalPrice = jumlah * normal;
+      const totalPriceAfterDiscount = totalPrice - (diskon / 100) * totalPrice;
+
+      // sisa persen untuk benefit
+      let remainingPercent = maxDiscountAlocatedForbenefit - diskon - cashback;
+
+      // guard: ga boleh minus
+      if (remainingPercent < 0) remainingPercent = 0;
+
+      omzetgross.val(formatNumber(totalPrice));
+      omzetnet.val(formatNumber(totalPriceAfterDiscount));
+
+      const alokasi = (remainingPercent / 100) * totalPrice;
+      disabledField.val(formatNumber(alokasi));
+
+    }else {
+      var benefitSetting = <?php echo json_encode($benefitSetting); ?>;
+
+      let maxProgramPrice = benefitSetting.max_price_percentage ?? 100;
+      let maxDiscount     = benefitSetting.max_discount_percentage ?? 30;
+
+      if (diskon > maxDiscount) {
+        diskon = maxDiscount;
+        Swal.fire({
+          title: "Warning!",
+          text: "Diskon melebihi ketentuan, silakan ajukan persetujuan ke HOR/Top Leader terlebih dahulu. Terima kasih",
+          icon: "warning"
+        })
+        row.find('input[name="diskon[]"]').val(maxDiscount);
+      }
+
+      var setelahDiskon = normal - (diskon / 100 * normal);
+      aftd.val(formatNumber(setelahDiskon));
+
+      var onepriceRevenue = jumlah * usulan;
+      afto.val(formatNumber(onepriceRevenue));
+
+      var sebelumOneprice = jumlah * setelahDiskon;
+      befo.val(formatNumber(sebelumOneprice));
+
+      var alokasi = onepriceRevenue - sebelumOneprice;
+      disabledField.val(formatNumber(alokasi));
     }
 
-    var setelahDiskon = normal - (diskon / 100 * normal);
-    aftd.val(formatNumber(setelahDiskon));
-
-    var onepriceRevenue = jumlah * usulan;
-    afto.val(formatNumber(onepriceRevenue));
-
-    var sebelumOneprice = jumlah * setelahDiskon;
-    befo.val(formatNumber(sebelumOneprice));
-
-    var alokasi = onepriceRevenue - sebelumOneprice;
-    disabledField.val(formatNumber(alokasi));
-
     accumulateAlokasi();
+    reevaluateOmzetDiscount();
   }
 
   function sumArray(array) {
@@ -721,13 +810,31 @@
 
   function accumulateAlokasi() {
     let total = 0;
+    let totalGross = 0;
     $('input[name="alokasi[]"]').each(function () {
-      const val = removeNonDigits($(this).val()) || 0;
-      total += val;
+      total += parseIndoNumber($(this).val()) || 0;
     });
+    
+    if (programOmzetSettings?.enabled) {
+      $('input[name="omzetgross[]"]').each(function () {
+        totalGross += parseIndoNumber($(this).val()) || 0;
+      });
+      $('#show_if_has_omzet').removeClass('d-none');
+      $('#accumulated_omzet').text(formatNumber(totalGross));
+    } else {
+      $('#show_if_has_omzet').addClass('d-none');
+    }
 
     $('#accumulated_values').text(formatNumber(total));
-    $('#submt').prop('disabled', total < 0);
+
+    const hasProgram = !!$('select[name="program"]').val();
+
+    const totalBook  = $('#titleList .book-row').length > 0;
+
+    $('#submt').prop(
+      'disabled',
+      !hasProgram || total < 0 || !totalBook
+    );
   }
 
   function formatNumber(number) {
@@ -796,7 +903,10 @@
             $.getJSON('get_books.php', { series_id: seriesId}, function (books) {
 
               if(books.length === 0) {
-                alert('Daftar buku kosong, mohon infokan ke tim developer');
+                Swal.fire({
+                  title: 'Daftar buku kosong, mohon infokan ke tim developer',
+                  icon: 'warning'
+                })
               }else {
                 const seriesTpl   = document.getElementById('seriesCardTemplate');
                 const seriesClone = seriesTpl.content.cloneNode(true);
@@ -808,9 +918,9 @@
                 let additionalPriceToAdd = 0;
 
                 books.forEach(book => {
-                  const isBookSaved = savedBooks.filter(el => el.book_id === book.id);
-                  if(isBookSaved.length <= 0) return;
-                  let selectedBook = isBookSaved[0];
+                  const savedBook = savedBooks.filter(el => el.book_id === book.id);
+                  if(savedBook.length <= 0) return;
+                  let selectedBook = savedBook[0];
                   const bookTpl   = document.getElementById('bookRowTemplate');
                   const bookClone = bookTpl.content.cloneNode(true);
 
@@ -820,6 +930,7 @@
                     placeholder: 'Select book',
                     dropdownParent: seriesCard
                   })
+                  
                   bookClone.querySelector('.level').innerHTML = `<option value="${book.grade}">${book.grade}</option>`;
 
                   bookClone.querySelector('.booktype').innerHTML = `<option value="${book.type}">${book.type}</option>`;
@@ -827,7 +938,22 @@
                   bookClone.querySelector('[name="book_ids[]"]').value = book.id;
                   bookClone.querySelector('[name="jumlahsiswa[]"]').value = selectedBook.qty;
                   bookClone.querySelector('[name="usulanharga[]"]').value = formatNumber(selectedBook.usulan_harga);
-                  bookClone.querySelector('[name="diskon[]"]').value = selectedBook.discount;
+                  bookClone.querySelector('[name="diskon[]"]').value = selectedBook.discount ? selectedBook.discount.toString().replace('.', ',') : '';
+
+                  bookClone.querySelector('[name="diskon[]"]').readOnly = programOmzetSettings.enabled;
+
+                  const els = bookClone.querySelectorAll('.remove_if_has_omzet_scheme');
+                  const omzetWrapper = bookClone.querySelectorAll('.omzet_wrapper');
+
+                  els.forEach(el => {
+                    el.classList.toggle('d-none', programOmzetSettings.enabled);
+                  });
+
+                  omzetWrapper.forEach(omzet => {
+                    omzet.classList.toggle('d-none', !programOmzetSettings.enabled);
+                  });
+
+                  const cols = bookClone.querySelectorAll('.col-md-2');
 
                   let additionalPrice = parseFloat(selectedBook.normalprice) - parseFloat(selectedBook.price);
                   let bookPrice = parseFloat(selectedBook.price) + additionalPrice;
@@ -837,10 +963,12 @@
 
                   bookList.appendChild(bookClone);
 
+                  additionalPriceToAdd = additionalPrice;
                   updateDisabledField(
                     bookList.lastElementChild.querySelector('[name="jumlahsiswa[]"]')
                   );
-                  additionalPriceToAdd = additionalPrice;
+                  
+                  selectedDiscount = selectedBook.discount ?? '';
                 });
 
                 $('#additional_price').val(formatNumber(additionalPriceToAdd))
@@ -849,27 +977,15 @@
                 $('#emptyState').fadeOut(200);
 
                 document.getElementById('titleList').appendChild(seriesClone);
+
                 accumulateAlokasi();
+                reevaluateOmzetDiscount();
               }
 
             });
-          }
-          Swal.fire({
-            title: 'Success',
-            html: 'Sekarang kamu bisa menyesuaikan buku yang akan diadopsi',
-            icon: 'success',
-            allowOutsideClick: true,
-            showConfirmButton: true,
-            confirmButtonColor: '#3085d6',
-            confirmButtonText: 'Oke',
-            showClass: {
-              popup: 'animate__animated animate__fadeInDown'
-            },
-            hideClass: {
-              popup: 'animate__animated animate__fadeOutUp'
-            }
 
-          });
+          }
+          
         },
         error: function (jqXHR, textStatus, errorThrown) {
           console.log('Error:', textStatus, errorThrown);
@@ -889,29 +1005,301 @@
     }
   }
 
+  function fetchProgramOmzet(programCode) {
+    return $.ajax({
+      url: './get-program-omzet.php',
+      method: 'GET',
+      data: { program_code: programCode },
+      dataType: 'json',
+      success(res) {
+        if (res.status !== 'success') {
+          programOmzetSettings = null;
+          applyOmzetMode(false);
+          return;
+        }
 
-  let schoolReady = false;
+        programOmzetSettings = res.data;
+        
+        applyOmzetMode(!!programOmzetSettings.enabled);
+        if (programOmzetSettings.enabled) {
+          applyDiscountProgramByOmzet();
+        } else {
+          restoreDiscountProgramInput();
+        }
+        $('#btnAddTitle')
+          .attr('data-bs-target', '#draftBenefitModal')
+          .prop('disabled', false);
 
+        if (programOmzetSettings.enabled) {
+          Swal.fire({
+            title: "Info",
+            text: "Program yang kamu pilih menggunakan skema cashback berdasarkan omzet.",
+            icon: "info",
+            showConfirmButton: false
+          });
+        }
+      },
+      error() {
+        programOmzetSettings = null;
+        applyOmzetMode(false);
+      }
+    });
+  }
+
+  function applyOmzetMode(enabled) {
+    /* ======================
+      MODAL / FORM STATE
+    ====================== */
+    if (enabled) {
+      $('#fieldHarga').addClass('d-none');
+      $('#modalHarga').prop('disabled', true);
+
+      $('#fieldCashback').removeClass('d-none');
+      $('#modalCashback').prop('disabled', false);
+
+      $('#modalDiskon').prop('readonly', true);
+    } else {
+      $('#fieldCashback').addClass('d-none');
+      $('#modalCashback').prop('disabled', true);
+
+      $('#fieldHarga').removeClass('d-none');
+      $('#modalHarga').prop('disabled', false);
+
+      $('#modalDiskon').prop('readonly', false);
+    }
+
+    /* ======================
+      EXISTING TITLE LIST
+    ====================== */
+    const rows = document.querySelectorAll('#titleList .book-row');
+
+    rows.forEach(row => {
+      // hide / show omzet-only fields
+      row.querySelectorAll('.remove_if_has_omzet_scheme').forEach(el => {
+        el.classList.toggle('d-none', enabled);
+      });
+
+      // diskon readonly
+      const diskonInput = row.querySelector('[name="diskon[]"]');
+      if (diskonInput) {
+        diskonInput.readOnly = enabled;
+      }
+
+      // column resize
+      row.querySelectorAll('.omzet_wrapper').forEach(el => {
+        el.classList.toggle('d-none', !enabled);
+      });
+    });
+
+    $('.book-row').each(function () {
+      updateDisabledField(
+        $(this).find('[name="jumlahsiswa[]"]')[0]
+      );
+    });
+  }
+
+  function applyDiscountProgramByOmzet() {
+    if (!programOmzetSettings || !programOmzetSettings.enabled) return;
+
+    const totalOmzet = calculateTotalOmzet();
+    const range = resolveOmzetRange(totalOmzet);
+
+
+    const $discount = $('#discount_program');
+    const $wrapper  = $discount.closest('div');
+    const $note     = $('#discount_program_note');
+
+    // ===============================
+    // RULE 1 & 2 — RANGE NULL
+    // ===============================
+    if (!range || !range.discounts || !range.discounts.length) {
+      if ($discount.is('select')) {
+
+        // 🔥 TAMBAHAN WAJIB (INI INTINYA)
+        if ($discount.hasClass('select2-hidden-accessible')) {
+          $discount.select2('destroy');
+          $discount.next('.select2-container').remove();
+        }
+
+        // 🔥 BARU BOLEH GANTI KE INPUT
+        $discount.replaceWith(`
+          <input
+            id="discount_program"
+            type="number"
+            name="discount_program"
+            class="form-control form-control-sm"
+            max="100"
+            placeholder="0 - 100"
+            readonly
+            value=""
+          />
+        `);
+
+      } else {
+        $('#discount_program')
+          .val('')
+          .prop('readonly', true);
+      }
+
+      $note
+        .text('Omzet belum masuk ke range diskon program')
+        .removeClass('d-none');
+
+      // sync ke semua row
+      $('input[name="diskon[]"]').val(0);
+      accumulateAlokasi();
+
+      return;
+    }
+
+    // ===============================
+    // RULE 3 — RANGE ADA
+    // ===============================
+    const discounts = range.discounts;
+    const select = $(`
+      <select
+        id="discount_program"
+        name="discount_program"
+        class="form-control form-control-sm select2" required
+      >
+      <option value="" selected disabled>Select discount</option>
+      </select>
+    `);
+
+    discounts.forEach(d => {
+      let val = d.toString().replace('.', ',');
+      select.append(`<option value="${val}">${val}%</option>`);
+    });
+
+    // ganti input → select
+    // 🔥 kalau udah select2, stop (biar ga dobel)
+    if ($discount.is('select')) {
+      if ($discount.hasClass('select2-hidden-accessible')) {
+        $discount.select2('destroy');
+        $discount.next('.select2-container').remove();
+      }
+    }
+
+    $discount.replaceWith(select);
+
+    select.select2({
+      width: '100%'
+    });
+
+    $note
+      .text('Diskon ditentukan berdasarkan range omzet program')
+      .removeClass('d-none');
+
+    // sync ke semua row
+    select.on('change', function () {
+      const val = this.value;
+      $('input[name="diskon[]"]').val(val);
+      $('.book-row').each(function () {
+        updateDisabledField(
+          $(this).find('[name="jumlahsiswa[]"]')[0]
+        );
+      });
+    });
+
+    select.select2()
+    // trigger awal
+    select.trigger('change');
+  }
+
+  function restoreDiscountProgramInput() {
+    const $discount = $('#discount_program');
+
+    // 🔥 kalau lagi SELECT2 → destroy dulu
+    if ($discount.is('select') && $discount.hasClass('select2-hidden-accessible')) {
+      $discount.select2('destroy');
+    }
+
+    // ganti ke input
+    $discount.replaceWith(`
+      <input
+        id="discount_program"
+        type="number"
+        name="discount_program"
+        class="form-control form-control-sm"
+        max="100"
+        placeholder="0 - 100"
+      />
+    `);
+
+    $('#discount_program_note')
+      .text('Diskon ini akan digunakan pada semua judul, untuk memberikan diskon khusus pada judul tertentu, silahkan tambahkan diskon ketika menambahkan judul pada book list')
+      .removeClass('d-none');
+  }
+
+  function calculateTotalOmzet() {
+    let total = 0;
+
+    $('#titleList .book-row').each(function () {
+      const row = $(this);
+
+      const jumlah = removeNonDigits(row.find('[name="jumlahsiswa[]"]').val()) || 0;
+      const normal = removeNonDigits(row.find('[name="harganormal[]"]').val()) || 0;
+
+      total += jumlah * normal;
+    });
+
+    return total;
+  }
+
+  function resolveOmzetRange(totalOmzet) {
+    if (!programOmzetSettings?.ranges?.length) return null;
+
+    // ambil semua range yg memenuhi
+    const matched = programOmzetSettings.ranges.filter(r => {
+      const minOk = totalOmzet >= r.omzet_min;
+      const maxOk = r.omzet_max === null || totalOmzet <= r.omzet_max;
+      return minOk && maxOk;
+    });
+    if (!matched.length) return null;
+
+    // 🔥 ambil yang omzet_min paling tinggi
+    return matched.reduce((prev, curr) =>
+      curr.omzet_min > prev.omzet_min ? curr : prev
+    );
+  }
+
+  function reevaluateOmzetDiscount() {
+    if (!programOmzetSettings?.enabled) return;
+    if (isRecalculatingOmzet) return;
+
+    const totalOmzet = calculateTotalOmzet();
+    const range = resolveOmzetRange(totalOmzet);
+    const rangeId = range?.id ?? null;
+
+    // ❗ guard utama
+    if (rangeId === lastAppliedRangeId) return;
+
+    isRecalculatingOmzet = true;
+    lastAppliedRangeId = rangeId;
+
+    applyDiscountProgramByOmzet();
+
+    isRecalculatingOmzet = false;
+  }
+
+  function parseIndoNumber(val) {
+    if (!val) return 0;
+
+    return parseFloat(
+      val
+        .replace(/\./g, '')  // hapus ribuan
+        .replace(',', '.')   // decimal JS
+    ) || 0;
+  }
 </script>
 <script>
   let username = '<?= $username ?? 'null' ?>';
+  let schoolReady = false;
+  let programOmzetSettings = null;
+  let isRecalculatingOmzet = false;
+  let lastAppliedRangeId = null;
+  let selectedDiscount = '';
 
-  $(document).on('click', '.toggle-series', function (e) {
-    e.preventDefault();
-    e.stopPropagation();
-
-    const $btn = $(this);
-    const $card = $btn.closest('.series-card');
-    const $bookList = $card.find('.book-list').first();
-    const $icon = $btn.find('i');
-
-    if (!$bookList.length) return;
-
-    $bookList.stop(true, true).slideToggle(200);
-
-    $icon.toggleClass('bi-chevron-up bi-chevron-down');
-  });
-  
   $(document).ready(function(){
     $('.select2').select2();
 
@@ -1061,7 +1449,6 @@
           type: "POST",
           data: { id_draft: id_draft },
           success: function (response) {
-            console.log('response: ', response);
             if(response["data"]) {
               let programData = response["data"];
               $("#select_school_label").val(programData.school_name);
@@ -1070,6 +1457,7 @@
               $("#wilayah").val(programData.wilayah);
               $("#program").val(programData.code);
               $("#program_label").val(programData.program_name);
+              $('#modalCashback').val(programData.cashback);
               $('.programNote').toggleClass('d-none', true);
               $("#inputEC").val(programData.id_ec).trigger('change');
               $("#select_school").val(programData.school_id ? parseInt(programData.school_id) : '').trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
@@ -1082,6 +1470,9 @@
               $('#btnAddTitle').prop('disabled', false);
               $('#submt').prop('disabled', false);
               $('#proceed').prop('disabled', false);
+              fetchProgramOmzet(programData.code).done(function () {
+                fetchAllBooksFromPreviousDraft();
+              });
             }
           },
           error: function(jqXHR, textStatus, errorThrown) {
@@ -1112,27 +1503,7 @@
       accumulateAlokasi();
     });
 
-    $('#discount_program').on('input', function () {
-      let discountProgram = parseFloat($(this).val()) || 0;
-
-      if (programOmzetSettings && programOmzetSettings.enabled) {
-        // update SEMUA input diskon[]
-        $('input[name="diskon[]"]').each(function () {
-          $(this).val(discountProgram);
-        });
-        $('.book-row').each(function () {
-          updateDisabledField(
-            $(this).find('[name="jumlahsiswa[]"]')[0]
-          );
-        });
-      } else {
-        if (discountProgram > 100) {
-          $(this).val(100);
-        }
-      }
-    });
-
-    $('#cashbackinput').on('input', function () {
+    $('#modalCashback').on('input', function () {
       $('.book-row').each(function () {
         updateDisabledField(
           $(this).find('[name="jumlahsiswa[]"]')[0]
@@ -1232,6 +1603,117 @@
     getSchoolPrograms();
     fetchShool(username);
 
+    $(document).on('change', 'select#discount_program', function () {
+
+      let rawValue = $(this).val();
+      let discountProgram = parseIndoNumber(rawValue || '10');
+      if (programOmzetSettings && programOmzetSettings.enabled) {
+
+        $('input[name="diskon[]"]').val(discountProgram);
+
+        $('.book-row').each(function () {
+          updateDisabledField(
+            $(this).find('[name="jumlahsiswa[]"]')[0]
+          );
+        });
+        
+        if (selectedDiscount) {
+          let temp = parseFloat(
+            selectedDiscount.toString().replace(',', '.')
+          ) || 0;
+
+          selectedDiscount = null;
+          $('input[name="diskon[]"]').val(temp);
+          $(this).val(temp.toString().replace('.', ',')).trigger('change');
+        }
+
+        updateDisabledField(
+          $(this).closest('.book-row')
+            .find('[name="jumlahsiswa[]"]')[0]
+        );
+
+      } else {
+
+        if (discountProgram > 100) {
+          discountProgram = 100;
+        }
+
+        $('input[name="diskon[]"]').val(discountProgram);
+      }
+
+    });
+
+
+    $(document).on('input', 'input#discount_program', function () {
+
+      let discountProgram = parseFloat($(this).val()) || 0;
+
+      if (programOmzetSettings && programOmzetSettings.enabled) {
+
+        $('input[name="diskon[]"]').val(discountProgram);
+
+        $('.book-row').each(function () {
+          updateDisabledField(
+            $(this).find('[name="jumlahsiswa[]"]')[0]
+          );
+        });
+
+      } else {
+
+        if (discountProgram > 100) {
+          $(this).val(100);
+          discountProgram = 100;
+        }
+
+        $('input[name="diskon[]"]').val(discountProgram);
+      }
+
+    });
+  });
+
+  $(document).on('input', '.only_decimal', function () {
+    let val = $(this).val();
+
+    // hapus semua kecuali angka & koma
+    val = val.replace(/[^0-9,]/g, '');
+
+    // cuma boleh 1 koma
+    const parts = val.split(',');
+    if (parts.length > 2) {
+      val = parts[0] + ',' + parts.slice(1).join('');
+    }
+
+    // max 2 digit desimal
+    if (parts[1]) {
+      parts[1] = parts[1].slice(0, 2);
+      val = parts.join(',');
+    }
+
+    // format ribuan (bagian sebelum koma)
+    let integerPart = parts[0].replace(/\./g, '');
+    integerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+
+    val = parts[1] !== undefined
+      ? integerPart + ',' + parts[1]
+      : integerPart;
+
+    $(this).val(val);
+  });
+
+  $(document).on('click', '.toggle-series', function (e) {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const $btn = $(this);
+    const $card = $btn.closest('.series-card');
+    const $bookList = $card.find('.book-list').first();
+    const $icon = $btn.find('i');
+
+    if (!$bookList.length) return;
+
+    $bookList.stop(true, true).slideToggle(200);
+
+    $icon.toggleClass('bi-chevron-up bi-chevron-down');
   });
 
   document.addEventListener('click', function (e) {

@@ -111,7 +111,14 @@
                         ? $benefit['program']
                         : ($benefit['program'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
 
-                    $is_expired = (!empty($benefit['expired_at']) && strtotime($benefit['expired_at']) < time());
+                    $expiredTime = !empty($benefit['expired_at'])
+                        ? strtotime($benefit['expired_at'])
+                        : null;
+
+                    // expired asli
+                    $is_expired = ($expiredTime && $expiredTime < time());
+
+                    $is_grace_expired = ($expiredTime && time() > strtotime('+6 months', $expiredTime));
 
                     $row_class = $is_expired || $benefit['has_ref_usage']
                         ? "table-danger"
@@ -159,18 +166,17 @@
                                 </li>
 
                                 <?php if ($benefit['confirmed'] == 1): ?>
-                                    <?php if (
-                                        ($_SESSION['role'] === "ec" && $benefit['redeemable'] == 1) ||
-                                        ($_SESSION['role'] !== "ec" && !$benefit['has_ref_usage'])
-                                    ): ?>
-                                    <li>
-                                        <a class="dropdown-item text-warning"
-                                        data-id="<?= $benefit['id_benefit_list'] ?>"
-                                        data-bs-toggle="modal"
-                                        data-bs-target="#usageModal">
-                                            <i class="fa fa-clipboard-list me-2"></i> Usage
-                                        </a>
-                                    </li>
+                                    <?php if (!$is_expired && 
+                                    (($_SESSION['role'] === "ec" && $benefit['redeemable'] == 1) || 
+                                    ($_SESSION['role'] !== "ec" && !$benefit['has_ref_usage']))): ?>
+                                        <li>
+                                            <a class="dropdown-item text-warning"
+                                            data-id="<?= $benefit['id_benefit_list'] ?>"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#usageModal">
+                                                <i class="fa fa-clipboard-list me-2"></i> Usage
+                                            </a>
+                                        </li>
                                     <?php endif; ?>
 
                                     <li>

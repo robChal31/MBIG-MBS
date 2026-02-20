@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 $id_template = $_POST['id_template'] ? $_POST['id_template'] : 0;
 
 $template = [];
-$draft_template_q = "SELECT * 
+$draft_template_q = "SELECT dtb.*, br.unit_bisnis 
                       FROM draft_template_benefit AS dtb
                       LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit
                       WHERE dtb.id_template_benefit = $id_template";
@@ -20,22 +20,62 @@ if (mysqli_num_rows($draft_exec) > 0) {
 $template = $template[0] ?? [];
 
 $business_units = [];
-$business_unit_q = "SELECT * 
-                      FROM business_units
-                      WHERE is_active = 1";
+$business_unit_q = "SELECT * FROM business_units WHERE is_active = 1";
 $bu_unit_exec = mysqli_query($conn, $business_unit_q);
 if (mysqli_num_rows($bu_unit_exec) > 0) {
   $business_units = mysqli_fetch_all($bu_unit_exec, MYSQLI_ASSOC);    
 }
 
 $programs = [];
-$program_q = "SELECT * 
-            FROM programs
-            WHERE is_active = 1";
+$program_q = "SELECT * FROM programs WHERE is_active = 1";
 $program_exec = mysqli_query($conn, $program_q);
 if (mysqli_num_rows($program_exec) > 0) {
   $programs = mysqli_fetch_all($program_exec, MYSQLI_ASSOC);    
 }
+
+$benefits = [];
+$benefits_q = "SELECT * FROM benefits";
+$benefits_exec = mysqli_query($conn, $benefits_q);
+if (mysqli_num_rows($benefits_exec) > 0) {
+  $benefits = mysqli_fetch_all($benefits_exec, MYSQLI_ASSOC);    
+}
+
+$subbenefits = [];
+
+if (!empty($template['benefit'])) {
+
+    $benefit_name = mysqli_real_escape_string($conn, $template['benefit']);
+
+    $benefit_q = "SELECT id FROM benefits WHERE name = '$benefit_name' LIMIT 1";
+    $benefit_exec = mysqli_query($conn, $benefit_q);
+
+    if ($benefit_exec && mysqli_num_rows($benefit_exec) > 0) {
+
+        $benefit_row = mysqli_fetch_assoc($benefit_exec);
+        $benefit_id  = $benefit_row['id'];
+
+        $subbenefits_q = "SELECT * FROM subbenefits 
+                          WHERE benefit_id = '$benefit_id'
+                          ORDER BY name ASC";
+
+        $subbenefits_exec = mysqli_query($conn, $subbenefits_q);
+
+        if ($subbenefits_exec && mysqli_num_rows($subbenefits_exec) > 0) {
+            $subbenefits = mysqli_fetch_all($subbenefits_exec, MYSQLI_ASSOC);
+        }
+    }
+
+} else {
+
+    // kalau benefit kosong → ambil semua
+    $subbenefits_q = "SELECT * FROM subbenefits ORDER BY name ASC";
+    $subbenefits_exec = mysqli_query($conn, $subbenefits_q);
+
+    if ($subbenefits_exec && mysqli_num_rows($subbenefits_exec) > 0) {
+        $subbenefits = mysqli_fetch_all($subbenefits_exec, MYSQLI_ASSOC);
+    }
+}
+
 
 ?>
     <div class="p-2">
@@ -43,19 +83,29 @@ if (mysqli_num_rows($program_exec) > 0) {
         <form action="save-template.php" method="POST" enctype="multipart/form-data" id="form_template">
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Benefit</label>
-                    <input type="text" name="benefit" class="form-control form-control-sm" value="<?= $template['benefit'] ?? '' ?>" placeholder="benefit..." required>
+                    <label class="form-label" style="font-size: .85rem;">Benefit <?= $template['benefit'] ?? '' ?></label>
+                    <select name="benefit" id="benefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
+                        <option value="" disabled selected>--Select Benefit --</option>
+                        <?php foreach($benefits as $benefit) { ?>
+                            <option value="<?= $benefit['name'] ?>" <?= strpos(($template['benefit'] ?? ''), $benefit['name']) !== false ? 'selected' : '' ?>><?= $benefit['name'] ?></option>
+                        <?php } ; ?>
+                    </select>
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Sub-benefit</label>
-                    <input type="text" name="subbenefit" class="form-control form-control-sm" value="<?= $template['subbenefit'] ?? '' ?>" placeholder="sub-benefit..." required>
+                    <select name="subbenefit" id="subbenefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
+                        <option value="" disabled selected>--Select Benefit --</option>
+                        <?php foreach($subbenefits as $subbenefit) { ?>
+                            <option value="<?= $subbenefit['name'] ?>" <?= strpos(($template['subbenefit'] ?? ''), $subbenefit['name']) !== false ? 'selected' : '' ?>><?= $subbenefit['name'] ?></option>
+                        <?php } ; ?>
+                    </select>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Benefit Name</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="text" name="benefit_name" class="form-control form-control-sm" value="<?= $template['benefit_name'] ?? '' ?>" placeholder="benefit name..." required>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-12 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Avail Code</label>
                     <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple required>
                         <?php foreach($programs as $prog) { ?>
@@ -245,6 +295,36 @@ if (mysqli_num_rows($program_exec) > 0) {
             
             $(this).val(formattedValue);
         });
+
+        $('#benefit_list').on('change', function () {
+            var selectedValue = $(this).val();
+
+            if (!selectedValue) return;
+
+            $.ajax({
+                url: './get-subbenefits.php',
+                type: 'POST',
+                data: {
+                    benefit_name: selectedValue
+                },
+                success: function (response) {
+                    var options = '<option value="" disabled selected>--Select Sub Benefit--</option>';
+
+                    $.each(response, function (index, item) {
+                        options += '<option value="' + item.name + '">' + item.name + '</option>';
+                    });
+
+                    $('#subbenefit_list')
+                        .html(options)      // 🔥 replace semua isi
+                        .val(null)          // reset selected
+                        .trigger('change'); // refresh select2
+                },
+                error: function (err) {
+                    console.log(err);
+                }
+            });
+        });
+
     })
 </script>
  

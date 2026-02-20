@@ -1,11 +1,68 @@
 <?php
-
 session_start();
 include 'db_con.php';
 
-$id_benefit_list = $_POST['id_benefit_list'];
+$id_benefit_list = isset($_POST['id_benefit_list']) ? (int)$_POST['id_benefit_list'] : 0;
 
+if ($id_benefit_list <= 0) {
+    echo '<div class="alert alert-danger">Invalid Benefit ID</div>';
+    exit;
+}
+
+/* ================================
+   1. GET ID DRAFT
+================================ */
+$get_id_draft = "SELECT id_draft 
+                 FROM draft_benefit_list 
+                 WHERE id_benefit_list = $id_benefit_list";
+
+$id_draft_exc = mysqli_query($conn, $get_id_draft);
+
+if (!$id_draft_exc || mysqli_num_rows($id_draft_exc) == 0) {
+    echo '<div class="alert alert-danger">No draft found</div>';
+    exit;
+}
+
+$row_draft = mysqli_fetch_assoc($id_draft_exc);
+$id_draft = (int)$row_draft['id_draft'];
+
+/* ================================
+   2. GET PK + CHECK EXPIRED
+================================ */
+$get_pk = "SELECT expired_at 
+           FROM pk 
+           WHERE benefit_id = $id_draft";
+
+$pk_exc = mysqli_query($conn, $get_pk);
+
+if (!$pk_exc || mysqli_num_rows($pk_exc) == 0) {
+    echo '<div class="alert alert-danger">PK data not found</div>';
+    exit;
+}
+
+$row_pk = mysqli_fetch_assoc($pk_exc);
+$expired_at = $row_pk['expired_at'];
+
+if (!$expired_at) {
+    echo '<div class="alert alert-danger">Expired date not found</div>';
+    exit;
+}
+
+$expiredDate = new DateTime($expired_at);
+$limitDate   = clone $expiredDate;
+$limitDate->modify('+6 months');
+$now = new DateTime();
+
+if ($now > $expiredDate) {
+    echo '<div class="alert alert-danger">Benefit sudah melewati expired date</div>';
+    exit;
+}
+
+/* ================================
+   LANJUT QUERY UTAMA
+================================ */
 $role = $_SESSION['role'];                                                            
+
 $sql = "SELECT
             dbl.*, dtb.redeemable, db.ref_id, db.year, db.program,
             CASE 
@@ -25,16 +82,22 @@ $sql = "SELECT
         LEFT JOIN benefit_usages AS bu ON dbl.id_benefit_list = bu.id_benefit_list
         LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
         WHERE dbl.id_benefit_list = $id_benefit_list";
+
 $result = $conn->query($sql);
 
-if ($result->num_rows > 0) {
-    $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
-    $usages = $usages[0];  
-    if(strtolower($usages['program']) == 'cbls3' && $usages['year'] == 1) {
-        $usages['qty2'] = $usages['qty'];
-        $usages['qty3'] = $usages['qty'];
-    }
+if (!$result || $result->num_rows == 0) {
+    echo '<div class="alert alert-danger">Something went wrong</div>';
+    exit;
+}
+
+$usages = mysqli_fetch_assoc($result);
+
+if(strtolower($usages['program']) == 'cbls3' && $usages['year'] == 1) {
+    $usages['qty2'] = $usages['qty'];
+    $usages['qty3'] = $usages['qty'];
+}
 ?>
+
     <div class="p-2">
         <h6>Benefit Usage</h6>
         <form action="save-usage.php" method="POST" enctype="multipart/form-data" id="form-usage">
@@ -55,11 +118,54 @@ Nama Peserta: </textarea>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Year</label>
-                    <select name="year" id="year" class="form-control form-control-sm" style="background-color: white;" required>
-                       <option value="qty1" <?= $usages['qty'] == 0 || $usages['qty'] <= $usages['tot_usage1'] ? 'disabled' : '' ?>>Year 1</option>
-                       <option value="qty2" <?= $usages['qty2'] == 0 || $usages['qty2'] <= $usages['tot_usage2'] ? 'disabled' : '' ?>>Year 2</option>
-                       <option value="qty3" <?= $usages['qty3'] == 0 || $usages['qty3'] <= $usages['tot_usage3'] ? 'disabled' : '' ?>>Year 3</option>
+                    <select name="year" id="year" class="form-control form-control-sm select2" style="background-color: white;" required>
+
+                    <?php
+                        $yearOptions = [
+                            'qty1' => [
+                                'label' => 'Year 1',
+                                'max'   => $usages['qty'],
+                                'used'  => $usages['tot_usage1']
+                            ],
+                            'qty2' => [
+                                'label' => 'Year 2',
+                                'max'   => $usages['qty2'],
+                                'used'  => $usages['tot_usage2']
+                            ],
+                            'qty3' => [
+                                'label' => 'Year 3',
+                                'max'   => $usages['qty3'],
+                                'used'  => $usages['tot_usage3']
+                            ],
+                        ];
+
+                        foreach ($yearOptions as $key => $year) {
+
+                            $remain = (int)$year['max'] - (int)$year['used'];
+                            $isDisabled = ($year['max'] == 0 || $remain <= 0);
+
+                            $text = $year['label'];
+
+                            if ($year['max'] == 0) {
+                                $text .= ' (Not Available)';
+                            } elseif ($remain <= 0) {
+                                $text .= ' (Quota Full)';
+                            } else {
+                                $text .= ' (Remaining: ' . $remain . ')';
+                            }
+
+                            echo '<option value="'.$key.'" '
+                                .($isDisabled ? 'disabled style="color:#999;"' : '')
+                                .'>'.$text.'</option>';
+                        }
+                    ?>
+
                     </select>
+
+                    <small class="text-muted">
+                        Year yang bertuliskan <b>Not Available</b> atau <b>Quota Full</b> tidak bisa dipilih.
+                    </small>
+
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Quantity</label>
@@ -97,6 +203,9 @@ Nama Peserta: </textarea>
 
 <script>
     $(document).ready(function() {
+        $('.select2').select2({
+            width: '100%'
+        });
 
         let quantity = {
             qty1: {
@@ -145,8 +254,8 @@ Nama Peserta: </textarea>
             }
         });
 
-        $('#form-usage').on('submit', function(event) {
-            event.preventDefault();
+        $('#form-usage').on('submit', function(e) {
+            e.preventDefault();
             var formData = new FormData(this);
             $.ajax({
                 url: './save-usage.php', 
@@ -302,10 +411,7 @@ Nama Peserta: </textarea>
 
     });
 </script>
- 
-<?php $conn->close();}else { ?>
- <div class="alert alert-danger">Something went wrong</div>
-<?php } ?>
+
 
 
     

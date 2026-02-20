@@ -30,7 +30,7 @@ $note = $dbl['note'] ?? '';
             <div class="row">
                 <div class="col-12 mb-3">
                     <div class="form-floating">
-                        <textarea class="form-control" placeholder="Note" style="height: 200px;" name="note" required><?= $note ?></textarea>
+                        <textarea class="form-control" style="height: 200px;" name="note" required><?= $note ?></textarea>
                         <label for="floatingTextarea">Note</label>
                     </div>
                 </div>

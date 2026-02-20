@@ -2,6 +2,26 @@
 
 session_start();
 include 'db_con.php';
+function checkCodeHadiryuk($code) {
+    $ch = curl_init();
+
+    curl_setopt_array($ch, [
+        CURLOPT_URL => "https://hadiryuk.id/api/check_code",
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => http_build_query([
+            'redeemcode' => $code
+        ]),
+        CURLOPT_HTTPHEADER => [
+            "Content-Type: application/x-www-form-urlencoded"
+        ]
+    ]);
+
+    $response = curl_exec($ch);
+    curl_close($ch);
+
+    return json_decode($response, true);
+}
 
 $id_benefit_llist = $_POST['id_benefit_list'];  
 $role = $_SESSION['role'];                                                            
@@ -19,7 +39,34 @@ $sql = "SELECT
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-    $usages = mysqli_fetch_all($result, MYSQLI_ASSOC); 
+    $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
+    foreach($usages as &$usage) {
+
+        if(!empty($usage['redeem_code'])) {
+
+            $apiResult = checkCodeHadiryuk($usage['redeem_code']);
+
+            if(!empty($apiResult)) {
+
+                // Ambil event_name (cukup dari index pertama)
+                $usage['event_code'] = $apiResult[0]['event_name'] ?? '-';
+
+                // Ambil semua fullname
+                $names = array_column($apiResult, 'fullname');
+
+                // Hilangkan duplicate + normalize
+                $names = array_unique(array_map('trim', $names));
+
+                $usage['registered_user'] = implode('<br>', $names);
+
+            } else {
+                $usage['event_code'] = '-';
+                $usage['registered_user'] = '-';
+            }
+        }
+    }
+
+ 
 ?>
     <div class="p-2">
         <div class="table-responsive">
@@ -31,6 +78,8 @@ if ($result->num_rows > 0) {
                         <?php
                             if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
                             <th>Code</th>
+                            <th>Event Name</th>
+                            <th>Registered User</th>
                         <?php } ?>
                         <th scope="col">Year 1</th>
                         <th scope="col">Remaining Year 1</th>
@@ -58,6 +107,8 @@ if ($result->num_rows > 0) {
                                 <?php
                                     if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
                                         <td><?= $usage['redeem_code'] ?></td>
+                                        <td><?= $usage['event_code'] ?></td>
+                                        <td><?= $usage['registered_user'] ?></td>
                                 <?php } ?>
                                 <td class="text-center"><?= $usage['usage1'] ?></td>
                                 <td class="text-center"><?= $usage['qty'] - $acc_qty1 ?></td>
