@@ -26,7 +26,7 @@ function checkCodeHadiryuk($code) {
 $id_benefit_llist = $_POST['id_benefit_list'];  
 $role = $_SESSION['role'];                                                            
 $sql = "SELECT 
-            dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, 
+            bu.id, dbl.*, bu.qty1 as usage1, bu.qty2 as usage2, bu.qty3 as usage3, bu.description as descr, 
             bu.created_at as created, dtb.redeemable, bu.used_at, bu.redeem_code, bu.id as id_usage,
             prog.name as program
         FROM benefit_usages AS bu
@@ -40,6 +40,7 @@ $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
     $usages = mysqli_fetch_all($result, MYSQLI_ASSOC);
+
     foreach($usages as &$usage) {
 
         if(!empty($usage['redeem_code'])) {
@@ -65,7 +66,7 @@ if ($result->num_rows > 0) {
             }
         }
     }
-
+    unset($usage);
  
 ?>
     <div class="p-2">
@@ -103,7 +104,7 @@ if ($result->num_rows > 0) {
                     ?>
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
-                                <td><?= $usage['descr'] ?></td>
+                                <td><?= $usage['descr'] ?>cxzx</td>
                                 <?php
                                     if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
                                         <td><?= $usage['redeem_code'] ?></td>

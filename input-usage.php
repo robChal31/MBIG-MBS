@@ -62,7 +62,7 @@ if ($now > $expiredDate) {
    LANJUT QUERY UTAMA
 ================================ */
 $role = $_SESSION['role'];                                                            
-
+$subbenefit = '';
 $sql = "SELECT
             dbl.*, dtb.redeemable, db.ref_id, db.year, db.program,
             CASE 
@@ -92,10 +92,17 @@ if (!$result || $result->num_rows == 0) {
 
 $usages = mysqli_fetch_assoc($result);
 
+$subbenefit = $usages['subbenefit'] ? trim($usages['subbenefit']) : '';
+$subbenefit_q = "SELECT * FROM subbenefits WHERE name = '$subbenefit'";
+$subBQ_result = $conn->query($subbenefit_q);
+$subbenefit_data = $subBQ_result->fetch_assoc();
+$group = $subbenefit_data ? trim($subbenefit_data['group']) : '';
+
 if(strtolower($usages['program']) == 'cbls3' && $usages['year'] == 1) {
     $usages['qty2'] = $usages['qty'];
     $usages['qty3'] = $usages['qty'];
 }
+
 ?>
 
     <div class="p-2">
@@ -202,6 +209,7 @@ Nama Peserta: </textarea>
     </div>
 
 <script>
+    group = '<?= $group ?>';
     $(document).ready(function() {
         $('.select2').select2({
             width: '100%'
@@ -314,9 +322,10 @@ Nama Peserta: </textarea>
 
         let redeemable = <?= $usages['redeemable'] ?>
 
-        if(redeemable == 1) {
+        if(redeemable == 1 && group) {
+            console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}`);
             $.ajax({
-                url: 'https://hadiryuk.id/api/eventBenefit', 
+                url: `https://hadiryuk.id/api/EventBenefit?type=${group}`, 
                 method: 'GET',
                 cache: false,
                 contentType: false,
@@ -350,14 +359,14 @@ Nama Peserta: </textarea>
                         $('#submit_usage').prop('disabled', false);
                     } else {
                         Swal.fire({
-                            title: "Failed get event list!",
-                            text: response.message,
-                            icon: "error"
+                            title: "No event found.",
+                            text: `No Event found for ${group}.`,
+                            icon: "info"
                         });
                         setTimeout(function() {
                             Swal.close();
-                            $('#usageModal').modal('hide');
-                        }, 3000);
+                            // $('#usageModal').modal('hide');
+                        }, 5000);
                     }
                 },
                 error: function(xhr, status, error) {
@@ -372,7 +381,6 @@ Nama Peserta: </textarea>
                     }, 3000);
                 }
             });
-
 
             $('#event').on('change', function() {
                 if($(this).val()) {
@@ -407,6 +415,16 @@ Nama Peserta: </textarea>
                     $('#id_ticket').val('')
                 }
             })
+        }else if(redeemable == 1 && !group) {
+            Swal.fire({
+                title: "No event found.",
+                text: 'Uncategorized Benefit Group.  \n Please notify the developer.',
+                icon: "info"
+            });
+            setTimeout(function() {
+                Swal.close();
+                // $('#usageModal').modal('hide');
+            }, 5000);
         }
 
     });

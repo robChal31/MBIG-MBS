@@ -187,7 +187,8 @@ ini_set('display_errors', 1);
                     </div>
                     <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
                   <?php } else { ?>
-                    <select name="inputEC" class="form-select form-select-sm select2" required>
+                    <select name="inputEC" id="select_ec" class="form-select form-select-sm select2" required>
+                      <option value="">Pilih EC</option>
                       <?php foreach($ecs as $ec) { ?>
                         <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>>
                           <?= $ec['generalname'] ?>
@@ -221,6 +222,7 @@ ini_set('display_errors', 1);
                 <div class="col-md-6">
                   <label class="form-label small text-muted d-block">Program</label>
                   <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
+                  <small class="text-muted">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
                 </div>
                 
                 <!-- MY PLAN -->
@@ -356,15 +358,13 @@ ini_set('display_errors', 1);
 
   function getMyPlanRef(schoolPlanId = null) {
     const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
-    const schoolId = schoolPlanId ? schoolPlanId : $('select[name="nama_sekolah"]').val();
 
-    if(ec && schoolId) {
+    if(ec) {
       $.ajax({
         url: 'get-ec-plan.php',
         type: 'POST',
         dataType: 'json',
         data: {
-            school_id: schoolId,
             ec: ec,
             is_pk: 1,
             id_draft: idDraft
@@ -380,7 +380,7 @@ ini_set('display_errors', 1);
           }) 
 
           $('#myplan_id').html(options);
-          $('#myplan_id').select2();
+          $('#myplan_id').select2().trigger('change');
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.log('Error:', textStatus, errorThrown);
@@ -392,7 +392,7 @@ ini_set('display_errors', 1);
 
   $('#myplan_id').on('change', function () {
     const selectedId = $(this).val();
-
+    console.log('selectedId:', selectedId);
     if (!selectedId) return;
 
     getPlanData(selectedId);
@@ -400,6 +400,7 @@ ini_set('display_errors', 1);
   });
 
   function getPlanData(planId) {
+
     $.ajax({
       url: 'get-myplan-data.php',
       method: 'POST',
@@ -408,17 +409,30 @@ ini_set('display_errors', 1);
       success: function (res) {
         if (res && res.program) {
           const programName = res.program.trim();
-          $('#program').val(programName).trigger('change');
-          $('#level').val(res.level);
+          if (res.level_ids.length) {
+            $('#adoption_levels').val(res.level_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          }
+          if (res.subject_ids.length) {
+            $('#adoption_subjects').val(res.subject_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          }
+          $('#program').val(programName).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          $('#select_school').val(res.school_id).trigger('change.select2').on('select2:opening select2:selecting', e => e.preventDefault());
+          if($('#select_school').val() == null) {
+            $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
+          }
+          $('#segment_input').val(res.segment).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          $('input[name="wilayah"]').val(res.wilayah).prop('readonly', true);
         } else {
-          $('#program').val('').trigger('change');
-          $('#level').val('');
           $('#program').val('').trigger('change');
         }
       },
       error: function (jqXHR, textStatus, errorThrown) {
-        console.log('Error:', textStatus, errorThrown);
-        alert("Failed to get myplan");
+        console.error('Error:', textStatus, errorThrown);
+        Swal.fire({
+          title: "Failed!",
+          text: "Failed to get myplan",
+          icon: "error"
+        })
       }
     });
   }
@@ -469,12 +483,14 @@ ini_set('display_errors', 1);
 
       if (schoolId) {
         getPrograms(schoolId, formatGroupItems);
-        
-        getMyPlanRef();
-
       } else {
           alert('No school and ec selected');
       }
+    });
+
+    $('#select_ec').on('change', function() {
+      console.log('ec changed');
+      getMyPlanRef();
     });
 
     $('#program').select2({
@@ -537,7 +553,6 @@ ini_set('display_errors', 1);
         success: function (response) {
           let options = '<option value="" disabled selected>Select a school</option>';
           let schoolId = '<?= $school_name ?>';
-          getMyPlanRef(schoolId)
           response.map((data) => {
             options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`;
           });
@@ -588,6 +603,7 @@ ini_set('display_errors', 1);
       return data.text;
     }
 
+    getMyPlanRef();
   });
 
   // Add event listener to toggle groups when clicking on the group label
