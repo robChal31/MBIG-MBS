@@ -26,7 +26,7 @@
   $my_plan_id   = NULL;
   $program      = NULL;
   $school_name  = NULL;
-  $ec_id        = NULL;
+  $ec_id        = $id_user;
   $segment      = NULL;
   $level        = NULL;
   $wilayah      = NULL;
@@ -1308,7 +1308,7 @@
       const maxOk = r.omzet_max === null || totalOmzet <= r.omzet_max;
       return minOk && maxOk;
     });
-    console.log('matched', matched);
+
     if (!matched.length) return null;
 
     // 🔥 ambil yang omzet_min paling tinggi
@@ -1751,7 +1751,6 @@
           }
         }
 
-        console.log('listofSavedBooksWithoudIds: ', listofSavedBooksWithoudIds)
       }
 
     }

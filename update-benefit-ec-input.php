@@ -1643,7 +1643,6 @@
 
     });
 
-
     $(document).on('input', 'input#discount_program', function () {
 
       let discountProgram = parseFloat($(this).val()) || 0;

@@ -63,10 +63,13 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
+  $id_user  = $_SESSION['id_user'];
+  $username = $_SESSION['username'];
+
   $id_draft     = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : null;
   $email        = '';
   $ecname       = '';
-  $id_ec        = '';
+  $id_ec        = $id_user;
   $school_name  = '';
   $segment      = '';
   $level        = '';
