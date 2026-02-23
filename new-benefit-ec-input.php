@@ -4,6 +4,10 @@
   include 'db_con.php';
   require 'vendor/autoload.php';
   $config = require 'config.php';
+
+  error_reporting(E_ALL);
+  ini_set('display_errors', 1);
+
   $benefitSetting = [
       'max_price_percentage' => '',
       'max_discount_percentage' => '',

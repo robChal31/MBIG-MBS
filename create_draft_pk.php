@@ -60,6 +60,9 @@
 </style>
 
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
   $id_draft     = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : null;
   $email        = '';
   $ecname       = '';
