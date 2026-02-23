@@ -198,6 +198,12 @@ ini_set('display_errors', 1);
                   <?php } ?>
                 </div>
 
+                <!-- MY PLAN -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">My Plan Ref</label>
+                  <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2" style="width:100%;"></select>
+                </div>
+
                 <!-- NAMA SEKOLAH -->
                 <div class="col-md-6">
                   <label class="form-label small text-muted d-block">Nama Sekolah</label>
@@ -209,6 +215,12 @@ ini_set('display_errors', 1);
                   </div>
                 </div>
                 
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Program</label>
+                  <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
+                  <small class="text-muted">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
+                </div>
+
                 <!-- PK & PROGRAM -->
                 <div class="col-md-6">
                   <label class="form-label small text-muted d-block">Jenis PK</label>
@@ -217,18 +229,6 @@ ini_set('display_errors', 1);
                     <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
                     <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
                   </select>
-                </div>
-
-                <div class="col-md-6">
-                  <label class="form-label small text-muted d-block">Program</label>
-                  <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
-                  <small class="text-muted">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
-                </div>
-                
-                <!-- MY PLAN -->
-                <div class="col-md-6">
-                  <label class="form-label small text-muted d-block">My Plan Ref</label>
-                  <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2" style="width:100%;"></select>
                 </div>
 
                 <!-- SEGMENT -->
@@ -356,6 +356,51 @@ ini_set('display_errors', 1);
     $('#adoption_subjects').val(selectedSubjects).trigger('change');
   }
 
+  function formatGroupItems(data) {
+
+    if (data.element && data.element.tagName === 'OPTGROUP') {
+      return $(`<div class="select2-optgroup-label" style=" color: #333; padding: 5px; cursor: pointer;">
+                  <b>${data.text}</b>
+              </div>`);
+    }
+    return data.text;
+  }
+
+  function loadSchoolSelect() {
+    $.ajax({
+      url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>',
+      type: 'GET',
+      dataType: 'json',
+      beforeSend: function () {
+        $('#select_school_div').addClass('d-none');
+        $('#loading_school').removeClass('d-none');
+      },
+      success: function (response) {
+        let options = '<option value="" disabled selected>Select a school</option>';
+        let schoolId = '<?= $school_name ?>';
+        response.map((data) => {
+          options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`;
+        });
+
+        $('#select_school').html(options);
+        $('#select_school').select2({ width: '100%' });
+
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.log('Error school:', textStatus);
+        $('#select_school').html('Error: ' + textStatus);
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      },
+      complete: function () {
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      }
+    });
+  }
+
   function getMyPlanRef(schoolPlanId = null) {
     const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
 
@@ -370,17 +415,18 @@ ini_set('display_errors', 1);
             id_draft: idDraft
         },
         success: function(response) {
-          let options = '<option value="" disabled selected>Select a plan</option>';
+          console.log('response', response);  
+          let options = '<option value="" selected>Select a plan</option>';
           response.map((data, index) => {
-            let selected = index === 0 ? 'selected' : '';
-            if(selected == 'selected') {
-              getPlanData(data.value);
-            }
-            options += `<option value="${data.value}" ${selected}>${data.label}</option>`
+            // let selected = index === 0 ? 'selected' : '';
+            // if(selected == 'selected') {
+            //   getPlanData(data.value);
+            // }
+            // options += `<option value="${data.value}" ${selected}>${data.label}</option>`
+            options += `<option value="${data.value}">${data.label}</option>`
           }) 
 
           $('#myplan_id').html(options);
-          $('#myplan_id').select2().trigger('change');
         },
         error: function(jqXHR, textStatus, errorThrown) {
           console.log('Error:', textStatus, errorThrown);
@@ -389,15 +435,6 @@ ini_set('display_errors', 1);
       });
     }
   }
-
-  $('#myplan_id').on('change', function () {
-    const selectedId = $(this).val();
-    console.log('selectedId:', selectedId);
-    if (!selectedId) return;
-
-    getPlanData(selectedId);
-    
-  });
 
   function getPlanData(planId) {
 
@@ -415,11 +452,17 @@ ini_set('display_errors', 1);
           if (res.subject_ids.length) {
             $('#adoption_subjects').val(res.subject_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
           }
-          $('#program').val(programName).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+
           $('#select_school').val(res.school_id).trigger('change.select2').on('select2:opening select2:selecting', e => e.preventDefault());
           if($('#select_school').val() == null) {
             $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
           }
+          getPrograms(res.school_id, formatGroupItems).then(function() {
+            $('#program')
+              .val(programName)
+              .trigger('change')
+              .on('select2:opening select2:selecting', e => e.preventDefault());
+          });
           $('#segment_input').val(res.segment).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
           $('input[name="wilayah"]').val(res.wilayah).prop('readonly', true);
         } else {
@@ -438,7 +481,7 @@ ini_set('display_errors', 1);
   }
 
   function getPrograms(schoolId, formatGroupItems, selectedProgram = null) {
-    $.ajax({
+    return $.ajax({
       url: 'get-school-program-grouped.php',
       type: 'POST',
       dataType: 'json',
@@ -472,6 +515,15 @@ ini_set('display_errors', 1);
     });
   }
 
+  function clearMyplan() {
+    $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#program').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#segment_input').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#adoption_levels').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#adoption_subjects').val('').trigger('change').off('select2:opening select2:selecting');
+    $('input[name="wilayah"]').val('').prop('readonly', false);
+  }
+
   $(document).ready(function(){
 
     $('.select2').select2({
@@ -480,16 +532,12 @@ ini_set('display_errors', 1);
 
     $('#select_school').on('change', function() {
       var schoolId = $(this).val();
-
       if (schoolId) {
         getPrograms(schoolId, formatGroupItems);
-      } else {
-          alert('No school and ec selected');
       }
     });
 
     $('#select_ec').on('change', function() {
-      console.log('ec changed');
       getMyPlanRef();
     });
 
@@ -498,28 +546,6 @@ ini_set('display_errors', 1);
       templateResult: formatGroupItems,
       closeOnSelect: false,
     });
-
-    $("select[name='level']").on('change', function() {
-      let value = $(this).val();
-      if(value == 'other') {
-        $('#other_level').show();
-        $('input[name="level2"]').prop('required', true);
-      } else {
-        $('#other_level').hide();
-        $('input[name="level2"]').prop('required', false);
-      }
-    });
-
-    let level = '<?= $level ?>';
-    let levels = ['tk', 'sd', 'smp', 'sma', 'yayasan'];
-
-    if(level) {
-      if(levels.indexOf(level) === -1) {
-        $('#other_level').show();
-        $('input[name="level2"]').prop('required', true);
-        $('input[name="level2"]').val('<?= $level ?>');
-      }
-    }
 
     const draftSchoolId = '<?= $school_name ?>';
 
@@ -541,45 +567,9 @@ ini_set('display_errors', 1);
       loadSchoolSelect();
     }
 
-    function loadSchoolSelect() {
-      $.ajax({
-        url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>',
-        type: 'GET',
-        dataType: 'json',
-        beforeSend: function () {
-          $('#select_school_div').addClass('d-none');
-          $('#loading_school').removeClass('d-none');
-        },
-        success: function (response) {
-          let options = '<option value="" disabled selected>Select a school</option>';
-          let schoolId = '<?= $school_name ?>';
-          response.map((data) => {
-            options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`;
-          });
-
-          $('#select_school').html(options);
-          $('#select_school').select2({ width: '100%' });
-
-          $('#loading_school').addClass('d-none');
-          $('#select_school_div').removeClass('d-none');
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-          console.log('Error school:', textStatus);
-          $('#select_school').html('Error: ' + textStatus);
-          $('#loading_school').addClass('d-none');
-          $('#select_school_div').removeClass('d-none');
-        },
-        complete: function () {
-          $('#loading_school').addClass('d-none');
-          $('#select_school_div').removeClass('d-none');
-        }
-      });
-    }
-
     $("#program").change(function (e) {
       let selectedProgram = $(this).val();
       let id_draft = '<?= $id_draft ?>';
-
       $.ajax({
         url: './get_benefits_pk.php?id_draft=<?= $id_draft ?>&program='+selectedProgram, 
         type: 'GET', 
@@ -593,15 +583,14 @@ ini_set('display_errors', 1);
       });
     })
 
-    function formatGroupItems(data) {
+    $(document).on('change', '#myplan_id', function () {
+      const selectedId = $(this).val();
+      clearMyplan()
+      if (!selectedId) return;
 
-      if (data.element && data.element.tagName === 'OPTGROUP') {
-          return $(`<div class="select2-optgroup-label" style=" color: #333; padding: 5px; cursor: pointer;">
-                      <b>${data.text}</b>
-                  </div>`);
-      }
-      return data.text;
-    }
+      getPlanData(selectedId);
+      
+    });
 
     getMyPlanRef();
   });

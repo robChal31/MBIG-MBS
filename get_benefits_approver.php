@@ -120,7 +120,7 @@ $sec_has_approved = false;
               </td>
 
               <td>
-                <div style="max-width: 450px; white-space: pre-wrap;">
+                <div>
                   <?= $row['notes'] ?? '-' ?>
                 </div>
               </td>
@@ -189,7 +189,7 @@ if ($result_reject->num_rows > 0) { ?>
             <td class="fw-semibold"><?= $row['approver'] ?></td>
             <td class="text-muted"><?= $created_at ?></td>
             <td>
-              <div style="white-space: pre-wrap;">
+              <div>
                 <?= $row['note'] ?? '-' ?>
               </div>
             </td>
