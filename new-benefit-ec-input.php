@@ -98,7 +98,8 @@
   while ($row = $book_lists->fetch_assoc()) {
       $book_series[] = $row;
   }
-  
+  error_reporting(E_ALL);
+  ini_set('display_errors', 1);
 ?>
 
 <style>
