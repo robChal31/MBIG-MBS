@@ -1,13 +1,12 @@
 
-<?php include 'header.php'; ?>
+<?php error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);include 'header.php'; ?>
 <?php
   include 'db_con.php';
   require 'vendor/autoload.php';
   $config = require 'config.php';
-
-  error_reporting(E_ALL);
-  ini_set('display_errors', 1);
-
+  
   $benefitSetting = [
       'max_price_percentage' => '',
       'max_discount_percentage' => '',
@@ -98,8 +97,7 @@
   while ($row = $book_lists->fetch_assoc()) {
       $book_series[] = $row;
   }
-  error_reporting(E_ALL);
-  ini_set('display_errors', 1);
+  
 ?>
 
 <style>
