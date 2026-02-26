@@ -85,7 +85,7 @@
                     <b>Feedback</b> : $feedback
                 </p>";
 
-                // sendEmail($ec_email, $ec_name, 'Feedback Myplan Dari Admin', $message, $config);
+                sendEmail($ec_email, $ec_name, 'Feedback Myplan Dari Admin', $message, $config);
             }
 
         }else {

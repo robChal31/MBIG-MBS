@@ -322,8 +322,8 @@ Nama Peserta: </textarea>
 
         let redeemable = <?= $usages['redeemable'] ?>
 
+        console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}`);
         if(redeemable == 1 && group) {
-            console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}`);
             $.ajax({
                 url: `https://hadiryuk.id/api/EventBenefit?type=${group}`, 
                 method: 'GET',
@@ -417,7 +417,7 @@ Nama Peserta: </textarea>
             })
         }else if(redeemable == 1 && !group) {
             Swal.fire({
-                title: "No event found.",
+                title: "Benefit has no group.",
                 text: 'Uncategorized Benefit Group.  \n Please notify the developer.',
                 icon: "info"
             });

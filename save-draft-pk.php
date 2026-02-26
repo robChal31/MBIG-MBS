@@ -79,10 +79,11 @@
     $segment        = $_POST['segment'];
     $program        = $_POST['program'];
     $inputEC        = $_POST['inputEC'];
-    $wilayah        = $_POST['wilayah'];
+    $wilayah        = ISSET($_POST['wilayah']) ? $_POST['wilayah'] : null;
     $jenis_pk       = $_POST['jenis_pk'];
-    $level          = $_POST['level'] == 'other' ? $_POST['level2'] : $_POST['level'];
+    $level          = ISSET($_POST['level']) ? $_POST['level'] : '';
     $id_school      = $school_name;
+    $discount_program = isset($_POST['discount_program']) && $_POST['discount_program'] !== '' ? floatval(str_replace(',', '.', $_POST['discount_program'])) : "NULL";
     $program_adoption_levels   = $_POST['program_adoption_levels'] ?? [];
     $program_adoption_subjects = $_POST['program_adoption_subjects'] ?? [];
     $uc_program = strtoupper($program);
@@ -107,6 +108,21 @@
     $myplan_value = isset($myplan_id) && $myplan_id !== '' ? "'$myplan_id'" : "NULL";
 
     try {
+        mysqli_begin_transaction($conn);
+        $program_q = "SELECT * FROM `programs` WHERE `name` = '$program' or `code` = '$program' LIMIT 1";
+        $program_res = mysqli_query($conn, $program_q);
+        if (mysqli_num_rows($program_res) > 0) {
+            $program_data = mysqli_fetch_assoc($program_res);
+            $uc_program = $program_data['name'];
+        }
+        $uc_segment = '';
+        $segment_q = "SELECT * FROM `segments` WHERE id = $segment";
+        $segment_res = mysqli_query($conn, $segment_q);
+        if (mysqli_num_rows($segment_res) > 0) {
+            $segment_data = mysqli_fetch_assoc($segment_res);
+            $uc_segment = $segment_data['segment'];
+        }
+
         $url = "https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=$id_school";
 
         $curl = curl_init($url);
@@ -154,7 +170,7 @@
                         id_ec = '$inputEC',
                         school_name = '$id_school',
                         segment = '$segment',
-                        program = '$uc_program',
+                        program = '$program',
                         wilayah = '$wilayah',
                         myplan_id = $myplan_value,
                         level   = '$level',
@@ -164,12 +180,14 @@
                         updated_at = current_timestamp(),
                         status = '$draft_status',
                         alokasi = '0',
-                        jenis_pk = '$jenis_pk'
+                        jenis_pk = '$jenis_pk',
+                        discount = $discount_program
                     WHERE id_draft = $id_draft";
 
-            mysqli_query($conn, $sql);
 
-
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception("❌ Gagal insert draft: " . mysqli_error($conn));
+            }
 
             $update_sql = "UPDATE school_pic SET 
                                 name = '$pic_name',
@@ -180,12 +198,19 @@
 
             mysqli_query($conn, $update_sql);
         }else {
-            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `jenis_pk`, `myplan_id`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$uc_program', current_timestamp(), '$draft_status', '0', '$wilayah', '$level', '$jenis_pk', $myplan_value);";
-            mysqli_query($conn,$sql);
+            $sql = "INSERT INTO `draft_benefit` (`id_draft`, `id_user`,`id_ec`, `school_name`, `segment`,`program`, `date`, `status`, `alokasi`, `wilayah`, `level`, `jenis_pk`, `myplan_id`, `discount`) VALUES (NULL, '$id_user','$inputEC', '$id_school', '$segment','$program', current_timestamp(), '$draft_status', '0', '$wilayah', '$level', '$jenis_pk', $myplan_value, $discount_program);";
+
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception("❌ Gagal insert draft: " . mysqli_error($conn));
+            }
+
             $id_draft = mysqli_insert_id($conn);
 
             $pic_sql = "INSERT INTO `school_pic` (`id`, `id_draft`, `name`, `jabatan`, `no_tlp`, `email`) VALUES (NULL, '$id_draft', '$pic_name', '$jabatan', '$no_tlp', '$email_pic');";
-            mysqli_query($conn, $pic_sql);
+            
+            if (!mysqli_query($conn, $pic_sql)) {
+                throw new Exception("❌ Gagal insert school pic: " . mysqli_error($conn));
+            }
         }
 
         mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
@@ -193,7 +218,9 @@
 
         foreach($benefits as $key => $benefit) {
             $sql = "INSERT INTO `draft_benefit_list` (`id_benefit_list`, `id_draft`, `status`, `isDeleted`, `benefit_name`, `subbenefit`, `description`, `keterangan`, `qty`, `qty2`, `qty3`, `pelaksanaan`, `type`,`manualValue`,`calcValue`, `id_template`) VALUES (NULL, '$id_draft', '0', '0', '".$benefit_names[$key]."', '".$subbenefits[$key]."', '".$descriptions[$key]."', '', '".$qty1s[$key]."', '".$qty2s[$key]."', '".$qty3s[$key]."', '".$pelaksanaans[$key]."', '".$benefits[$key]."','0','0', '".$id_templates[$key]."');";
-            mysqli_query($conn,$sql);
+            if (!mysqli_query($conn, $sql)) {
+                throw new Exception("❌ Gagal insert benefit: " . mysqli_error($conn));
+            }
         }
 
         // ===============================
@@ -210,7 +237,7 @@
             $sql = "INSERT INTO program_adoption_levels (draft_id, level_id)
                     VALUES ('$id_draft', '$lvl')";
             if (!mysqli_query($conn, $sql)) {
-                throw new Exception(mysqli_error($conn));
+                throw new Exception("❌ Gagal insert program_adoption_levels: " . mysqli_error($conn));
             }
         }
 
@@ -222,7 +249,7 @@
             $sql = "INSERT INTO program_adoption_subjects (draft_id, subject_id)
                     VALUES ('$id_draft', '$subj')";
             if (!mysqli_query($conn, $sql)) {
-                throw new Exception(mysqli_error($conn));
+                throw new Exception("❌ Gagal insert program_adoption_subjects: " . mysqli_error($conn));
             }
         }
 
@@ -272,12 +299,14 @@
         $sheet->setCellValue('B6', ': '.$ec_name);
         $sheet->setCellValue('A7', 'Program');
         $sheet->setCellValue('B7', ': '. strtoupper($uc_program));
-        $sheet->setCellValue('A8', 'Segment');
-        $sheet->setCellValue('B8', ': '.ucfirst($segment));
-        $sheet->setCellValue('A9', 'Tanggal Dibuat');
-        $sheet->setCellValue('B9', ': '.date('d M Y'));
+        $sheet->setCellValue('A8', 'Diskon');
+        $sheet->setCellValue('B8', ': '. ($discount_program) . '%');
+        $sheet->setCellValue('A9', 'Segment');
+        $sheet->setCellValue('B9', ': '.ucfirst($uc_segment));
+        $sheet->setCellValue('A10', 'Tanggal Dibuat');
+        $sheet->setCellValue('B10', ': '.date('d M Y'));
 
-        $row = 11;
+        $row = 12;
         
         $sheet->setCellValue('A'.$row, 'No.');
         $sheet->setCellValue('B'.$row, 'Manfaat/fasilitas pengembangan sekolah');
@@ -374,7 +403,7 @@
     
             $cc = [];
     
-            // sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
     
             //for leader mail
             $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
@@ -406,10 +435,10 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>";
-            // sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
         }
         
-        
+        mysqli_commit($conn);
         $_SESSION['toast_status'] = 'Success';
         $_SESSION['toast_msg'] = 'Berhasil Menyimpan Draft Benefit';
         $location = 'Location: ./draft-pk.php'; 
@@ -417,6 +446,7 @@
         header($location);
         exit();
     } catch (\Throwable $th) {
+        mysqli_rollback($conn);
         $_SESSION['toast_status'] = 'Error';
         $_SESSION['toast_msg'] = 'Gagal Menyimpan Draft Benefit ' . $th->getMessage();
         $location = 'Location: ./draft-pk.php'; 

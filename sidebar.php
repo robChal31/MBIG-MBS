@@ -70,7 +70,7 @@ $last_path_with_query;
                 data-bs-toggle="collapse"
                 href="#collapsibleNav2"
                 aria-expanded="false">
-                    <i class="fas fa-database"></i>
+                    <i class="fas fa-chart-line"></i>
                     <span class="flex-grow-1">Report</span>
                     <i class="fas fa-chevron-down chevron-icon"></i>
                 </a>

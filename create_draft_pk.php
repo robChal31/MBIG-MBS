@@ -271,6 +271,14 @@ ini_set('display_errors', 1);
                     ?>
                   </select>
                 </div>
+
+                <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?>">
+                  <label class="form-label small text-muted">Discount Program (%)</label>
+                  <input id="discount_program" type="number" name="discount_program" class="form-control form-control-sm" max="100" placeholder="0 - 100">
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
+                    Diskon tidak boleh lebih dari 25%
+                  </small>
+                </div>
               </div>
 
               <!-- PIC SECTION -->
@@ -415,7 +423,6 @@ ini_set('display_errors', 1);
             id_draft: idDraft
         },
         success: function(response) {
-          console.log('response', response);  
           let options = '<option value="" selected>Select a plan</option>';
           response.map((data, index) => {
             // let selected = index === 0 ? 'selected' : '';
@@ -528,6 +535,17 @@ ini_set('display_errors', 1);
 
     $('.select2').select2({
       width: '100%'
+    });
+
+    $('#discount_program').on('input', function () {
+      let value = $(this).val();
+
+      let number = parseFloat(value);
+
+      // Batasi maksimal 25
+      if (!isNaN(number) && number > 25) {
+        $(this).val(25);
+      }
     });
 
     $('#select_school').on('change', function() {

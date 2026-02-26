@@ -195,7 +195,7 @@ try {
                         </div>";
             $fileUrl = [$file_pk, $file_benefit, $file_exc_benefit];
 
-            // sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
+            sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
 
             echo json_encode([
                 'status' => 'success',

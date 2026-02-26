@@ -281,13 +281,23 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>
-                        ";
+                        ". '<br><br>
+
+                            <strong>Notes dari Approver:</strong><br>
+                            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
+                                '.nl2br(htmlspecialchars($notes)).'
+                            </div>';
 
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
             }else if($leadid3 == $approver_id) {
                 //mail for ec
                 $subject = $year == 1 ? "Yeay, formulir $school_name sudah disetujui!" : "Yeay, formulir perubahan PK Tahun Ke-$year $school_name sudah disetujui!";
-                $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>";
+                $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>". '<br><br>
+
+                            <strong>Notes dari Approver:</strong><br>
+                            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
+                                '.nl2br(htmlspecialchars($notes)).'
+                            </div>';
                 
                 $cc = [];
                 if(ISSET($saemail)) {
@@ -337,7 +347,12 @@
                 $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil diverifikasi oleh Marketing Secretary.</p>
                             <p> Mohon untuk segera mengecek dan konfirmasi program tersebut.</p>
         
-                            <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
+                            <p>Sarangheyo, Kamsahamnida💖💖💖</p>" . '<br><br>
+
+                            <strong>Notes dari Approver:</strong><br>
+                            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
+                                '.nl2br(htmlspecialchars($notes)).'
+                            </div>';
         
         
                 sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
@@ -411,7 +426,12 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>
-                        ";
+                        " . '<br><br>
+
+                            <strong>Notes dari Approver:</strong><br>
+                            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
+                                '.nl2br(htmlspecialchars($notes)).'
+                            </div>';
 
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
             }else if($approver_id == 5) {
@@ -531,7 +551,12 @@
         
                             <p>Mohon untuk memperbarui data secara berkala di MBS selama perencanaan dan implementasi benefit berlangsung.<p>
         
-                            <p>Sarangheyo, Kamsahamnida💖💖💖</p>";
+                            <p>Sarangheyo, Kamsahamnida💖💖💖</p>" . '<br><br>
+
+                            <strong>Notes dari Approver:</strong><br>
+                            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
+                                '.nl2br(htmlspecialchars($notes)).'
+                            </div>';
         
         
                 sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc);
