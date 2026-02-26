@@ -2,7 +2,7 @@
 
 <?php
 
-  $current_row = 1;
+  $current_row = 0;
   $tpl_data = [];
   $use_template_as_default = false;
 
@@ -43,7 +43,6 @@
                       WHERE a.id_draft = '$id_draft'";
       $result       = mysqli_query($conn, $sql);
       $current_row = mysqli_num_rows($result);
-
 
       if ($current_row < 1) {
         $use_template_as_default = true;
@@ -89,6 +88,13 @@
     header('Location: ./draft-benefit.php');
     exit();
   }
+
+  $show_year_2_and_3 = false;
+  $programs_data_q = "SELECT * FROM programs WHERE name = '$program' or code = '$program' LIMIT 1";
+  $result_programs_data = mysqli_query($conn, $programs_data_q);
+  $data_programs = mysqli_fetch_assoc($result_programs_data);
+  
+  $show_year_2_and_3 = $data_programs['show_year_2_and_3'] ?? false;
 
   $sql = "SELECT id_template_benefit FROM draft_template_benefit WHERE benefit_name LIKE '%dana pengembangan%'";
   $check_result = mysqli_query($conn, $sql);
@@ -365,8 +371,8 @@
                         <tr>
                             <td>Total Alokasi Benefit</td>
                             <td>Rp <?= number_format($sumalok, '0', ',', '.') ?></td>
-                            <td><?=  ($program == 'prestasi' || $ref_id) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
-                            <td><?=  ($program == 'prestasi' || $ref_id) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
+                            <td><?= ($program == 'prestasi' || $ref_id || $show_year_2_and_3 == 1) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
+                            <td><?= ($program == 'prestasi' || $ref_id || $show_year_2_and_3 == 1) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
                         </tr>
                         <!-- <tr>
                             <td>Total Benefit</td>
@@ -497,7 +503,8 @@
   const tpl_data = <?= json_encode($tpl_data) ?>;
 
   var maxRows = 100; 
-  var x = 0;
+  let x = <?=  $current_row ?>;
+  x = x ? parseInt(x) : 0;
   let use_template_as_default = '<?= $use_template_as_default ?? false; ?>';
   let refId = JSON.parse('<?php echo json_encode($ref_id); ?>');
 
@@ -701,7 +708,6 @@
           templateResult: formatGroupItems,
           closeOnSelect: false,
         });
-
         $(document).on('mouseenter', '.select2-results__option', function () {
           const title = $(this).attr('title');
           if (title) {
@@ -831,7 +837,6 @@
     $('#input_form').on('click', '.btn_remove', function(){
       var rowId = $(this).data('row');
       $('#' + rowId).remove();
-      x--;
       accumulateValues();
 
     });
@@ -888,7 +893,6 @@
       initEditCalculation();
     }, 0);
   });
-
 
   $(document).on('mousedown', 'select[name="benefit_id[]"]', function(event) {
     // Lakukan sesuatu saat select ditekan mouse

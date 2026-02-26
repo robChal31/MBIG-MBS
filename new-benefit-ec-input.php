@@ -1668,7 +1668,7 @@
 
             const bookList = seriesClone.querySelector('.book-list');
             let additionalPriceToAdd = 0;
-
+            console.log('books length: ', books);
             books.forEach(book => {
               const savedBook = savedBooks.filter(el => el.book_id === book.id);
               if(savedBook.length <= 0) return;

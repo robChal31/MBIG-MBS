@@ -8,8 +8,11 @@
 
     error_reporting(E_ALL);
 
+    $response = array();
     if (!isset($_SESSION['username'])){ 
-        header("Location: ./index.php");
+        $response['status'] = 'error';
+        $response['message'] = 'User not authenticated';
+        echo json_encode($response);
         exit();
     }
 
@@ -28,7 +31,7 @@
     $discount   = $_POST['diskon'] ?? NULL;
     $id_ticket  = $_POST['id_ticket'] ?? NULL;
 
-    $response = array();
+
 
     try {
         // Begin the transaction

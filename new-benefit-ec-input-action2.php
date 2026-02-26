@@ -140,7 +140,6 @@
         $id_ec_r = $ec_row['id_user'] ?? $_SESSION['id_user'];
         $ec_email = $ec_row['username'] ?? $_SESSION['username'];
     
-
         if ($segment !== '' && is_numeric($segment)) {
             $segment_id = (int) $segment;
 
@@ -153,6 +152,7 @@
             }
         }
 
+        $show_year_2_and_3 = false;
         $q_program = "SELECT * FROM programs WHERE code = '$program' OR name = '$program' LIMIT 1";
         $r_program = mysqli_query($conn, $q_program);
         $has_omzet_scheme_discount = false;
@@ -160,6 +160,7 @@
             $selected_program = mysqli_fetch_assoc($r_program);
             $has_omzet_scheme_discount = $selected_program['has_omzet_scheme_discount'] == 1;
             $program_name = $selected_program['name'];
+            $show_year_2_and_3 = $selected_program['show_year_2_and_3'] ?? false;
         }
 
         //create excel
@@ -308,9 +309,9 @@
             $sheet->setCellValue('J'.$row, $sumalok);
             $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
         }else {
-                $sheet->setCellValue('G'.$row, 'Total alokasi benefit per tahun');
-                $sheet->setCellValue('H'.$row, $sumalok);
-                $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->setCellValue('G'.$row, 'Total alokasi benefit per tahun');
+            $sheet->setCellValue('H'.$row, $sumalok);
+            $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0');
         }
        
         $row += 3;
@@ -321,7 +322,7 @@
         $sheet->setCellValue('H'.$row, 'Satuan');
         $sheet->setCellValue('I'.$row, 'Usulan Total (durasi/guru/ siswa)');
         $sheet->setCellValue('J'.$row, 'Total Tahun 1');
-        if($program == 'prestasi'){
+        if($program == 'prestasi' || $show_year_2_and_3 == 1){
             $sheet->setCellValue('K'.$row, 'Total Tahun 2');
             $sheet->setCellValue('L'.$row, 'Total Tahun 3');
         }
@@ -358,7 +359,7 @@
                 $sheet->setCellValue('G'.$row, $valueMoney);
                 $sheet->setCellValue('J'.$row, $data['qty'] * $valueMoney);
 
-                if($program == 'prestasi'){
+                if($program == 'prestasi' || $show_year_2_and_3 == 1){
                     $sheet->setCellValue('K'.$row, $data['qty2'] * $valueMoney);
                     $sheet->setCellValue('L'.$row, $data['qty3'] * $valueMoney);
                 }
@@ -366,7 +367,7 @@
                 $sheet->setCellValue('G'.$row, $data['manualValue']);
                 $sheet->setCellValue('J'.$row, $data['manualValue'] * $data['qty']);
 
-                if($program == 'prestasi'){
+                if($program == 'prestasi' || $show_year_2_and_3 == 1){
                     $sheet->setCellValue('K'.$row, $data['manualValue'] * $data['qty2']);
                     $sheet->setCellValue('L'.$row, $data['manualValue'] * $data['qty3']);
                 }
@@ -374,7 +375,7 @@
 
             $sheet->setCellValue('H'.$row, $data['pelaksanaan']);
 
-            if(in_array($program, ['prestasi','cbls3','bsp'])){
+            if(in_array($program, ['prestasi','cbls3','bsp']) || $show_year_2_and_3 == 1){
                 $sheet->setCellValue('I'.$row, "Tahun 1 : {$data['qty']} | Tahun 2 : {$data['qty2']} | Tahun 3 : {$data['qty3']}");
             }else{
                 $sheet->setCellValue('I'.$row, $data['qty']);
@@ -383,6 +384,8 @@
             $sheet->getStyle('G'.$row)->getNumberFormat()->setFormatCode('#,##0');
             $sheet->getStyle('I'.$row)->getNumberFormat()->setFormatCode('#,##0');
             $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
+            $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
             $j++;
             $row++;
         }
@@ -391,8 +394,10 @@
         $sheet->mergeCells('A'.$row.':I'.$row);
         $sheet->setCellValue('J'.$row, $total_benefit1);
         $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
 
-        if($program == 'prestasi'){
+        if($program == 'prestasi' || $show_year_2_and_3 == 1){
             $sheet->setCellValue('K'.$row, $total_benefit2);
             $sheet->setCellValue('L'.$row, $total_benefit3);
         }
@@ -401,7 +406,9 @@
         $sheet->setCellValue('I'.$row,'Total Alokasi Benefit');
         $sheet->setCellValue('J'.$row, $sumalok);
         $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-        if($program == 'prestasi'){
+        $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        if($program == 'prestasi' || $show_year_2_and_3 == 1){
             $sheet->setCellValue('K'.$row, $sumalok);
             $sheet->setCellValue('L'.$row, $sumalok);
         }
@@ -410,7 +417,9 @@
         $sheet->setCellValue('I'.$row, 'Total Benefit');
         $sheet->setCellValue('J'.$row, $total_benefit1);
         $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-        if($program == 'prestasi'){
+        $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        if($program == 'prestasi' || $show_year_2_and_3 == 1){
             $sheet->setCellValue('K'.$row, $total_benefit2);
             $sheet->setCellValue('L'.$row, $total_benefit3);
         }
@@ -419,7 +428,9 @@
         $sheet->setCellValue('I'.$row,'Selisih Margin');
         $sheet->setCellValue('J'.$row, ($sumalok - $total_benefit1));
         $sheet->getStyle('J'.$row)->getNumberFormat()->setFormatCode('#,##0');
-        if($program == 'prestasi'){
+        $sheet->getStyle('K'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        $sheet->getStyle('L'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        if($program == 'prestasi' || $show_year_2_and_3 == 1){
             $sheet->setCellValue('K'.$row, ($sumalok - $total_benefit2));
             $sheet->setCellValue('L'.$row, ($sumalok - $total_benefit3));
         }
@@ -501,7 +512,7 @@
             
             //get Leader ID;
             $leaderId   = null;
-            $sql        = "Select * from user where id_user='$id_ec_r';";
+            $sql        = "SELECT * from user where id_user='$id_ec_r';";
             $ress       = mysqli_query($conn,$sql);
             $leaderId1  = null;
             $leaderId2  = null;
@@ -511,7 +522,7 @@
                 $leaderId1  = $datt['leadid'];
                 $leaderId2  = $datt['leadid2'];
                 $leaderId3  = $datt['leadid3'];
-                $leaderId   = $datt['leadid'] ? $datt['leadid'] : ($datt['leadid2'] ? $datt['leadid2'] : $datt['leadid3']);
+                $leaderId   = $datt['leadid'] ? $datt['leadid'] : ($datt['leadid2'] ? $datt['leadid2'] : 70);
                 $sql        = "SELECT username, generalname from user where id_user = '$leaderId';";
                 $ress       = mysqli_query($conn,$sql);
                 while ($datt = mysqli_fetch_assoc($ress)){
@@ -519,6 +530,18 @@
                     $leaderEmail    = $datt['username'];
                 }
             }
+
+            $cc = [];
+                            
+            $cc[] = [
+                'email' => "kelly@mentarigroups.com",
+                'name' => "Kelly"
+            ];
+
+            $cc[] = [
+                'email' => "yully.mentarigroups@gmail.com",
+                'name' => "Yully"
+            ];
 
             if(is_null($leaderId)){
                 $leaderId = 1;
@@ -565,7 +588,7 @@
                             </div>
                         ";
 
-            if($leaderId == $leaderId3) {
+            if($leaderId == $leaderId3 || $leaderId == 70) {
                 $message = "
                             <style>
                                 * {
@@ -613,6 +636,12 @@
                 
                 // $mail->addAddress('bany@mentarigroups.com', $leaderName);
                 $mail->addAddress($leaderEmail, $leaderName);
+                if ($leaderId == 70) {
+                    foreach ($cc as $c) {
+                        $mail->addCC($c['email'], $c['name']);
+                    }
+                }
+
                 $mail->addAttachment($excelFile,$fileName);
                 //Content
                 $mail->isHTML(true);
@@ -624,7 +653,6 @@
             } catch (Exception $e) {
                 echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
             }
-        
         
             $mail = new PHPMailer(true);
             try {
