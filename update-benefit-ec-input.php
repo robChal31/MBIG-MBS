@@ -302,7 +302,7 @@
                 </div>
               </div>
 
-              <div class="card-footer bg-white">
+              <!-- <div class="card-footer bg-white">
                 <div class="d-flex justify-content-end mt-4" style="cursor: pointer;">
                   <button type="button" class="btn btn-primary m-2 fw-bold" id="proceed" disabled>
                     <span class="btn-icon">
@@ -311,7 +311,7 @@
                     Proceed
                   </button>
                 </div>
-              </div>
+              </div> -->
             </div>
 
           </div>
@@ -1606,7 +1606,7 @@
     $(document).on('change', 'select#discount_program', function () {
 
       let rawValue = $(this).val();
-      let discountProgram = parseIndoNumber(rawValue || '10');
+      let discountProgram = parseIndoNumber(rawValue || '');
       if (programOmzetSettings && programOmzetSettings.enabled) {
 
         $('input[name="diskon[]"]').val(discountProgram);

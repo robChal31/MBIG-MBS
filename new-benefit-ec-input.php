@@ -349,7 +349,7 @@
 
                   <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?> d-none" id="fieldCashback">
                     <label class="form-label small text-muted">Cashback(Dana Pengembangan) (%)</label>
-                    <input type="text" value="<?= $cashback ?>" name="cashback" placeholder="0 - 100" id="modalCashback" class="form-control form-control-sm only_decimal">
+                    <input type="text" value="<?= $cashback ?>" name="cashback" placeholder="0 - 100" id="cashbackInp" class="form-control form-control-sm only_decimal">
                   </div>
 
                 </div>
@@ -673,7 +673,7 @@
     const bookType          = $('#modalBookType').val();
     const jumlah            = $('#modalJumlah').val();
     const harga             = $('#modalHarga').val();
-    const cashback          = $('#modalCashback').val();
+    const cashback          = $('#cashbackInp').val();
     const diskon            = $('#modalDiskon').val();
     const additionalPrice   = $('#additional_price').val();
     const discountProgram   = $('#discount_program').val();
@@ -901,14 +901,17 @@
     var jumlah = removeNonDigits(row.find('input[name="jumlahsiswa[]"]').val()) || 0;
     var usulan = removeNonDigits(row.find('input[name="usulanharga[]"]').val()) || 0;
     var normal = removeNonDigits(row.find('input[name="harganormal[]"]').val()) || 0;
-    var diskon = parseIndoNumber(row.find('input[name="diskon[]"]').val()) || 0;
+    let diskon = row.find('input[name="diskon[]"]').val() || 0;
+
+    diskon = diskon.toString().replace(',', '.');
+
     if(programOmzetSettings && programOmzetSettings.enabled) {
       
       const totalOmzet = calculateTotalOmzet();
       const range = resolveOmzetRange(totalOmzet);
       const maxDiscountAlocatedForbenefit = range?.max_discount ?? 30;
 
-      const cashback = Number($('#modalCashback').val()) || 0;
+      const cashback = Number($('#cashbackInp').val()) || 0;
 
       const totalPrice = jumlah * normal;
       const totalPriceAfterDiscount = totalPrice - (diskon / 100) * totalPrice;
@@ -1059,7 +1062,7 @@
   }
 
   function fetchProgramOmzet(programCode) {
-    $.ajax({
+    return $.ajax({
       url: './get-program-omzet.php',
       method: 'GET',
       data: { program_code: programCode },
@@ -1070,9 +1073,8 @@
           applyOmzetMode(false);
           return;
         }
-
+ 
         programOmzetSettings = res.data;
-        
         applyOmzetMode(!!programOmzetSettings.enabled);
         if (programOmzetSettings.enabled) {
           applyDiscountProgramByOmzet();
@@ -1084,6 +1086,10 @@
           .prop('disabled', false);
 
         if (programOmzetSettings.enabled) {
+          if(idDraft && !isEditDoneInit){
+            isEditDoneInit = true;
+            return ;
+          }
           Swal.fire({
             title: "Info",
             text: "Program yang kamu pilih menggunakan skema cashback berdasarkan omzet.",
@@ -1108,12 +1114,12 @@
       $('#modalHarga').prop('disabled', true);
 
       $('#fieldCashback').removeClass('d-none');
-      $('#modalCashback').prop('disabled', false);
+      $('#cashbackInp').prop('disabled', false);
 
       $('#modalDiskon').prop('readonly', true);
     } else {
       $('#fieldCashback').addClass('d-none');
-      $('#modalCashback').prop('disabled', true);
+      $('#cashbackInp').prop('disabled', true);
 
       $('#fieldHarga').removeClass('d-none');
       $('#modalHarga').prop('disabled', false);
@@ -1152,111 +1158,115 @@
   }
 
   function applyDiscountProgramByOmzet() {
-    if (!programOmzetSettings || !programOmzetSettings.enabled) return;
+    lastApplyPromise = new Promise(resolve => {
+      if (!programOmzetSettings || !programOmzetSettings.enabled) return;
 
-    const totalOmzet = calculateTotalOmzet();
-    const range = resolveOmzetRange(totalOmzet);
+      const totalOmzet = calculateTotalOmzet();
+      const range = resolveOmzetRange(totalOmzet);
 
+      const $discount = $('#discount_program');
+      const $wrapper  = $discount.closest('div');
+      const $note     = $('#discount_program_note');
 
-    const $discount = $('#discount_program');
-    const $wrapper  = $discount.closest('div');
-    const $note     = $('#discount_program_note');
+      // ===============================
+      // RULE 1 & 2 — RANGE NULL
+      // ===============================
+      if (!range || !range.discounts || !range.discounts.length) {
+        if ($discount.is('select')) {
 
-    // ===============================
-    // RULE 1 & 2 — RANGE NULL
-    // ===============================
-    if (!range || !range.discounts || !range.discounts.length) {
+          // 🔥 TAMBAHAN WAJIB (INI INTINYA)
+          if ($discount.hasClass('select2-hidden-accessible')) {
+            $discount.select2('destroy');
+            $discount.next('.select2-container').remove();
+          }
+
+          // 🔥 BARU BOLEH GANTI KE INPUT
+          $discount.replaceWith(`
+            <input
+              id="discount_program"
+              type="number"
+              name="discount_program"
+              class="form-control form-control-sm"
+              max="100"
+              placeholder="0 - 100"
+              readonly
+              value=""
+            />
+          `);
+
+        } else {
+          $('#discount_program')
+            .val('')
+            .prop('readonly', true);
+        }
+
+        $note
+          .text('Omzet belum masuk ke range diskon program')
+          .removeClass('d-none');
+
+        // sync ke semua row
+        $('input[name="diskon[]"]').val(0);
+        accumulateAlokasi();
+
+        return;
+      }
+
+      // ===============================
+      // RULE 3 — RANGE ADA
+      // ===============================
+      const discounts = range.discounts;
+      const select = $(`
+        <select
+          id="discount_program"
+          name="discount_program"
+          class="form-control form-control-sm select2" required
+        >
+        <option value="" selected disabled>Select discount</option>
+        </select>
+      `);
+
+      discounts.forEach(d => {
+        let val = d.toString().replace('.', ',');
+        select.append(`<option value="${val}">${val}%</option>`);
+      });
+
+      // ganti input → select
+      // 🔥 kalau udah select2, stop (biar ga dobel)
       if ($discount.is('select')) {
-
-        // 🔥 TAMBAHAN WAJIB (INI INTINYA)
         if ($discount.hasClass('select2-hidden-accessible')) {
           $discount.select2('destroy');
           $discount.next('.select2-container').remove();
         }
-
-        // 🔥 BARU BOLEH GANTI KE INPUT
-        $discount.replaceWith(`
-          <input
-            id="discount_program"
-            type="number"
-            name="discount_program"
-            class="form-control form-control-sm"
-            max="100"
-            placeholder="0 - 100"
-            readonly
-            value=""
-          />
-        `);
-
-      } else {
-        $('#discount_program')
-          .val('')
-          .prop('readonly', true);
       }
 
+      $discount.replaceWith(select);
+
+      select.select2({
+        width: '100%'
+      });
+
       $note
-        .text('Omzet belum masuk ke range diskon program')
+        .text('Diskon ditentukan berdasarkan range omzet program')
         .removeClass('d-none');
 
       // sync ke semua row
-      $('input[name="diskon[]"]').val(0);
-      accumulateAlokasi();
-
-      return;
-    }
-
-    // ===============================
-    // RULE 3 — RANGE ADA
-    // ===============================
-    const discounts = range.discounts;
-    const select = $(`
-      <select
-        id="discount_program"
-        name="discount_program"
-        class="form-control form-control-sm select2" required
-      >
-      <option value="" selected disabled>Select discount</option>
-      </select>
-    `);
-
-    discounts.forEach(d => {
-      let val = d.toString().replace('.', ',');
-      select.append(`<option value="${val}">${val}%</option>`);
-    });
-
-    // ganti input → select
-    // 🔥 kalau udah select2, stop (biar ga dobel)
-    if ($discount.is('select')) {
-      if ($discount.hasClass('select2-hidden-accessible')) {
-        $discount.select2('destroy');
-        $discount.next('.select2-container').remove();
-      }
-    }
-
-    $discount.replaceWith(select);
-
-    select.select2({
-      width: '100%'
-    });
-
-    $note
-      .text('Diskon ditentukan berdasarkan range omzet program')
-      .removeClass('d-none');
-
-    // sync ke semua row
-    select.on('change', function () {
-      const val = this.value;
-      $('input[name="diskon[]"]').val(val);
-      $('.book-row').each(function () {
-        updateDisabledField(
-          $(this).find('[name="jumlahsiswa[]"]')[0]
-        );
+      select.on('change', function () {
+        const val = this.value;
+        $('input[name="diskon[]"]').val(val);
+        $('.book-row').each(function () {
+          updateDisabledField(
+            $(this).find('[name="jumlahsiswa[]"]')[0]
+          );
+        });
       });
-    });
 
-    select.select2()
-    // trigger awal
-    select.trigger('change');
+      select.select2()
+      // trigger awal
+      select.trigger('change');
+
+      resolve();
+    });
+    return lastApplyPromise;
   }
 
   function restoreDiscountProgramInput() {
@@ -1354,12 +1364,91 @@
     getMyPlanRef();
   }
 
+  function getBooks(seriesId) {
+    return new Promise((resolve, reject) => {
+      $.getJSON('get_books.php', { series_id: seriesId })
+        .done(resolve)
+        .fail(reject);
+    });
+  }
+
+  async function loadBooks() {
+    const totalSeries = Object.keys(booksBySeries).length;
+
+    for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
+
+      const books = await getBooks(seriesId);
+
+      if(books.length === 0) {
+        Swal.fire({
+          title: 'Daftar buku kosong, mohon infokan ke tim developer',
+          icon: 'warning'
+        })
+      }else {
+        const seriesTpl   = document.getElementById('seriesCardTemplate');
+        const seriesClone = seriesTpl.content.cloneNode(true);
+        const seriesCard  = seriesClone.querySelector('.series-card');
+        seriesCard.dataset.seriesId = seriesId;
+        seriesClone.querySelector('.series-title').textContent = savedBooks[0].series_name ?? 'Unknown Series';
+
+        const bookList = seriesClone.querySelector('.book-list');
+        let additionalPriceToAdd = 0;
+        books.forEach(book => {
+          const savedBook = savedBooks.filter(el => el.book_id === book.id);
+          if(savedBook.length <= 0) return;
+          let selectedBook = savedBook[0];
+          const bookTpl   = document.getElementById('bookRowTemplate');
+          const bookClone = bookTpl.content.cloneNode(true);
+
+          bookClone.querySelector('.book').innerHTML = `<option value="${book.name}">${book.name}</option>`;
+          $(bookClone.querySelector('.book')).select2({
+            width: '100%',
+            placeholder: 'Select book',
+            dropdownParent: seriesCard
+          })
+          
+          bookClone.querySelector('.level').innerHTML = `<option value="${book.grade}">${book.grade}</option>`;
+
+          bookClone.querySelector('.booktype').innerHTML = `<option value="${book.type}">${book.type}</option>`;
+
+          bookClone.querySelector('[name="book_ids[]"]').value = book.id;
+          bookClone.querySelector('[name="jumlahsiswa[]"]').value = selectedBook.qty;
+          bookClone.querySelector('[name="usulanharga[]"]').value = formatNumber(selectedBook.usulan_harga);
+          bookClone.querySelector('[name="diskon[]"]').value = selectedBook.discount;
+
+          let additionalPrice = parseFloat(selectedBook.normalprice) - parseFloat(selectedBook.price);
+          let bookPrice = parseFloat(selectedBook.price) + additionalPrice;
+          const hargaNormalInput = bookClone.querySelector('[name="harganormal[]"]');
+          hargaNormalInput.dataset.bookPrice = book.price;
+          hargaNormalInput.value = formatNumber(bookPrice);
+
+          bookList.appendChild(bookClone);
+
+          additionalPriceToAdd = additionalPrice;
+
+          selectedDiscount = selectedBook.discount ?? '';
+        });
+
+        $('#additional_price').val(formatNumber(additionalPriceToAdd))
+
+        $('#draftBenefitModal').modal('hide');
+        $('#emptyState').fadeOut(200);
+
+        document.getElementById('titleList').appendChild(seriesClone);
+
+        savedBookCounter++;
+      }
+    }
+  }
+
 </script>
 <script>
+  let lastApplyPromise = Promise.resolve();
+
   let schoolReady     = false;
   let isRecalculatingOmzet = false;
   let lastAppliedRangeId = null;
-  let idDraft         = '<?= $id_draft ?? 'null' ?>';
+  let idDraft         = '<?= $id_draft ?? '' ?>';
   let myplanId        = '<?= $my_plan_id ?? 'null' ?>';
   let ecDraftOwnerID  = '<?= $ec_id ?? 'null' ?>';
   let schoolId        = '<?= $school_name ?? 'null' ?>';
@@ -1369,6 +1458,10 @@
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
   let programOmzetSettings = null;
+  let selectedDiscount = '';
+  let savedBookCounter = 0;
+
+  let isEditDoneInit = idDraft ? false : true;
 
   if (selectedLevels.length) {
     $('#adoption_levels').val(selectedLevels).trigger('change');
@@ -1394,7 +1487,7 @@
     $icon.toggleClass('bi-chevron-up bi-chevron-down');
   });
 
-  $(document).ready(function(){
+  $(document).ready(async function(){
     $('.select2').select2();
 
     $('.select2[multiple]').select2({
@@ -1487,7 +1580,25 @@
       }
     });
 
-    $('#modalCashback').on('input', function () {
+    $('#cashbackInp').on('input', function () {
+      const totalOmzet = calculateTotalOmzet();
+      const range = resolveOmzetRange(totalOmzet);
+
+      const maxDiscount = range ? range.max_discount : 30;
+      const cashback = $(this).val() ?? 0;
+      let discountProgram = $('#discount_program').val() ?? 0;
+      discountProgram = discountProgram.toString().replace(',', '.');
+      const totalDiscount = parseFloat(discountProgram) + parseInt(!cashback || cashback === '' ? 0 : cashback);
+
+      if (totalDiscount > maxDiscount) {
+        $(this).val(0);
+        Swal.fire({
+          title: 'Warning',
+          text: 'Total cashback tidak boleh melebihi ' + maxDiscount + '%',
+          icon: 'warning'
+        });
+      }
+
       $('.book-row').each(function () {
         updateDisabledField(
           $(this).find('[name="jumlahsiswa[]"]')[0]
@@ -1495,7 +1606,7 @@
       });
     });
 
-    $('#program').on('change', function () {
+    $('#program').on('change', async function () {
       const programCode = $(this).val();
       const hasProgram = !!programCode;
 
@@ -1519,7 +1630,27 @@
           $('#emptyState').fadeOut(200);
       }
 
-      fetchProgramOmzet(programCode);
+      await fetchProgramOmzet(programCode);
+
+      if (selectedDiscount) {
+        let temp = parseFloat(
+          selectedDiscount.toString().replace(',', '.')
+        ) || 0;
+
+        selectedDiscount = null;
+
+        $('input[name="diskon[]"]').val(temp);
+
+        const valFormatted = temp.toString().replace('.', ',');
+
+        const $discount = $('#discount_program');
+
+        if ($discount.is('select')) {
+          $discount.val(valFormatted).trigger('change');
+        } else {
+          $discount.val(valFormatted);
+        }
+      }
     });
 
     $('#myplan_id').on('change', function () {
@@ -1649,116 +1780,42 @@
     
     initDraftData(ecDraftOwnerID, schoolId, programCode)
 
-    for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
-
-      if(seriesId) {
-        $.getJSON('get_books.php', { series_id: seriesId}, function (books) {
-
-          if(books.length === 0) {
-            Swal.fire({
-              title: 'Daftar buku kosong, mohon infokan ke tim developer',
-              icon: 'warning'
-            })
-          }else {
-            const seriesTpl   = document.getElementById('seriesCardTemplate');
-            const seriesClone = seriesTpl.content.cloneNode(true);
-            const seriesCard  = seriesClone.querySelector('.series-card');
-            seriesCard.dataset.seriesId = seriesId;
-            seriesClone.querySelector('.series-title').textContent = savedBooks[0].series_name ?? 'Unknown Series';
-
-            const bookList = seriesClone.querySelector('.book-list');
-            let additionalPriceToAdd = 0;
-            console.log('books length: ', books);
-            books.forEach(book => {
-              const savedBook = savedBooks.filter(el => el.book_id === book.id);
-              if(savedBook.length <= 0) return;
-              let selectedBook = savedBook[0];
-              const bookTpl   = document.getElementById('bookRowTemplate');
-              const bookClone = bookTpl.content.cloneNode(true);
-
-              bookClone.querySelector('.book').innerHTML = `<option value="${book.name}">${book.name}</option>`;
-              $(bookClone.querySelector('.book')).select2({
-                width: '100%',
-                placeholder: 'Select book',
-                dropdownParent: seriesCard
-              })
-              
-              bookClone.querySelector('.level').innerHTML = `<option value="${book.grade}">${book.grade}</option>`;
-
-              bookClone.querySelector('.booktype').innerHTML = `<option value="${book.type}">${book.type}</option>`;
-
-              bookClone.querySelector('[name="book_ids[]"]').value = book.id;
-              bookClone.querySelector('[name="jumlahsiswa[]"]').value = selectedBook.qty;
-              bookClone.querySelector('[name="usulanharga[]"]').value = formatNumber(selectedBook.usulan_harga);
-              bookClone.querySelector('[name="diskon[]"]').value = selectedBook.discount;
-
-              let additionalPrice = parseFloat(selectedBook.normalprice) - parseFloat(selectedBook.price);
-              let bookPrice = parseFloat(selectedBook.price) + additionalPrice;
-              const hargaNormalInput = bookClone.querySelector('[name="harganormal[]"]');
-              hargaNormalInput.dataset.bookPrice = book.price;
-              hargaNormalInput.value = formatNumber(bookPrice);
-
-              bookList.appendChild(bookClone);
-
-              additionalPriceToAdd = additionalPrice;
-            });
-
-            $('#additional_price').val(formatNumber(additionalPriceToAdd))
-
-            $('#draftBenefitModal').modal('hide');
-            $('#emptyState').fadeOut(200);
-
-            document.getElementById('titleList').appendChild(seriesClone);
-
-          }
-
-        });
-      }else {
-        // masih dipertimbangkan
-        let listofSavedBooksWithoudIds = {};
-
-        for (const value of Object.values(savedBooks)) {
-          let bookTitle = value.book_title.split('|').map(el => el.trim());
-          const rawTitle = bookTitle[0] ?? '';
-          const rawLevel = bookTitle[1] ?? '';
-          const rawType  = bookTitle[2] ?? '';
-
-          const tempBookTitle = rawTitle.trim();
-          const tempBookLevel = rawLevel.includes(' ')
-            ? rawLevel.split(' ').pop()
-            : rawLevel.trim();
-
-          const tempBookType = rawType.trim();
-
-          // safety guard
-          if (!tempBookTitle) continue;
-
-          if (!listofSavedBooksWithoudIds[tempBookTitle]) {
-            listofSavedBooksWithoudIds[tempBookTitle] = {
-              level: [],
-              type: []
-            };
-          }
-
-          // level (avoid duplicate)
-          if (!listofSavedBooksWithoudIds[tempBookTitle].level.includes(tempBookLevel)) {
-            listofSavedBooksWithoudIds[tempBookTitle].level.push(tempBookLevel);
-          }
-
-          // type (avoid duplicate)
-          if (!listofSavedBooksWithoudIds[tempBookTitle].type.includes(tempBookType)) {
-            listofSavedBooksWithoudIds[tempBookTitle].type.push(tempBookType);
-          }
-        }
-
-      }
-
-    }
+    await loadBooks();
 
     if(userRole == 'ec' && !idDraft) {
       let ecId = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
       initPlanRef(ecId);
     }
+
+    $(document).on('change', 'select#discount_program', function () {
+
+      let rawValue = $(this).val();
+      let discountProgram = parseIndoNumber(rawValue || '');
+      if (programOmzetSettings && programOmzetSettings.enabled) {
+
+        $('input[name="diskon[]"]').val(discountProgram);
+
+        $('.book-row').each(function () {
+          updateDisabledField(
+            $(this).find('[name="jumlahsiswa[]"]')[0]
+          );
+        });
+
+        updateDisabledField(
+          $(this).closest('.book-row')
+            .find('[name="jumlahsiswa[]"]')[0]
+        );
+
+      } else {
+
+        if (discountProgram > 100) {
+          discountProgram = 100;
+        }
+
+        $('input[name="diskon[]"]').val(discountProgram);
+      }
+
+    });
   });
 
   document.addEventListener('click', function (e) {

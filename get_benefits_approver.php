@@ -11,16 +11,7 @@ $id_draft = (int)$_POST['id_draft'];
 $role = $_SESSION['role'];                                                                    
 
 $sql = "SELECT 
-            a.id_draft_approval, 
-            a.id_draft, 
-            a.status, 
-            a.token, 
-            a.approved_at, 
-            b.status as draft_status, 
-            b.verified, 
-            b.program,
-            a.notes, 
-            c.generalname as ec_name, 
+            a.id_draft_approval, a.id_draft, a.status, a.token,a.date,a.approved_at, b.status as draft_status, b.verified, b.program,a.notes, c.generalname as ec_name, 
             d.generalname as leadername, 
             a.id_user_approver as approver, 
             b.confirmed, 
@@ -30,7 +21,7 @@ $sql = "SELECT
         LEFT JOIN user c ON c.id_user = b.id_ec 
         LEFT JOIN user d ON d.id_user = a.id_user_approver 
         WHERE a.id_draft = $id_draft
-        ORDER BY a.id_draft_approval ASC";
+        ORDER BY a.date ASC";
 
 $result = $conn->query($sql);
 
@@ -69,6 +60,7 @@ $sec_has_approved = false;
               <th width="180">Created At</th>
               <th width="220">Status</th>
               <th>Note</th>
+              <th>Approved At</th>
             </tr>
           </thead>
           <tbody>
@@ -103,13 +95,17 @@ $sec_has_approved = false;
             $approved_at = $row['approved_at'] 
                 ? date('d M Y H:i', strtotime($row['approved_at'])) 
                 : '-';
+            
+            $created_at = $row['date'] 
+                ? date('d M Y H:i', strtotime($row['date'])) 
+                : '-';
           ?>
 
             <tr>
               <td class="fw-semibold"><?= $row['leadername'] ?></td>
 
               <td class="text-muted">
-                <?= $approved_at ?>
+                <?= $created_at ?>
               </td>
 
               <td>
@@ -123,6 +119,9 @@ $sec_has_approved = false;
                 <div>
                   <?= $row['notes'] ?? '-' ?>
                 </div>
+              </td>
+              <td class="text-muted">
+                <?= $approved_at ?>
               </td>
             </tr>
 
