@@ -215,10 +215,10 @@ function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [
                     ];
                 }
                 
-                $cc[] = [
-                    'email' => "kelly@mentarigroups.com",
-                    'name' => "Kelly"
-                ];
+                // $cc[] = [
+                //     'email' => "kelly@mentarigroups.com",
+                //     'name' => "Kelly"
+                // ];
 
                 if($leadid3 == 16) {
                     $cc[] = [

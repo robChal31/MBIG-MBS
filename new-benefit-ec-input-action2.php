@@ -533,10 +533,10 @@
 
             $cc = [];
                             
-            $cc[] = [
-                'email' => "kelly@mentarigroups.com",
-                'name' => "Kelly"
-            ];
+            // $cc[] = [
+            //     'email' => "kelly@mentarigroups.com",
+            //     'name' => "Kelly"
+            // ];
 
             $cc[] = [
                 'email' => "yully.mentarigroups@gmail.com",
