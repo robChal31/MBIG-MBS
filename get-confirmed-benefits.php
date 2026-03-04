@@ -44,7 +44,7 @@
                                     ) THEN 1 
                                     ELSE 0 
                                 END AS has_ref_usage
-                            FROM draft_benefit db
+                            FROM draft_benefit AS db
                             LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
                             LEFT JOIN (
                                 SELECT 
@@ -59,7 +59,7 @@
                             LEFT JOIN pk p ON p.benefit_id = db.id_draft
                             LEFT JOIN schools sc ON sc.id = db.school_name
                             LEFT JOIN user ec ON ec.id_user = db.id_ec
-                            WHERE db.confirmed = 1
+                            WHERE db.confirmed = 1 AND db.deleted_at IS NULL
                             $query_selected_type
                             $query_role 
                             AND NOT EXISTS (
