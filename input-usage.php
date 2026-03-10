@@ -3,6 +3,7 @@ session_start();
 include 'db_con.php';
 
 $id_benefit_list = isset($_POST['id_benefit_list']) ? (int)$_POST['id_benefit_list'] : 0;
+$role            = $_SESSION['role'];
 
 if ($id_benefit_list <= 0) {
     echo '<div class="alert alert-danger">Invalid Benefit ID</div>';
@@ -53,7 +54,7 @@ $limitDate   = clone $expiredDate;
 $limitDate->modify('+6 months');
 $now = new DateTime();
 
-if ($now > $expiredDate) {
+if (($now > $expiredDate) && $role != 'admin') {
     echo '<div class="alert alert-danger">Benefit sudah melewati expired date</div>';
     exit;
 }
@@ -91,6 +92,11 @@ if (!$result || $result->num_rows == 0) {
 }
 
 $usages = mysqli_fetch_assoc($result);
+
+if (($now > $expiredDate) && $usages['redeemable'] == 1) {
+    echo '<div class="alert alert-danger">Benefit sudah melewati expired date</div>';
+    exit;
+}
 
 $subbenefit = $usages['subbenefit'] ? trim($usages['subbenefit']) : '';
 $subbenefit_q = "SELECT * FROM subbenefits WHERE name = '$subbenefit'";
@@ -169,7 +175,7 @@ Nama Peserta: </textarea>
 
                     </select>
 
-                    <small class="text-muted">
+                    <small class="text-muted" style="font-size: 11px !important;">
                         Year yang bertuliskan <b>Not Available</b> atau <b>Quota Full</b> tidak bisa dipilih.
                     </small>
 

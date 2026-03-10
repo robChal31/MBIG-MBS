@@ -272,7 +272,7 @@
             dom: 'Bfrtilp',
             pageLength: 20,
             lengthMenu: [10, 20, 50, 100],
-            order: [[4, 'desc']],
+            order: [[6, 'desc']],
             buttons: [
                 { 
                     extend: 'copyHtml5',

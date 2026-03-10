@@ -2,23 +2,16 @@
   include 'db_con.php';
 
   /* ===================== DATA LOGIC (UNCHANGED) ===================== */
-  $current_row  = 1;
-  $id_draft     = '';
-  if($_GET['id_draft'] && $_GET['id_draft'] != '') { 
-    $id_draft = $_GET['id_draft'];
-    $sql      = "SELECT db.*, sc.name as school_name2
-                FROM draft_benefit as db 
-                LEFT JOIN schools as sc on sc.id = db.school_name
-                where id_draft = $id_draft";
-    $result   = mysqli_query($conn,$sql);
-    
-    while ($data = $result->fetch_assoc()){
-      $program                  = $data['program'];
-      $sumalok                  = $data['alokasi'];
-      $total_benefit            = $data['total_benefit'];
-      $school_name              = $data['school_name2'];
-      $selisih_benefit          = $data['selisih_benefit'];
-    }
+  $current_row    = 1;
+  $id_draft       = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : NULL;
+  $program        = ISSET($_GET['program']) ? $_GET['program'] : NULL;
+
+  $levels         = ISSET($_GET['levels']) ? $_GET['levels'] : [];
+  $subjects       = ISSET($_GET['subjects']) ? $_GET['subjects'] : [];
+
+  $data_templates = [];
+
+  if($id_draft) { 
 
     $sql          = "SELECT a.*, b.* FROM draft_benefit_list a 
                       LEFT JOIN draft_template_benefit AS b on a.id_template = b.id_template_benefit   
@@ -26,105 +19,133 @@
                       ORDER BY a.id_benefit_list DESC";
     $result       = mysqli_query($conn, $sql);
     $current_row  = mysqli_num_rows($result);
-    $data_templates = [];
+
     while ($row = mysqli_fetch_assoc($result)) {
         $data_templates[] = $row;
     }
 
-  }else if(!$_GET['id_draft'] && $_GET['program']){
-    $program  = $_GET['program'];
+  }else if(!$id_draft && $program) {
 
     $query_program = "SELECT code FROM programs WHERE (name = '$program' OR code = '$program') AND is_active = 1 LIMIT 1";
     $exec_program = mysqli_query($conn, $query_program);
 
     $program_code = false;
     if ($exec_program && mysqli_num_rows($exec_program) > 0) {
-        $prog = mysqli_fetch_assoc($exec_program);
-        $program_code = $prog['code'];
+      $prog = mysqli_fetch_assoc($exec_program);
+      $program_code = $prog['code'];
+    }
+
+    $level_ids_query = count($levels) > 0 ? implode(',', $levels) : NULL;
+    $query_level = "SELECT * FROM levels WHERE id IN ($level_ids_query)";
+
+    $subject_ids_query = count($subjects) > 0 ? implode(',', $subjects) : NULL;
+    $query_subject = "SELECT * FROM subjects WHERE id IN ($subject_ids_query)";
+
+    $exec_level = mysqli_query($conn, $query_level);
+    $exec_subject = mysqli_query($conn, $query_subject);
+
+    $level_ids = [];
+    $subject_ids = [];
+
+    if ($exec_level && mysqli_num_rows($exec_level) > 0) {
+      while ($row = mysqli_fetch_assoc($exec_level)) {
+        $level_ids[] = $row['name'];
+      }
+    }
+
+    if ($exec_subject && mysqli_num_rows($exec_subject) > 0) {
+      while ($row = mysqli_fetch_assoc($exec_subject)) {
+        $subject_ids[] = $row['name'];
+      }
     }
 
     $filter_program_q = $program_code ? "AND avail like '%$program_code%' " : '';
-    $query_template = "SELECT * FROM `draft_template_benefit` WHERE is_active = 1 $filter_program_q order by id_template_benefit ASC";
+    $query_template = "SELECT * FROM `draft_template_benefit` 
+                        WHERE is_active = 1 $filter_program_q 
+                        AND (
+                            subject IS NULL 
+                            OR subject = ''
+                            OR subject IN ('" . implode("','", $subject_ids) . "')
+                        )
+                        ORDER BY id_template_benefit ASC";
+
     $result_template = mysqli_query($conn, $query_template);
-    $data_templates = [];
+
     while ($row = mysqli_fetch_assoc($result_template)) {
-        $data_templates[] = $row;
+      $data_templates[] = $row;
     }
   }
-  $program = strtolower($program);
+  
 ?>
 
 <style>
 
-.benefit-title{
-  font-size:.85rem;
-  font-weight:600;
-  color:#495057;
-  margin-bottom:12px;
-}
+  .benefit-title{
+    font-size:.85rem;
+    font-weight:600;
+    color:#495057;
+    margin-bottom:12px;
+  }
 
-.benefit-table table{
-  font-size:.75rem;
-  border-collapse:separate;
-  border-spacing:0;
-}
+  .benefit-table table{
+    font-size:.75rem;
+    border-collapse:separate;
+    border-spacing:0;
+  }
 
-.benefit-table thead td{
-  background: #f8f9fa;
-  font-size: .7rem !important;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .03em;
-  padding: 8px;
-  border-bottom: 1px solid #dee2e6;
-  white-space: nowrap;
-}
+  .benefit-table thead td{
+    background: #f8f9fa;
+    font-size: .7rem !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
+    white-space: nowrap;
+  }
 
-.benefit-table tbody td{
-  padding:8px;
-  vertical-align:top;
-  border-bottom:1px solid #f1f3f5;
-}
+  .benefit-table tbody td{
+    padding:8px;
+    vertical-align:top;
+    border-bottom:1px solid #f1f3f5;
+  }
 
-.benefit-table tbody tr:hover{
-  background:#f9fafb;
-}
+  .benefit-table tbody tr:hover{
+    background:#f9fafb;
+  }
 
-.benefit-table span{
-  display:block;
-  line-height:1.35;
-  color:#343a40;
-}
+  .benefit-table span{
+    display:block;
+    line-height:1.35;
+    color:#343a40;
+  }
 
-.benefit-table .btn_remove{
-  padding:3px 7px;
-  font-size:.65rem;
-}
+  .benefit-table .btn_remove{
+    padding:3px 7px;
+    font-size:.65rem;
+  }
 
-.benefit-actions{
-  margin-top:12px;
-  text-align:right;
-}
+  .benefit-actions{
+    margin-top:12px;
+    text-align:right;
+  }
 
-.benefit-actions .btn{
-  font-size:.75rem;
-  padding:6px 18px;
-  border-radius:8px;
-}
+  .benefit-actions .btn{
+    font-size:.75rem;
+    padding:6px 18px;
+    border-radius:8px;
+  }
 
-td span{
-  font-size: .75rem !important;
-}
+  td span{
+    font-size: .75rem !important;
+  }
 </style>
 
 <div class="row">
   <div class="col-12">
-    <?php if($id_draft || $program) { ?>
+    <?php if(count($data_templates)) { ?>
 
       <div class="benefit-wrapper border">
-
-        <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
-        <input type="hidden" value="<?= $program ?>" name="program">
 
         <div class="table-responsive benefit-table p-2">
           <table class="table table-borderless dataTable no-footer" id="input_form">
@@ -189,7 +210,7 @@ td span{
         </div>
 
         <div class="benefit-actions m-4">
-          <button type="submit" class="btn btn-primary" id="submt">
+          <button type="submit" class="btn btn-primary" id="submt" >
             <span class="btn-icon">
               <i class="bi bi-arrow-right"></i>
             </span>  
@@ -199,11 +220,13 @@ td span{
       </div>
 
     <?php } else { ?>
-      <?php if($program == '') : ?>
-        <div class="alert alert-info">Select a Program</div>
-      <?php else: ?>
-        <div class="alert alert-danger">Program or Saved Template Invalid</div>
-      <?php endif; ?>
+      <div style="height: 100px; display: flex; align-items: center; justify-content: center">
+        <?php if($program == '') : ?>
+          <div class="alert alert-info">Select a Program</div>
+        <?php else: ?>
+          <div class="alert alert-danger">Program or Saved Template Invalid</div>
+        <?php endif; ?>
+      </div>
     <?php } ?>
   </div>
 </div>
@@ -211,11 +234,11 @@ td span{
 <script type="text/javascript">
 
     function removeNonDigits(numberString) {
-        let nonDigitRegex = /\D/g;
+      let nonDigitRegex = /\D/g;
 
-        let result = numberString.replace(nonDigitRegex, '');
+      let result = numberString.replace(nonDigitRegex, '');
 
-        return result;
+      return result;
     }
 
     function formatNumber(number) {
@@ -231,40 +254,6 @@ td span{
       }
     }
 
-    function getBenefitData(element){
-      var row = $(element).closest('tr');
-      var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
-      var manval = row.find('input[name="manval[]"]')
-
-      $.ajax({
-      url: 'get_benefit_datas.php',
-      type: 'POST',
-      data: {
-          benefitId: benefitId,
-          program : '<?= $program ?>'
-      },
-      success: function(data) {
-        row.find('input[name="benefit[]"]').val(data[0].benefit);
-        row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
-        row.find('.ben').html(data[0].benefit);
-        row.find('.sub_ben').html(data[0].subbenefit);
-        row.find('input[name="description[]"]').val(data[0].description);
-        row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
-        row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
-        row.find('input[name="qty1[]"]').val(data[0].qty1);
-        row.find('input[name="qty2[]"]').val(data[0].qty2);
-        row.find('input[name="qty3[]"]').val(data[0].qty3);
-        row.find('.ben_qty1').html(data[0].qty1);
-        row.find('.ben_qty2').html(data[0].qty2);
-        row.find('.ben_qty3').html(data[0].qty3);
-        row.find('.ben_desc').html(data[0].description);
-        row.find('.ben_pel').html(data[0].pelaksanaan);
-        row.find('input[name="pelaksanaan[]"]').val(data[0].pelaksanaan);
-      }
-    });
-
-  }
-
 </script>
 
 <script>
@@ -277,24 +266,7 @@ td span{
       x--;
     });
 
-    // populateDropdown('row' + <?= $current_row ?>);
   });
-
-  function populateDropdown(rowId) {
-    let selectedTemplate = [];
-    $.ajax({
-      url: 'get_benefits.php',
-      type: 'POST',
-      data: {
-        program : '<?= $program ?>',
-        selectedTemplate : selectedTemplate
-      },
-      success: function(data) {
-        var dropdown = $('#' + rowId + ' select');
-        dropdown.html(data);
-      }
-    });
-  }
 
   $('#submt').on('click', function (e) {
     const form = document.getElementById('input_form_benefit');

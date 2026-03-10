@@ -166,9 +166,9 @@
                                 </li>
 
                                 <?php if ($benefit['confirmed'] == 1): ?>
-                                    <?php if (!$is_expired && 
-                                    (($_SESSION['role'] === "ec" && $benefit['redeemable'] == 1) || 
-                                    ($_SESSION['role'] !== "ec" && !$benefit['has_ref_usage']))): ?>
+                                    <?php if ((!$is_expired && 
+                                        (($_SESSION['role'] === "ec" && $benefit['redeemable'] == 1) || ($_SESSION['role'] !== "ec" && !$benefit['has_ref_usage']))) || $_SESSION['role'] !== "ec"
+                                    ): ?>
                                         <li>
                                             <a class="dropdown-item text-warning"
                                             data-id="<?= $benefit['id_benefit_list'] ?>"

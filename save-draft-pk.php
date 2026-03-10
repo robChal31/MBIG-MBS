@@ -83,10 +83,11 @@
     $jenis_pk       = $_POST['jenis_pk'];
     $level          = ISSET($_POST['level']) ? $_POST['level'] : '';
     $id_school      = $school_name;
-    $discount_program = isset($_POST['discount_program']) && $_POST['discount_program'] !== '' ? floatval(str_replace(',', '.', $_POST['discount_program'])) : "NULL";
+    $uc_program     = strtoupper($program);
+
+    $discount_program          = isset($_POST['discount_program']) && $_POST['discount_program'] !== '' ? floatval(str_replace(',', '.', $_POST['discount_program'])) : "NULL";
     $program_adoption_levels   = $_POST['program_adoption_levels'] ?? [];
     $program_adoption_subjects = $_POST['program_adoption_subjects'] ?? [];
-    $uc_program = strtoupper($program);
 
     //benefit lists
     $benefits       = $_POST['benefit'];
@@ -101,11 +102,11 @@
     $qty3s = $_POST['qty3'];
 
     //pic
-    $pic_name   = $_POST['pic_name'];
-    $jabatan    = $_POST['jabatan'];
-    $no_tlp     = $_POST['no_tlp'];
-    $email_pic  = $_POST['email_pic'];
-    $myplan_value = isset($myplan_id) && $myplan_id !== '' ? "'$myplan_id'" : "NULL";
+    $pic_name       = $_POST['pic_name'];
+    $jabatan        = $_POST['jabatan'];
+    $no_tlp         = $_POST['no_tlp'];
+    $email_pic      = $_POST['email_pic'];
+    $myplan_value   = isset($myplan_id) && $myplan_id !== '' ? "'$myplan_id'" : "NULL";
 
     try {
         mysqli_begin_transaction($conn);
@@ -179,6 +180,8 @@
                         fileUrl = '',
                         updated_at = current_timestamp(),
                         status = '$draft_status',
+                        verified = 0,
+                        confirmed = 0,
                         alokasi = '0',
                         jenis_pk = '$jenis_pk',
                         discount = $discount_program

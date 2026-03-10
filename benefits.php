@@ -115,7 +115,7 @@
                 <!-- HEADER -->
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
-                        <h6 class="fw-semibold mb-0">Filter Benefit</h6>
+                        <h6 class="fw-bold mb-0">Filter Benefit</h6>
                         <small class="text-muted">Refine data based on benefit type</small>
                     </div>
                     <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterBenefitBody">

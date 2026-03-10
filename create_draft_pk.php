@@ -84,10 +84,11 @@ ini_set('display_errors', 1);
   $jabatan      = '';
   
   if($id_draft) {
-    $sql = "SELECT *
+    $sql = "SELECT *, p.code as program_code
               FROM draft_benefit as db
             LEFT JOIN user as ec on ec.id_user = db.id_ec
             LEFT JOIN school_pic as sp on sp.id_draft = db.id_draft
+            LEFT JOIN programs as p on p.name = db.program or p.code = db.program
             WHERE db.id_draft = $id_draft";
 
     $result = mysqli_query($conn,$sql);
@@ -100,7 +101,7 @@ ini_set('display_errors', 1);
       $segment      = $dra['segment'];
       $level        = $dra['level'];
       $wilayah      = $dra['wilayah'];
-      $program      = $dra['program'];
+      $program      = $dra['program_code'];
       $pic_name     = $dra['name'];
       $pic_email    = $dra['email'];
       $pic_phone    = $dra['no_tlp'];
@@ -176,7 +177,7 @@ ini_set('display_errors', 1);
                 </div>
               </div>
 
-              <div class="row g-4 border rounded shadow-md p-3 m-2 mb-4">
+              <div class="row g-4 border rounded shadow-md px-3 pb-4 m-2 mb-4">
                 <!-- INPUTTER -->
                 <div class="col-md-6">
                   <label class="form-label small text-muted d-block">EC</label>
@@ -195,6 +196,10 @@ ini_set('display_errors', 1);
                         </option>
                       <?php } ?>
                     </select>
+                  <?php } ?>
+
+                  <?php if($id_draft) { ?>
+                    <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
                   <?php } ?>
                 </div>
 
@@ -218,31 +223,7 @@ ini_set('display_errors', 1);
                 <div class="col-md-6">
                   <label class="form-label small text-muted d-block">Program</label>
                   <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
-                  <small class="text-muted">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
-                </div>
-
-                <!-- PK & PROGRAM -->
-                <div class="col-md-6">
-                  <label class="form-label small text-muted d-block">Jenis PK</label>
-                  <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
-                    <option value="">-- Pilih Jenis PK --</option>
-                    <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
-                    <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
-                  </select>
-                </div>
-
-                <!-- SEGMENT -->
-                <div class="col-md-6">
-                  <label class="form-label small text-muted d-block">Segment</label>
-                  <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
-                    <option value="" disabled selected>- Select Segment -</option>
-                    <?php 
-                      $seg_sql = "SELECT * FROM segments";
-                      $segQ = mysqli_query($conn, $seg_sql);
-                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
-                        <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
-                    <?php endwhile; ?>
-                  </select>
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
                 </div>
 
                 <!-- ADOPTION LEVEL -->
@@ -272,18 +253,43 @@ ini_set('display_errors', 1);
                   </select>
                 </div>
 
-                <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?>">
+                <!-- PK & PROGRAM -->
+                <div class="col-md-4">
+                  <label class="form-label small text-muted d-block">Jenis PK</label>
+                  <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
+                    <option value="">-- Pilih Jenis PK --</option>
+                    <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
+                    <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
+                  </select>
+                </div>
+
+                <!-- SEGMENT -->
+                <div class="col-md-4">
+                  <label class="form-label small text-muted d-block">Segment</label>
+                  <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
+                    <option value="" disabled selected>- Select Segment -</option>
+                    <?php 
+                      $seg_sql = "SELECT * FROM segments";
+                      $segQ = mysqli_query($conn, $seg_sql);
+                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
                   <label class="form-label small text-muted">Discount Program (%)</label>
                   <input id="discount_program" type="number" name="discount_program" class="form-control form-control-sm" max="100" placeholder="0 - 100">
                   <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
                     Diskon tidak boleh lebih dari 25%
                   </small>
                 </div>
+
               </div>
 
               <!-- PIC SECTION -->
               <div class="border rounded shadow-md p-3 m-2">
-                <h6 class="fw-bold mb-3 border-bottom border-2 border-primary d-inline-block" style="font-size: 18px !important;">Informasi PIC</h6>
+                <h6 class="fw-bold mb-3 border-bottom border-2 border-primary d-inline-block" style="font-size: 17px !important;">Informasi Person In Charge</h6>
                 <div class="row g-4 ">
                   <div class="col-md-6">
                     <label class="form-label">Nama Lengkap</label>
@@ -351,8 +357,10 @@ ini_set('display_errors', 1);
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
 
-  const idDraft = '<?= $id_draft ?>';
-  const program = '<?= $program ?>';
+  let idDraft   = '<?= $id_draft ?>';
+  let program   = '<?= $program ?>';
+  let schoolId  = '<?= $school_name ?>';
+
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
 
@@ -444,8 +452,7 @@ ini_set('display_errors', 1);
   }
 
   function getPlanData(planId) {
-
-    $.ajax({
+    return $.ajax({
       url: 'get-myplan-data.php',
       method: 'POST',
       data: { myplan_id: planId },
@@ -514,6 +521,8 @@ ini_set('display_errors', 1);
           templateResult: formatGroupItems,
           closeOnSelect: false,
         });
+        $('#program').val(program ?? selectedProgram).trigger('change');
+        program = null;
       },
       error: function(jqXHR, textStatus, errorThrown) {
         console.log('Error:', textStatus, errorThrown);
@@ -529,6 +538,41 @@ ini_set('display_errors', 1);
     $('#adoption_levels').val('').trigger('change').off('select2:opening select2:selecting');
     $('#adoption_subjects').val('').trigger('change').off('select2:opening select2:selecting');
     $('input[name="wilayah"]').val('').prop('readonly', false);
+  }
+
+  function getAllBenefits(program, levels = [], subjects = []) {
+    $.ajax({
+      url: './get_benefits_pk.php',
+      type: 'GET',
+      data: {
+        program: program,
+        levels: levels,
+        subjects: subjects
+      },
+      success: function(response) {
+        $('#benefit_container').html(response);
+        $('#submit').prop('disabled', true);
+      },
+      error: function(xhr) {
+        console.log(xhr.responseText);
+      }
+    });
+  }
+
+  function initDraftData() {
+    return $.ajax({
+      url: `./get_benefits_pk.php?id_draft=${idDraft}&program=${program}`,
+      type: 'GET',
+      success: function (response) {
+        $('#benefit_container').html(response);
+        loadSchoolSelect();
+        getPrograms(schoolId, formatGroupItems, program);
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.log('Error benefit:', textStatus);
+        loadSchoolSelect();
+      }
+    });
   }
 
   $(document).ready(function(){
@@ -550,9 +594,7 @@ ini_set('display_errors', 1);
 
     $('#select_school').on('change', function() {
       var schoolId = $(this).val();
-      if (schoolId) {
-        getPrograms(schoolId, formatGroupItems);
-      }
+      if (schoolId) getPrograms(schoolId, formatGroupItems);
     });
 
     $('#select_ec').on('change', function() {
@@ -565,41 +607,36 @@ ini_set('display_errors', 1);
       closeOnSelect: false,
     });
 
-    const draftSchoolId = '<?= $school_name ?>';
-
     if (idDraft) {
-      $.ajax({
-        url: './get_benefits_pk.php?id_draft=<?= $id_draft ?>&program=' + program,
-        type: 'GET',
-        success: function (response) {
-          $('#benefit_container').html(response);
-          loadSchoolSelect();
-          getPrograms(draftSchoolId, formatGroupItems, program);
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-          console.log('Error benefit:', textStatus);
-          loadSchoolSelect();
-        }
-      });
+      initDraftData();
+      idDraft = null;
     } else {
       loadSchoolSelect();
     }
 
     $("#program").change(function (e) {
       let selectedProgram = $(this).val();
-      let id_draft = '<?= $id_draft ?>';
-      $.ajax({
-        url: './get_benefits_pk.php?id_draft=<?= $id_draft ?>&program='+selectedProgram, 
-        type: 'GET', 
-        // dataType: 'json', 
-        success: function(response) {
-            $('#benefit_container').html(response);
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.log(textStatus);
-        }
-      });
+      let selectedSubjects = $('#adoption_subjects').val();
+      let selectedLevels = $('#adoption_levels').val();
+
+      console.log('levels', selectedLevels);
+      console.log('subjects', selectedSubjects);
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
     })
+
+    // $('#adoption_levels').change(function () {
+    //   let selectedLevels = $(this).val();
+    //   let selectedProgram = $('#program').val();
+    //   let selectedSubjects = $('#adoption_subjects').val();
+    //   getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    // });
+
+    $('#adoption_subjects').change(function () {
+      let selectedSubjects = $(this).val();
+      let selectedProgram = $('#program').val();
+      let selectedLevels = $('#adoption_levels').val();
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    });
 
     $(document).on('change', '#myplan_id', function () {
       const selectedId = $(this).val();

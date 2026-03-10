@@ -110,6 +110,7 @@
                                     <th style="width:15%">Implementation</th>
                                     <th>Avail Code</th>
                                     <th style="width:10%">Business Unit</th>
+                                    <th>Subject</th>
                                     <th>Qty Y1</th>
                                     <th>Qty Y2</th>
                                     <th>Qty Y3</th>
@@ -128,6 +129,7 @@
                                     <td><?= $template['pelaksanaan'] ?></td>
                                     <td><?= $template['avail'] ?></td>
                                     <td><?= $template['unit_bisnis'] ?></td>
+                                    <td><?= $template['subject'] ?></td>
                                     <td class="text-center"><?= $template['qty1'] ?></td>
                                     <td class="text-center"><?= $template['qty2'] ?></td>
                                     <td class="text-center"><?= $template['qty3'] ?></td>
