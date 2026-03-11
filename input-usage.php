@@ -65,7 +65,7 @@ if (($now > $expiredDate) && $role != 'admin') {
 $role = $_SESSION['role'];                                                            
 $subbenefit = '';
 $sql = "SELECT
-            dbl.*, dtb.redeemable, db.ref_id, db.year, db.program,
+            dbl.*, dtb.redeemable, db.ref_id, db.year, db.program, dtb.subject,
             CASE 
                 WHEN EXISTS (
                     SELECT 1 
@@ -99,6 +99,7 @@ if (($now > $expiredDate) && $usages['redeemable'] == 1) {
 }
 
 $subbenefit = $usages['subbenefit'] ? trim($usages['subbenefit']) : '';
+$subject    = $usages['subject'] ? trim($usages['subject']) : '';
 $subbenefit_q = "SELECT * FROM subbenefits WHERE name = '$subbenefit'";
 $subBQ_result = $conn->query($subbenefit_q);
 $subbenefit_data = $subBQ_result->fetch_assoc();
@@ -189,7 +190,7 @@ Nama Peserta: </textarea>
                     if($usages['redeemable'] == 1) { ?>
                         <div class="col-md-12 col-12 mb-3">
                             <label class="form-label d-block">Events</label>
-                            <select name="event" id="event" class="form-control form-control-sm select2" style="background-color: white; width: 100%;" required>
+                            <select name="event" id="event" class="form-control form-control-sm" style="background-color: white; width: 100%;" required>
                             </select>
                         </div>
                         <div class="col-md-6 col-12 mb-3">
@@ -216,6 +217,7 @@ Nama Peserta: </textarea>
 
 <script>
     group = '<?= $group ?>';
+    subject = '<?= $subject ?>';
     $(document).ready(function() {
         $('.select2').select2({
             width: '100%'
@@ -328,10 +330,10 @@ Nama Peserta: </textarea>
 
         let redeemable = <?= $usages['redeemable'] ?>
 
-        console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}`);
+        console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`);
         if(redeemable == 1 && group) {
             $.ajax({
-                url: `https://hadiryuk.id/api/EventBenefit?type=${group}`, 
+                url: `https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`, 
                 method: 'GET',
                 cache: false,
                 contentType: false,

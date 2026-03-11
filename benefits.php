@@ -259,6 +259,7 @@
 <?php include 'footer.php';?>
 <script>
     let group = '';
+    let subject = '';
     $('#pkModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')
         let action = event.relatedTarget.getAttribute('data-action');
