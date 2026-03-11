@@ -30,8 +30,9 @@
     $query_benefits = "SELECT * 
                         FROM (
                             SELECT 
-                                db.*, db.year as prog_year, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
-                                IFNULL(sc.name, db.school_name) AS school_name2, p.perubahan_tahun,
+                                db.*, db.year as prog_year, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, 
+                                dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
+                                IFNULL(sc.name, db.school_name) AS school_name2, p.perubahan_tahun, prog.name as program_name,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
                                 bu.tot_usage3,
@@ -59,6 +60,7 @@
                             LEFT JOIN pk p ON p.benefit_id = db.id_draft
                             LEFT JOIN schools sc ON sc.id = db.school_name
                             LEFT JOIN user ec ON ec.id_user = db.id_ec
+                            LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
                             WHERE db.confirmed = 1 AND db.deleted_at IS NULL
                             $query_selected_type
                             $query_role 
@@ -108,8 +110,8 @@
                     }
 
                     $programe_name = $benefit['prog_year'] == 1
-                        ? $benefit['program']
-                        : ($benefit['program'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
+                        ? $benefit['program_name']
+                        : ($benefit['program_name'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
 
                     $expiredTime = !empty($benefit['expired_at'])
                         ? strtotime($benefit['expired_at'])
