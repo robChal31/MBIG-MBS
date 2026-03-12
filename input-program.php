@@ -117,8 +117,8 @@
                     <label class="form-label d-flex">Is General</label>
                     <select name="is_classified" id="is_classified" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>Select Type</option>
-                        <option value="1" <?= $is_classified == 0 ? 'selected' : '' ?>>Yes</option>
-                        <option value="0" <?= $is_classified == 1 ? 'selected' : '' ?>>No</option>
+                        <option value="0" <?= $is_classified == 0 ? 'selected' : '' ?>>Yes</option>
+                        <option value="1" <?= $is_classified == 1 ? 'selected' : '' ?>>No</option>
                     </select>
                 </div>
 
