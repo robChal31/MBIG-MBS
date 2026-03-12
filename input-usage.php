@@ -330,7 +330,6 @@ Nama Peserta: </textarea>
 
         let redeemable = <?= $usages['redeemable'] ?>
 
-        console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`);
         if(redeemable == 1 && group) {
             $.ajax({
                 url: `https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`, 
@@ -342,7 +341,6 @@ Nama Peserta: </textarea>
                     $('#submit_usage').prop('disabled', true);
                 },
                 success: function(response) {
-                    console.log('response: ', response);
                     const events = response.events || [];
                     if(events.length > 0) {
                         let options = '<option value="">--Select event--</option>';
@@ -368,6 +366,16 @@ Nama Peserta: </textarea>
 
                         $('#submit_usage').prop('disabled', false);
                     } else {
+                        const element = document.getElementById('event');
+
+                        // Destroy existing instance if already initialized
+                        if (element.choicesInstance) {
+                            element.choicesInstance.destroy();
+                        }
+
+                        // Replace options in the select element
+                        $('#event').html('<option value="">--Select event--</option>');
+
                         Swal.fire({
                             title: "No event found.",
                             text: `No Event found for ${group}.`,
@@ -380,6 +388,7 @@ Nama Peserta: </textarea>
                     }
                 },
                 error: function(xhr, status, error) {
+                    console.log('error', error);
                     Swal.fire({
                         title: "Failed to get event list.",
                         text: error + '. \nPlease try again later or contact the developer.',
