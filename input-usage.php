@@ -342,9 +342,11 @@ Nama Peserta: </textarea>
                     $('#submit_usage').prop('disabled', true);
                 },
                 success: function(response) {
-                    if(response.length > 0) {
+                    console.log('response: ', response);
+                    const events = response.events || [];
+                    if(events.length > 0) {
                         let options = '<option value="">--Select event--</option>';
-                        response.map((el, idx) => {
+                        events.map((el, idx) => {
                             options += '<option value="' + el.id_event + '">' + el.title + ' [' + el.location_place + ' - ' + el.date_start +  '] |' + '</option>';
                         });
 
