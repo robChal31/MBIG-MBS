@@ -330,6 +330,9 @@ Nama Peserta: </textarea>
 
         let redeemable = <?= $usages['redeemable'] ?>
 
+        console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`);
+        console.log('group: ', group);
+        console.log('subject: ', subject);
         if(redeemable == 1 && group) {
             $.ajax({
                 url: `https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`, 

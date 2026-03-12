@@ -32,7 +32,7 @@
                             SELECT 
                                 db.*, db.year as prog_year, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, 
                                 dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
-                                IFNULL(sc.name, db.school_name) AS school_name2, p.perubahan_tahun, prog.name as program_name,
+                                IFNULL(sc.name, db.school_name) AS school_name2, p.perubahan_tahun, prog.name as program_name, dtb.subject,
                                 bu.tot_usage1,
                                 bu.tot_usage2,
                                 bu.tot_usage3,
@@ -89,6 +89,7 @@
                     <th>EC Name</th>
                     <th>Benefit</th>
                     <th style="width:6%">Sub Benefit</th>
+                    <th>Subject</th>
                     <th>Active From</th>
                     <th>Expired At</th>
                     <th class="text-center">Year 1</th>
@@ -141,6 +142,7 @@
                     <td class="fw-semibold"><?= $benefit['generalname'] ?></td>
                     <td><?= $benefit['benefit'] ?></td>
                     <td><?= $benefit['subbenefit'] ?></td>
+                    <td><?= $benefit['subject'] ?></td>
                     <td><?= $benefit['start_at'] ?></td>
                     <td><?= $benefit['expired_at'] ?></td>
 
