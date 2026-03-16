@@ -629,7 +629,9 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
-  
+  let isDirty = false;
+  let isSubmitting = false;
+
   function fetchShool(email, schoolId = null) {
     schoolReady = false;
     return $.ajax({
@@ -1684,7 +1686,7 @@
     $('#submt').on('click', function (e) {
       const form = document.getElementById('input_form_benefit');
       const $btn = $(this);
-
+      isSubmitting = true;
       // reset error
       $(form).find('.is-invalid').removeClass('is-invalid');
 
@@ -1815,6 +1817,24 @@
         $('input[name="diskon[]"]').val(discountProgram);
       }
 
+    });
+
+     // input + textarea
+    $('form :input').on('change keyup', function () {
+      isDirty = true;
+    });
+
+    // select2
+    $('form select').on('select2:select select2:unselect', function () {
+      isDirty = true;
+    });
+
+    // detect leave page
+    window.addEventListener('beforeunload', function (e) {
+      if (isDirty && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
     });
   });
 

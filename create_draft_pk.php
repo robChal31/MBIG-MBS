@@ -361,6 +361,9 @@ ini_set('display_errors', 1);
   let program   = '<?= $program ?>';
   let schoolId  = '<?= $school_name ?>';
 
+  let isDirty = false;
+  let isSubmitting = false;
+  
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
 
@@ -575,6 +578,13 @@ ini_set('display_errors', 1);
     });
   }
 
+  function beforeUnloadHandler(e) {
+    if (isDirty && !isSubmitting) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  }
+
   $(document).ready(function(){
 
     $('.select2').select2({
@@ -646,6 +656,25 @@ ini_set('display_errors', 1);
     });
 
     getMyPlanRef();
+
+    // input + textarea
+    $('form :input').on('change keyup', function () {
+      isDirty = true;
+    });
+
+    // select2
+    $('form select').on('select2:select select2:unselect', function () {
+      isDirty = true;
+    });
+
+    // detect leave page
+    window.addEventListener('beforeunload', function (e) {
+      if (isDirty && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
   });
 
   // Add event listener to toggle groups when clicking on the group label

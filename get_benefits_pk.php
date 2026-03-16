@@ -277,7 +277,7 @@
   $('#submt').on('click', function (e) {
     const form = document.getElementById('input_form_benefit');
     const $btn = $(this);
-
+    isSubmitting = true;
     e.preventDefault();
 
     // reset error

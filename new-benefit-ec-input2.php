@@ -396,9 +396,7 @@
                       <input type="checkbox" class="form-check-input" id="save_as_d" name="save_as_draft" value="1">
                       <label class="form-check-label" for="save_as_d">Check to save as draft</label>
                     </div>
-                    <button type="submit"
-                      class="btn btn-primary fw-semibold px-4 d-flex align-items-center gap-2"
-                      id="submt">
+                    <button type="submit" class="btn btn-primary fw-semibold px-4 d-flex align-items-center gap-2" id="submt">
                       <span class="btn-icon">
                         <i class="bi bi-arrow-right"></i>
                       </span>
@@ -499,6 +497,8 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
+  let isDirty = false;
+  let isSubmitting = false;
 
   const tpl_data = <?= json_encode($tpl_data) ?>;
 
@@ -889,9 +889,33 @@
         addRow(tpl);
       });
     }
+
     setTimeout(() => {
       initEditCalculation();
     }, 0);
+
+    // input + textarea
+    $('form :input').on('change keyup', function () {
+      isDirty = true;
+    });
+
+    // select2
+    $('form select').on('select2:select select2:unselect', function () {
+      isDirty = true;
+    });
+
+    $('form').on('submit', function () {
+      isSubmitting = true;
+      isDirty = false;
+    });
+
+    // detect leave page
+    window.addEventListener('beforeunload', function (e) {
+      if (isDirty && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
   });
 
   $(document).on('mousedown', 'select[name="benefit_id[]"]', function(event) {
