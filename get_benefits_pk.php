@@ -68,7 +68,7 @@
                             OR subject IN ('" . implode("','", $subject_ids) . "')
                         )
                         ORDER BY id_template_benefit ASC";
-var_dump($query_template);
+
     $result_template = mysqli_query($conn, $query_template);
 
     while ($row = mysqli_fetch_assoc($result_template)) {
