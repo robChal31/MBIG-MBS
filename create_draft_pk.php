@@ -550,6 +550,7 @@ ini_set('display_errors', 1);
         subjects: subjects
       },
       success: function(response) {
+        console.log("response: ", response);
         $('#benefit_container').html(response);
         $('#submit').prop('disabled', true);
       },
