@@ -1,5 +1,8 @@
 <?php
   include 'db_con.php';
+  ini_set('display_errors', '1');
+  ini_set('display_startup_errors', '1');
+  error_reporting(E_ALL);
 
   /* ===================== DATA LOGIC (UNCHANGED) ===================== */
   $current_row    = 1;
@@ -35,27 +38,30 @@
       $program_code = $prog['code'];
     }
 
-    $level_ids_query = count($levels) > 0 ? implode(',', $levels) : NULL;
-    $query_level = "SELECT * FROM levels WHERE id IN ($level_ids_query)";
-
-    $subject_ids_query = count($subjects) > 0 ? implode(',', $subjects) : NULL;
-    $query_subject = "SELECT * FROM subjects WHERE id IN ($subject_ids_query)";
-
-    $exec_level = mysqli_query($conn, $query_level);
-    $exec_subject = mysqli_query($conn, $query_subject);
-
     $level_ids = [];
     $subject_ids = [];
 
-    if ($exec_level && mysqli_num_rows($exec_level) > 0) {
-      while ($row = mysqli_fetch_assoc($exec_level)) {
-        $level_ids[] = $row['name'];
+    if(count($levels) > 0){
+      $level_ids_query = implode(',', $levels);
+      $query_level = "SELECT * FROM levels WHERE id IN ($level_ids_query)";
+      $exec_level = mysqli_query($conn, $query_level);
+
+      if ($exec_level && mysqli_num_rows($exec_level) > 0) {
+        while ($row = mysqli_fetch_assoc($exec_level)) {
+          $level_ids[] = $row['name'];
+        }
       }
     }
 
-    if ($exec_subject && mysqli_num_rows($exec_subject) > 0) {
-      while ($row = mysqli_fetch_assoc($exec_subject)) {
-        $subject_ids[] = $row['name'];
+    if(count($subjects) > 0){
+      $subject_ids_query = implode(',', $subjects);
+      $query_subject = "SELECT * FROM subjects WHERE id IN ($subject_ids_query)";
+      $exec_subject = mysqli_query($conn, $query_subject);
+
+      if ($exec_subject && mysqli_num_rows($exec_subject) > 0) {
+        while ($row = mysqli_fetch_assoc($exec_subject)) {
+          $subject_ids[] = $row['name'];
+        }
       }
     }
 
