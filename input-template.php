@@ -162,7 +162,7 @@ if (!empty($template['benefit'])) {
                             $sql_subject = "SELECT * FROM subjects";
                             $result_subject = $conn->query($sql_subject);
                             while($subject = $result_subject->fetch_assoc()) { ?>
-                                <option value="<?= $subject['id'] ?>" <?= ($template['subject'] ?? '') == $subject['id'] ? 'selected' : '' ?>><?= $subject['name'] ?></option>
+                                <option value="<?= $subject['name'] ?>" <?= ($template['subject'] ?? '') == $subject['name'] ? 'selected' : '' ?>><?= $subject['name'] ?></option>
                             <?php } ; ?>
                     </select>
                 </div>

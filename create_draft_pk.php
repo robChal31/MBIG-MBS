@@ -619,8 +619,6 @@ ini_set('display_errors', 1);
       let selectedSubjects = $('#adoption_subjects').val();
       let selectedLevels = $('#adoption_levels').val();
 
-      console.log('levels', selectedLevels);
-      console.log('subjects', selectedSubjects);
       getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
     })
 
