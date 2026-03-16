@@ -9,7 +9,7 @@ error_reporting(E_ALL);
 $id_template = $_POST['id_template'] ? $_POST['id_template'] : 0;
 
 $template = [];
-$draft_template_q = "SELECT dtb.*, br.unit_bisnis 
+$draft_template_q = "SELECT dtb.*, br.unit_bisnis, br.code
                       FROM draft_template_benefit AS dtb
                       LEFT JOIN benefit_role AS br ON br.id_template = dtb.id_template_benefit
                       WHERE dtb.id_template_benefit = $id_template";
