@@ -828,10 +828,12 @@
 
     $('#accumulated_values').text(formatNumber(total));
 
-    const hasProgram = !!$('select[name="program"]').val();
+    const hasProgram = !!$('input[name="program"]').val();
 
     const totalBook  = $('#titleList .book-row').length > 0;
-
+    console.log('totalBook: ', totalBook);
+    console.log('hasProgram: ', hasProgram);
+    console.log('total: ', total);
     $('#submt').prop(
       'disabled',
       !hasProgram || total < 0 || !totalBook
@@ -897,6 +899,7 @@
           });
         },
         success(response) {
+          console.log('response: ', response);
           Swal.close()
           let booksBySeries = response.data ?? {};
           for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
