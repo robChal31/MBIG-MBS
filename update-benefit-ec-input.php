@@ -13,6 +13,7 @@
   $role     = $_SESSION['role'];
   $id_user  = $_SESSION['id_user'];
   $username = $_SESSION['username'];
+  $generalname = $_SESSION['generalname'];
 
   $query    = "SELECT max_price_percentage, max_discount_percentage, max_benefit_percentage FROM benefit_setting LIMIT 1";
   $result   = mysqli_query($conn, $query);
@@ -1459,8 +1460,10 @@
               $("#program_label").val(programData.program_name);
               $('#modalCashback').val(programData.cashback);
               $('.programNote').toggleClass('d-none', true);
+              console.log(programData);
               $("#inputEC").val(programData.id_ec).trigger('change');
-              $("#select_school").val(programData.school_id ? parseInt(programData.school_id) : '').trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+              // $("#select_school").val(programData.school_id ? parseInt(programData.school_id) : '').trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+              $("#select_school").val(programData.school_id ? parseInt(programData.school_id) : '').trigger('change');
               if (programData.level_ids.length) {
                 $('#adoption_levels').val(programData.level_ids).trigger('change');
               }
