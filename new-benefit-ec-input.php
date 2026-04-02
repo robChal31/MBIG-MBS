@@ -653,6 +653,14 @@
         $('#select_school').html(options).val(schoolId).trigger('change').select2({ width: '100%' });
         schoolReady = true;
       },
+      error(jqXHR, textStatus, errorThrown) {
+        console.error('Error:', textStatus, errorThrown);
+        Swal.fire({
+          title: "Failed!",
+          text: "Failed to get school",
+          icon: "error"
+        })
+      },
       complete() {
         $('.loading_school').addClass('d-none');
         $('.select_school_div').removeClass('d-none');
@@ -1100,9 +1108,15 @@
           });
         }
       },
-      error() {
+      error: function (jqXHR, textStatus, errorThrown) {
         programOmzetSettings = null;
         applyOmzetMode(false);
+        console.error('Error:', textStatus, errorThrown);
+        Swal.fire({
+          title: "Failed!",
+          text: "Failed to get program omzet",
+          icon: "error"
+        })
       }
     });
   }
