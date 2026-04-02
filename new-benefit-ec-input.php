@@ -1486,6 +1486,7 @@
         savedBookCounter++;
       }
     }
+    $('#program').val(programCode.toLowerCase()).trigger('change');
   }
 
 </script>
