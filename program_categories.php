@@ -83,12 +83,7 @@
                             <h6 class="fw-semibold mb-0">Program Categories</h6>
                             <small class="text-muted">Manage program category master data</small>
                         </div>
-                        <button type="button"
-                                class="btn btn-primary btn-sm fw-semibold"
-                                data-action="create"
-                                data-bs-toggle="modal"
-                                data-bs-target="#programCategoryModal"
-                                id="add_program">
+                        <button type="button" class="btn btn-primary btn-sm fw-semibold" data-action="create" data-bs-toggle="modal" data-bs-target="#programCategoryModal" id="add_program">
                             <i class="fa fa-plus me-1"></i> Add Category
                         </button>
                     </div>

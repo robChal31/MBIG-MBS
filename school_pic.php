@@ -97,21 +97,13 @@
 
                                             <?php if(!$row['name']) : ?>
                                                 <li>
-                                                    <a class="dropdown-item text-success"
-                                                    data-id="<?= $row['id_draft'] ?>"
-                                                    data-action="picAct"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#picModal">
+                                                    <a class="dropdown-item text-success" data-id="<?= $row['id_draft'] ?>" data-action="picAct" data-bs-toggle="modal" data-bs-target="#picModal">
                                                         <i class="fa fa-plus me-2"></i> Add PIC
                                                     </a>
                                                 </li>
                                             <?php else : ?>
                                                 <li>
-                                                    <a class="dropdown-item text-primary"
-                                                    data-id="<?= $row['id_draft'] ?>"
-                                                    data-action="picAct"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#picModal">
+                                                    <a class="dropdown-item text-info" data-id="<?= $row['id_draft'] ?>" data-action="picAct" data-bs-toggle="modal" data-bs-target="#picModal">
                                                         <i class="fa fa-pen me-2"></i> Edit PIC
                                                     </a>
                                                 </li>
@@ -119,10 +111,7 @@
 
                                             <?php if($row['is_pk']) : ?>
                                                 <li>
-                                                    <a class="dropdown-item text-primary"
-                                                    href="https://mentaripartner.com"
-                                                    target="_blank"
-                                                    title="Qty manfaat PK3 refill tiap Juli">
+                                                    <a class="dropdown-item text-primary" href="https://mentaripartner.com" target="_blank" title="Qty manfaat PK3 refill tiap Juli">
                                                         <i class="fa fa-link me-2"></i> MPP Portal
                                                     </a>
                                                 </li>

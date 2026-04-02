@@ -37,10 +37,7 @@ $last_path_with_query;
                 <a href="school_pic.php" class="nav-item nav-link <?= $last_path_with_query == 'school_pic.php' ? "active" : '' ?>"><i class="fas fa-users"></i>School Program</a>
             <?php if($_SESSION['role'] == 'admin') { ?>
                 
-                <a class="nav-item nav-link d-flex align-items-center"
-                data-bs-toggle="collapse"
-                href="#collapsibleNav"
-                aria-expanded="false">
+                <a class="nav-item nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#collapsibleNav" aria-expanded="false">
                     <i class="fas fa-database"></i>
                     <span class="flex-grow-1">Master Data</span>
                     <i class="fas fa-chevron-down chevron-icon"></i>
@@ -66,10 +63,7 @@ $last_path_with_query;
                     </ul>
                 </div>
 
-                <a class="nav-item nav-link d-flex align-items-center"
-                data-bs-toggle="collapse"
-                href="#collapsibleNav2"
-                aria-expanded="false">
+                <a class="nav-item nav-link d-flex align-items-center" data-bs-toggle="collapse" href="#collapsibleNav2" aria-expanded="false">
                     <i class="fas fa-chart-line"></i>
                     <span class="flex-grow-1">Report</span>
                     <i class="fas fa-chevron-down chevron-icon"></i>
@@ -92,6 +86,8 @@ $last_path_with_query;
                       
                     </ul>
                 </div>
+
+                <a href="mentari_partner.php" class="nav-item nav-link <?= $last_path_with_query == 'mentari_partner.php' ? "active" : '' ?>"><i class="fas fa-handshake"></i>Mentari Partner</a>
             <?php } ?>
         </div>
     </nav>

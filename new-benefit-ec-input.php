@@ -1978,6 +1978,14 @@
     }
 
   });
+
+  $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
+  console.log("=== AJAX ERROR ===");
+  console.log("URL:", settings.url);
+  console.log("Status:", jqxhr.status);
+  console.log("Response:", jqxhr.responseText);
+  console.log("Error:", thrownError);
+});
 </script>
 
 <?php include 'footer.php'; ?>

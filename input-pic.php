@@ -91,7 +91,7 @@ if ($result->num_rows > 0) {
 
         <h6 class="mt-3 pt-3">Form PIC Program</h6>
 
-        <form action="save-pk.php" method="POST" enctype="multipart/form-data" id="form_pic">
+        <form action="save-pic.php" method="POST" enctype="multipart/form-data" id="form_pic">
             <div class="row">
                 <div class="col-6 mb-3">
                     <label class="form-label">Name</label>

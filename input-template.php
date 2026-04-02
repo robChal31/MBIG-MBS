@@ -83,7 +83,7 @@ if (!empty($template['benefit'])) {
         <form action="save-template.php" method="POST" enctype="multipart/form-data" id="form_template">
             <div class="row">
                 <div class="col-6 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Benefit <?= $template['benefit'] ?? '' ?></label>
+                    <label class="form-label" style="font-size: .85rem;">Benefit</label>
                     <select name="benefit" id="benefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>--Select Benefit --</option>
                         <?php foreach($benefits as $benefit) { ?>
