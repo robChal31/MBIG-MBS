@@ -1424,7 +1424,7 @@
     for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
 
       const books = await getBooks(seriesId);
-
+      console.log('books: ', books);
       if(books.length === 0) {
         Swal.fire({
           title: 'Daftar buku kosong, mohon infokan ke tim developer',
