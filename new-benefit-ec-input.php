@@ -1980,12 +1980,20 @@
   });
 
   $(document).ajaxError(function(event, jqxhr, settings, thrownError) {
-  console.log("=== AJAX ERROR ===");
-  console.log("URL:", settings.url);
-  console.log("Status:", jqxhr.status);
-  console.log("Response:", jqxhr.responseText);
-  console.log("Error:", thrownError);
-});
+    console.log("=== AJAX ERROR ===");
+    console.log("URL:", settings.url);
+    console.log("Status:", jqxhr.status);
+    console.log("Response:", jqxhr.responseText);
+    console.log("Error:", thrownError);
+  });
+
+  window.onerror = function(message, source, lineno, colno, error) {
+    console.log("=== JS ERROR ===");
+    console.log("Message:", message);
+    console.log("Source:", source);
+    console.log("Line:", lineno);
+    console.log("Error object:", error);
+  };
 </script>
 
 <?php include 'footer.php'; ?>
