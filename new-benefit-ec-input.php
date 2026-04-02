@@ -629,6 +629,26 @@
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
+  (function() {
+    const origError = console.error;
+    console.error = function(...args) {
+      origError("🔴 INTERCEPTED ERROR:", ...args);
+    };
+
+    window.onerror = function(msg, src, line, col, err) {
+      console.log("ONERROR:", msg, err);
+    };
+
+    window.addEventListener("unhandledrejection", e => {
+      console.log("PROMISE ERROR:", e.reason);
+    });
+
+    jQuery.readyException = function(error) {
+      console.log("JQUERY ERROR:", error);
+      throw error;
+    };
+  })();
+
   let isDirty = false;
   let isSubmitting = false;
 
@@ -2008,6 +2028,10 @@
     console.log("Line:", lineno);
     console.log("Error object:", error);
   };
+
+  window.addEventListener("unhandledrejection", function(event) {
+    console.error("🔥 UNHANDLED PROMISE:", event.reason);
+  });
 </script>
 
 <?php include 'footer.php'; ?>
