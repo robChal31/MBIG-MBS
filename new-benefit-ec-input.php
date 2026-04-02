@@ -664,7 +664,7 @@
       },
       success(response) {
         let options = '<option value="" disabled>Select a school</option>';
-
+        console.log('fetch schools:', response);
         response.forEach(data => {
           const selected = schoolId == data.id ? 'selected' : '';
           options += `<option value="${data.id}" ${selected}>${data.name}</option>`;
@@ -835,6 +835,7 @@
             ec: ec,
         },
         success: function(response) {
+          console.log('myplan:', response);
           let options = '<option value="" selected>Select a plan</option>';
           response.map((data, index) => {
             // let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : (index === 0 ? 'selected' : '');
@@ -876,6 +877,7 @@
       data: { myplan_id: planId },
       dataType: 'json',
       success: function (res) {
+        console.log('plan data:', res);
         if (res && res.program) {
           const programName = res.program.trim();
           if (res.level_ids.length) {
@@ -1099,6 +1101,7 @@
       data: { program_code: programCode },
       dataType: 'json',
       success(res) {
+        console.log('fetchProgramOmzet', res);
         if (res.status !== 'success') {
           programOmzetSettings = null;
           applyOmzetMode(false);
