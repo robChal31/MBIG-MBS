@@ -802,6 +802,7 @@
           school_id: schoolId,
       },
       success: function(response) {
+        console.log('school programs:', response);
         let options = '<option value="" disabled selected>Select a program</option>';
         response.map((data) => {
           const selected = selectedProgramCode && data.code && selectedProgramCode.toLowerCase() === data.code.toLowerCase() ? 'selected' : '';
