@@ -665,13 +665,15 @@
       success(response) {
         let options = '<option value="" disabled>Select a school</option>';
         console.log('fetch schools:', response);
-        response.forEach(data => {
-          const selected = schoolId == data.id ? 'selected' : '';
-          options += `<option value="${data.id}" ${selected}>${data.name}</option>`;
-        });
+        if(response.length > 0) {
+           response.forEach(data => {
+            const selected = schoolId == data.id ? 'selected' : '';
+            options += `<option value="${data.id}" ${selected}>${data.name}</option>`;
+          });
 
-        $('#select_school').html(options).val(schoolId).trigger('change').select2({ width: '100%' });
-        schoolReady = true;
+          $('#select_school').html(options).val(schoolId).trigger('change').select2({ width: '100%' });
+          schoolReady = true;
+        }
       },
       error(jqXHR, textStatus, errorThrown) {
         console.error('Error:', textStatus, errorThrown);
@@ -804,10 +806,12 @@
       success: function(response) {
         console.log('school programs:', response);
         let options = '<option value="" disabled selected>Select a program</option>';
-        response.map((data) => {
-          const selected = selectedProgramCode && data.code && selectedProgramCode.toLowerCase() === data.code.toLowerCase() ? 'selected' : '';
-          options += `<option value="${data.code}" ${selected}>${data.name}</option>`
-        }) 
+        if(response.length > 0) {
+          response.map((data) => {
+            const selected = selectedProgramCode && data.code && selectedProgramCode.toLowerCase() === data.code.toLowerCase() ? 'selected' : '';
+            options += `<option value="${data.code}" ${selected}>${data.name}</option>`
+          }) 
+        }
 
         $('#program').html(options).trigger('change');
         // $('#program').select2();
@@ -837,11 +841,13 @@
         success: function(response) {
           console.log('myplan:', response);
           let options = '<option value="" selected>Select a plan</option>';
-          response.map((data, index) => {
-            // let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : (index === 0 ? 'selected' : '');
-            let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : ('');
-            options += `<option value="${data.value}" ${selected}>${data.label}</option>`
-          }) 
+          if(response.length > 0) {
+             response.map((data, index) => {
+              // let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : (index === 0 ? 'selected' : '');
+              let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : ('');
+              options += `<option value="${data.value}" ${selected}>${data.label}</option>`
+            }) 
+          }
 
           $('#myplan_id').html(options);
           let planId = $('#myplan_id').val();
