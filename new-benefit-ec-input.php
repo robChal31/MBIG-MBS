@@ -1420,7 +1420,7 @@
 
   async function loadBooks() {
     const totalSeries = Object.keys(booksBySeries).length;
-
+    console.log('totalSeries: ', totalSeries);
     for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
 
       const books = await getBooks(seriesId);
@@ -1473,6 +1473,7 @@
           additionalPriceToAdd = additionalPrice;
 
           selectedDiscount = selectedBook.discount ?? '';
+          console.log('book: ', book);
         });
 
         $('#additional_price').val(formatNumber(additionalPriceToAdd))
