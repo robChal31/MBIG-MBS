@@ -83,6 +83,8 @@
                                 <th>E-mail</th>
                                 <th>Institution Name</th>
                                 <th>No PK</th>
+                                <th>E-mail have been sent</th>
+                                <th>MP Account Created</th>
                                 <th>Created At</th>
                                 <th class="text-center">Action</th>
                             </tr>
@@ -96,7 +98,8 @@
                             $sql = "SELECT 
                                         mps.id, 
                                         mps.name, 
-                                        mps.email, 
+                                        mps.email,
+                                        mps.email_sent, mps.mp_acc_created,
                                         GROUP_CONCAT(DISTINCT pk.no_pk SEPARATOR ', ') as no_pk,
                                         c.generalname, 
                                         IFNULL(sc.name, db.school_name) as school_name2, 
@@ -139,6 +142,16 @@
                                 <td class="fw-semibold"><?= $row['email'] ?></td>
                                 <td style="width: 25%"><?= $row['school_name2'] ?></td>
                                 <td><?= $row['no_pk'] ?: '<span class="text-muted">-</span>' ?></td>
+                                <td class="text-center">
+                                    <?= $row['email_sent']
+                                    ? "<i class='fa fa-check-circle text-success'></i>"
+                                    : "<i class='fa fa-minus-circle text-danger'></i>" ?>
+                                </td>
+                                <td>
+                                    <?= $row['mp_acc_created']
+                                    ? "<i class='fa fa-check-circle text-success'></i>"
+                                    : "<i class='fa fa-minus-circle text-danger'></i>" ?>
+                                </td>
                                 <td><?= $row['created_at'] ?: '<span class="text-muted">-</span>' ?></td>
 
                                 <!-- ACTION -->
@@ -155,6 +168,22 @@
                                                     <i class="fa fa-pen me-2"></i> Edit PIC
                                                 </a>
                                             </li>
+
+                                            <?php if(!$row['email_sent']) { ?>
+                                                <li>
+                                                    <a class="dropdown-item text-info" data-id="<?= $row['id'] ?>" data-action="emailAct" data-bs-toggle="modal" data-bs-target="#mpResendModal">
+                                                        <i class="fa fa-envelope me-2"></i> Send E-mail
+                                                    </a>
+                                                </li>
+                                            <?php } ?>
+
+                                           <?php if(!$row['mp_acc_created']) { ?>
+                                                <li>
+                                                    <a class="dropdown-item text-warning" data-id="<?= $row['id'] ?>" data-action="mpAct" data-bs-toggle="modal" data-bs-target="#mpResendModal">
+                                                        <i class="fa fa-user me-2"></i> Create MP Account
+                                                    </a>
+                                                </li>
+                                            <?php } ?>
 
                                             <li>
                                                 <a class="dropdown-item text-primary" href="https://mentaripartner.com" target="_blank" title="Qty manfaat PK3 refill tiap Juli">
@@ -177,9 +206,6 @@
 
         </div>
     </div>
-    <!-- Sale & Revenue End -->
-
-    <!-- Modal -->
 
     <div class="modal fade" id="mpartnerModal" tabindex="-1" role="dialog" aria-labelledby="mpartnerModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-lg" role="document">
@@ -191,6 +217,23 @@
                     </button>
                 </div>
                 <div class="modal-body" id="mpartnerModalBody">
+                    Loading...
+                </div>
+               
+            </div> 
+        </div>
+    </div>
+
+    <div class="modal fade" id="mpResendModal" tabindex="-1" role="dialog" aria-labelledby="mpResendModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mpResendModalLabel">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" id="mpResendModalBody">
                     Loading...
                 </div>
                
@@ -218,7 +261,28 @@
             },
             success: function(data) {
                 $('#mpartnerModalBody').html(data);
-                $('#detail-benefit').attr('href', 'detail-benefit.php?id=' + rowid);
+            }
+        });
+    })
+
+    var mpResendModal = document.getElementById('mpResendModal');
+    mpResendModal.addEventListener('show.bs.modal', function (event) {
+        var button = event.relatedTarget;
+        var rowid = button.getAttribute('data-id');
+        let action = event.relatedTarget.getAttribute('data-action');
+
+        var modalTitle = mpResendModal.querySelector('.modal-title')
+        modalTitle.textContent = action == 'emailAct' ?  "Send E-mail" : "Create MP Account";
+        
+        $.ajax({
+            url: 'mp-act.php',
+            type: 'POST',
+            data: {
+                id: rowid,
+                action: action
+            },
+            success: function(data) {
+                $('#mpResendModalBody').html(data);
             }
         });
     })

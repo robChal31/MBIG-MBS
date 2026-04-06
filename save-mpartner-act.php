@@ -17,14 +17,6 @@ if (!isset($_SESSION['username'])){
 
 $config = require 'config.php';
 
-function error_json($msg){
-    echo json_encode([
-        'status' => 'error',
-        'message' => $msg
-    ]);
-    exit();
-}
-
 function sendEmail($email, $name, $subject, $message, $config, $cc = []) {
     $mail = new PHPMailer(true);
     try {
@@ -61,84 +53,36 @@ function sanitize_input($conn, $input) {
     return mysqli_real_escape_string($conn, str_replace(["&#13;", "&#10;"], ["\r", "\n"], $input));
 }
 
-$id             = (int) ($_POST['id'] ?? 0);
-$name           = sanitize_input($conn, $_POST['name'] ?? '');
-$email          = sanitize_input($conn, $_POST['email'] ?? '');
-$institution_id = (int) ($_POST['institution_id'] ?? 0);
-$pks            = $_POST['pks'] ?? [];
+$id     = $_POST['id'] ? $_POST['id'] : 0;
+$action = $_POST['action'] ?? '';
 
-if (!is_array($pks) || count($pks) == 0) {
-    error_json("Please select at least one PK");
+$mpartner = [];
+$mp_sql = "SELECT mpu.*
+            FROM mp_users AS mpu
+            WHERE mpu.id = $id";
+$draft_exec = mysqli_query($conn, $mp_sql);
+if (mysqli_num_rows($draft_exec) > 0) {
+  $mpartner = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
 }
 
+$mpartner = $mpartner[0] ?? [];
+
+if($mpartner == []) {
+    error_json([
+        'status' => 'error',
+        'message' => "User not found"
+    ]);
+
+    exit();
+}
+
+$email = sanitize_input($conn, $mpartner['email'] ?? '');
+$name = sanitize_input($conn, $mpartner['name'] ?? '');
+
 try {
-    $conn->begin_transaction();
 
-    // CHECK UNIQUE EMAIL
-    $check_email_q = "SELECT id FROM mp_users WHERE email = '$email' AND id != $id";
-    $check_email_exec = $conn->query($check_email_q);
-    if ($check_email_exec === false) {
-        throw new Exception($conn->error);
-    }
+    if ($action == 'emailAct') {
 
-    if ($check_email_exec->num_rows > 0) {
-        throw new Exception('Email already exists');
-    }
-
-    // CHECK EXIST
-    $mpartner_exist_q = "SELECT id, email_sent FROM mp_users WHERE id = '$id'";
-    $is_mpartner_exist_exec = $conn->query($mpartner_exist_q);
-
-    if ($is_mpartner_exist_exec === false) {
-        throw new Exception($conn->error);
-    }
-
-    $is_mpartner_exist = $is_mpartner_exist_exec->num_rows > 0;
-
-    $isNew = false;
-    $email_sent = 0;
-
-    if ($is_mpartner_exist) {
-        $row = $is_mpartner_exist_exec->fetch_assoc();
-        $email_sent = (int) $row['email_sent'];
-    }
-
-    if ($is_mpartner_exist) {
-        $sql = "UPDATE mp_users 
-                SET name = '$name', email = '$email', institution_id = '$institution_id'
-                WHERE id = '$id'";
-
-        if (!$conn->query($sql)) {
-            throw new Exception($conn->error);
-        }
-
-    } else {
-        $isNew = true;
-
-        $sql = "INSERT INTO mp_users (name, email, institution_id, email_sent) 
-                VALUES ('$name', '$email', '$institution_id', 0)";
-
-        if (!$conn->query($sql)) {
-            throw new Exception($conn->error);
-        }
-
-        $id = $conn->insert_id;
-    }
-
-    // DELETE RELATION
-    if (!$conn->query("DELETE FROM mp_user_pks WHERE user_id = '$id'")) {
-        throw new Exception($conn->error);
-    }
-
-    foreach ($pks as $pk) {
-        $pk = (int)$pk;
-        if (!$conn->query("INSERT INTO mp_user_pks (user_id, pk_id) VALUES ($id, $pk)")) {
-            throw new Exception($conn->error);
-        }
-    }
-
-    // SEND EMAIL ONLY IF NEW
-    if ($isNew ) {
         $setupLink = "https://mentaripartner.com/setup-password.php?email=" . urlencode($email);
 
         $subject = "Welcome to Mentari Partner";
@@ -226,8 +170,9 @@ try {
         if ($sent) {
             $conn->query("UPDATE mp_users SET email_sent = 1 WHERE id = $id");
         }
-
-         $postData = json_encode([
+    } else if($action == 'mpAct') {
+        
+        $postData = json_encode([
             'email' => $email,
             'name' => $name,
         ]);
@@ -274,8 +219,6 @@ try {
             throw new Exception($errorMessage);
         }
     }
-
-    $conn->commit();
 
     echo json_encode([
         'status' => 'success',

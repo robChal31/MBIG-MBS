@@ -68,8 +68,8 @@
                                 SELECT 1 FROM draft_benefit ref 
                                 WHERE ref.ref_id = db.id_draft AND ref.confirmed = 1
                             )
-                        ) AS tab $query_selected_usage_year;";
-
+                        ) AS tab $query_selected_usage_year GROUP BY id_benefit_list;";
+    var_dump($query_benefits);
     $exec_benefits = mysqli_query($conn, $query_benefits);
     // var_dump($query_benefits);
     if (mysqli_num_rows($exec_benefits) > 0) {
