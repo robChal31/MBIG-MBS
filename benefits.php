@@ -393,7 +393,8 @@
                 </table>
             </div>
         `);
-
+        console.log(selectedType);
+        console.log(usage_year);
         // Initialize DataTable with server-side processing
         var table = $('#table_id').DataTable({
             processing: true,

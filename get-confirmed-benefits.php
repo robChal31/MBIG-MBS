@@ -10,10 +10,10 @@ error_reporting(E_ALL);
 set_time_limit(300);
 ini_set('max_execution_time', 300);
 
-if (!isset($_SESSION['username'])) { 
-    header("Location: ./index.php");
-    exit();
-}
+// if (!isset($_SESSION['username'])) { 
+//     header("Location: ./index.php");
+//     exit();
+// }
 
 $role = $_SESSION['role'];
 $types = isset($_POST['types']) ? $_POST['types'] : [];
