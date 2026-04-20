@@ -43,6 +43,33 @@ $columnMap = [
 $orderBy = isset($columnMap[$orderColumn]) ? $columnMap[$orderColumn] : 'p.no_pk';
 $orderDir = strtoupper($orderDir) === 'ASC' ? 'ASC' : 'DESC';
 
+// ========== TEMPORARY TABLE UNTUK FILTER ID (IN CLAUSE) ==========
+$temp_table_created = false;
+if (!empty($types)) {
+    // Gabungkan semua ID
+    $all_ids = [];
+    foreach ($types as $type) {
+        $ids = explode(',', $type);
+        $all_ids = array_merge($all_ids, $ids);
+    }
+    $all_ids = array_unique(array_map('intval', $all_ids));
+    
+    if (!empty($all_ids)) {
+        // Buat temporary table
+        $temp_table = "temp_benefit_ids_" . md5(uniqid());
+        mysqli_query($conn, "DROP TEMPORARY TABLE IF EXISTS $temp_table");
+        mysqli_query($conn, "CREATE TEMPORARY TABLE $temp_table (id_template INT PRIMARY KEY)");
+        
+        // Insert ID ke temporary table (batch insert)
+        $chunks = array_chunk($all_ids, 100);
+        foreach ($chunks as $chunk) {
+            $values = "(" . implode("),(", $chunk) . ")";
+            mysqli_query($conn, "INSERT IGNORE INTO $temp_table VALUES $values");
+        }
+        $temp_table_created = true;
+    }
+}
+
 // ========== BUILD WHERE CONDITIONS ==========
 $where_conditions = [
     "db.confirmed = 1",
@@ -54,19 +81,9 @@ if ($role == 'ec' && isset($_SESSION['id_user'])) {
     $where_conditions[] = "db.id_ec = " . intval($_SESSION['id_user']);
 }
 
-// Filter by benefit types
-if (!empty($types)) {
-    $all_ids = [];
-    foreach ($types as $type) {
-        $ids = explode(',', $type);
-        $all_ids = array_merge($all_ids, $ids);
-    }
-    $all_ids = array_unique($all_ids);
-    
-    if (!empty($all_ids)) {
-        $id_list = implode(',', array_map('intval', $all_ids));
-        $where_conditions[] = "dbl.id_template IN ($id_list)";
-    }
+// Filter pakai temporary table (jauh lebih cepat dari IN clause)
+if ($temp_table_created) {
+    $where_conditions[] = "EXISTS (SELECT 1 FROM $temp_table tmp WHERE tmp.id_template = dbl.id_template)";
 }
 
 // Search condition
@@ -187,6 +204,11 @@ $exec_benefits = mysqli_query($conn, $query);
 $benefits = [];
 if ($exec_benefits && mysqli_num_rows($exec_benefits) > 0) {
     $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);
+}
+
+// ========== CLEAN UP TEMPORARY TABLE ==========
+if ($temp_table_created) {
+    mysqli_query($conn, "DROP TEMPORARY TABLE IF EXISTS $temp_table");
 }
 
 // ========== FORMAT DATA FOR DATATABLE ==========
