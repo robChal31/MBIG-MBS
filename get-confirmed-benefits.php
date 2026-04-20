@@ -1,83 +1,150 @@
 <?php
-    include 'db_con.php';
-    ob_start();
-    session_start();
+include 'db_con.php';
+ob_start();
+session_start();
 
-    ini_set('display_errors', '1');
-    ini_set('display_startup_errors', '1');
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+error_reporting(E_ALL);
 
-    error_reporting(E_ALL);
+set_time_limit(300);
+ini_set('max_execution_time', 300);
 
-    if (!isset($_SESSION['username'])){ 
-        header("Location: ./index.php");
-        exit();
+if (!isset($_SESSION['username'])) { 
+    header("Location: ./index.php");
+    exit();
+}
+
+$role = $_SESSION['role'];
+$types = isset($_POST['types']) ? $_POST['types'] : [];
+$usage_year = isset($_POST['usage_year']) ? $_POST['usage_year'] : [];
+
+// ========== OPTIMASI KRUSIAL: Gunakan temporary table untuk ID ==========
+// Buat temporary table untuk menyimpan ID yang difilter
+if (!empty($types)) {
+    // Gabungkan semua ID jadi satu array
+    $all_ids = [];
+    foreach ($types as $type) {
+        $ids = explode(',', $type);
+        $all_ids = array_merge($all_ids, $ids);
     }
-
-    $role                       = $_SESSION['role'];
-    $types                      = ISSET($_POST['types']) ? $_POST['types'] : [];
-    $usage_year                 = ISSET($_POST['usage_year']) ? $_POST['usage_year'] : [];
-    $selected_type              = implode(",", $types);
-    $query_selected_usage_year  = "";
+    $all_ids = array_unique($all_ids);
     
-    foreach ($usage_year as $key => $value) {
-        $query_selected_usage_year .= $key == 0 ? " WHERE tab.tot_usage$value > 0" : " OR tab.tot_usage$value > 0";
+    // Buat temporary table
+    $temp_table = "temp_benefit_ids_" . md5(session_id());
+    mysqli_query($conn, "DROP TEMPORARY TABLE IF EXISTS $temp_table");
+    mysqli_query($conn, "CREATE TEMPORARY TABLE $temp_table (id_template INT PRIMARY KEY)");
+    
+    // Insert ID ke temporary table (batch insert)
+    if (!empty($all_ids)) {
+        $chunks = array_chunk($all_ids, 100);
+        foreach ($chunks as $chunk) {
+            $values = implode(',', array_map('intval', $chunk));
+            mysqli_query($conn, "INSERT IGNORE INTO $temp_table VALUES (" . implode("),(", $chunk) . ")");
+        }
     }
+}
 
-    $benefits               = [];
-    $query_selected_type    = $selected_type ? " AND dbl.id_template IN ($selected_type)" : "";
-    $query_role             = $role == 'ec' ? " AND db.id_ec = $_SESSION[id_user]" : "";  
+// ========== BUILD QUERY YANG LEBIH EFISIEN ==========
+$query_benefits = "
+    SELECT 
+        db.id_draft,
+        db.year as prog_year,
+        db.school_name,
+        db.program,
+        db.confirmed,
+        dbl.id_benefit_list,
+        dbl.benefit_name as benefit,
+        dbl.subbenefit,
+        dbl.pelaksanaan,
+        dbl.description,
+        dbl.qty,
+        dbl.qty2,
+        dbl.qty3,
+        p.no_pk,
+        p.start_at,
+        p.expired_at,
+        p.perubahan_tahun,
+        dtb.redeemable,
+        dtb.subject,
+        ec.generalname,
+        IFNULL(sc.name, db.school_name) AS school_name2,
+        prog.name as program_name,
+        COALESCE(bu.tot_usage1, 0) as tot_usage1,
+        COALESCE(bu.tot_usage2, 0) as tot_usage2,
+        COALESCE(bu.tot_usage3, 0) as tot_usage3,
+        CASE 
+            WHEN ref_count.ref_count > 0 THEN 1 
+            ELSE 0 
+        END AS has_ref_usage
+    FROM draft_benefit db
+    INNER JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
+    LEFT JOIN (
+        SELECT 
+            id_benefit_list,
+            SUM(COALESCE(qty1, 0)) AS tot_usage1,
+            SUM(COALESCE(qty2, 0)) AS tot_usage2,
+            SUM(COALESCE(qty3, 0)) AS tot_usage3
+        FROM benefit_usages 
+        GROUP BY id_benefit_list
+    ) bu ON bu.id_benefit_list = dbl.id_benefit_list
+    LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
+    LEFT JOIN pk p ON p.benefit_id = db.id_draft
+    LEFT JOIN schools sc ON sc.id = db.school_name
+    LEFT JOIN user ec ON ec.id_user = db.id_ec
+    LEFT JOIN programs prog ON (prog.name = db.program OR prog.code = db.program)
+    LEFT JOIN (
+        SELECT ref.ref_id, COUNT(*) as ref_count
+        FROM draft_benefit ref
+        WHERE ref.confirmed = 1
+        GROUP BY ref.ref_id
+    ) ref_count ON ref_count.ref_id = db.id_draft
+    WHERE db.confirmed = 1 
+        AND db.deleted_at IS NULL
+";
 
-    $query_benefits = "SELECT * 
-                        FROM (
-                            SELECT 
-                                db.*, db.year as prog_year, dbl.id_benefit_list, dbl.benefit_name as benefit, dbl.subbenefit, 
-                                dbl.pelaksanaan, dbl.description, dbl.qty, dbl.qty2, dbl.qty3, p.no_pk, p.start_at, p.expired_at, dtb.redeemable, ec.generalname,
-                                IFNULL(sc.name, db.school_name) AS school_name2, p.perubahan_tahun, prog.name as program_name, dtb.subject,
-                                bu.tot_usage1,
-                                bu.tot_usage2,
-                                bu.tot_usage3,
-                                CASE 
-                                    WHEN EXISTS (
-                                        SELECT 1 
-                                        FROM draft_benefit AS ref 
-                                        WHERE ref.ref_id = db.id_draft
-                                        AND ref.confirmed = 1
-                                    ) THEN 1 
-                                    ELSE 0 
-                                END AS has_ref_usage
-                            FROM draft_benefit AS db
-                            LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
-                            LEFT JOIN (
-                                SELECT 
-                                    SUM(COALESCE(bu.qty1, 0)) AS tot_usage1, 
-                                    SUM(COALESCE(bu.qty2, 0)) AS tot_usage2, 
-                                    SUM(COALESCE(bu.qty3, 0)) AS tot_usage3, 
-                                    bu.id_benefit_list AS id_bl 
-                                FROM benefit_usages bu 
-                                GROUP BY bu.id_benefit_list
-                            ) AS bu ON bu.id_bl = dbl.id_benefit_list
-                            LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
-                            LEFT JOIN pk p ON p.benefit_id = db.id_draft
-                            LEFT JOIN schools sc ON sc.id = db.school_name
-                            LEFT JOIN user ec ON ec.id_user = db.id_ec
-                            LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
-                            WHERE db.confirmed = 1 AND db.deleted_at IS NULL
-                            $query_selected_type
-                            $query_role 
-                            AND NOT EXISTS (
-                                SELECT 1 FROM draft_benefit ref 
-                                WHERE ref.ref_id = db.id_draft AND ref.confirmed = 1
-                            )
-                        ) AS tab $query_selected_usage_year GROUP BY id_benefit_list;";
+// Gunakan temporary table untuk filter ID (jauh lebih cepat dari IN clause)
+if (!empty($types) && isset($temp_table)) {
+    $query_benefits .= " AND EXISTS (SELECT 1 FROM $temp_table tmp WHERE tmp.id_template = dbl.id_template)";
+}
 
-    $exec_benefits = mysqli_query($conn, $query_benefits);
-    // var_dump($query_benefits);
-    if (mysqli_num_rows($exec_benefits) > 0) {
-        $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);    
+if ($role == 'ec' && isset($_SESSION['id_user'])) {
+    $query_benefits .= " AND db.id_ec = " . intval($_SESSION['id_user']);
+}
+
+// Filter untuk mengecualikan yang sudah punya ref
+$query_benefits .= " AND NOT EXISTS (SELECT 1 FROM draft_benefit ref WHERE ref.ref_id = db.id_draft AND ref.confirmed = 1)";
+
+$query_benefits .= " GROUP BY dbl.id_benefit_list";
+
+// Apply usage year filter di HAVING clause
+if (!empty($usage_year)) {
+    $usage_conditions = [];
+    foreach ($usage_year as $value) {
+        $usage_conditions[] = "COALESCE(bu.tot_usage$value, 0) > 0";
     }
+    $query_benefits .= " HAVING " . implode(" OR ", $usage_conditions);
+}
+
+// Urutkan berdasarkan no_pk terbaru
+$query_benefits .= " ORDER BY p.no_pk DESC";
+
+// Eksekusi query
+$exec_benefits = mysqli_query($conn, $query_benefits);
+$benefits = [];
+
+if ($exec_benefits && mysqli_num_rows($exec_benefits) > 0) {
+    $benefits = mysqli_fetch_all($exec_benefits, MYSQLI_ASSOC);
+}
+
+// Clean up temporary table
+if (isset($temp_table)) {
+    mysqli_query($conn, "DROP TEMPORARY TABLE IF EXISTS $temp_table");
+}
 ?>
 
 <div class="container-fluid p-1">
+
     <!-- TABLE -->
     <div class="table-responsive">
         <table class="table align-middle" id="table_id">
@@ -103,55 +170,61 @@
             </thead>
 
             <tbody>
-            <?php foreach ($benefits as $loop => $benefit): ?>
+            <?php if (empty($benefits)): ?>
+                <tr>
+                    <td colspan="16" class="text-center text-muted py-4">
+                        <i class="fa fa-inbox fa-2x d-block mb-2"></i>
+                        Tidak ada data benefit
+                    </td>
+                </tr>
+            <?php else: ?>
+                <?php foreach ($benefits as $loop => $benefit): ?>
                 <?php
-                    if (strtolower($benefit['program']) === 'cbls3' && $benefit['prog_year'] == 1) {
-                        $benefit['qty2'] = $benefit['qty'];
-                        $benefit['qty3'] = $benefit['qty'];
+                    if (strtolower($benefit['program'] ?? '') === 'cbls3' && ($benefit['prog_year'] ?? 0) == 1) {
+                        $benefit['qty2'] = $benefit['qty'] ?? 0;
+                        $benefit['qty3'] = $benefit['qty'] ?? 0;
                     }
 
-                    $programe_name = $benefit['prog_year'] == 1
-                        ? $benefit['program_name']
-                        : ($benefit['program_name'] . " Perubahan Tahun Ke " . $benefit['prog_year']);
+                    $programe_name = ($benefit['prog_year'] ?? 0) == 1
+                        ? ($benefit['program_name'] ?? '-')
+                        : (($benefit['program_name'] ?? '-') . " Perubahan Tahun Ke " . ($benefit['prog_year'] ?? ''));
 
                     $expiredTime = !empty($benefit['expired_at'])
                         ? strtotime($benefit['expired_at'])
                         : null;
 
-                    // expired asli
                     $is_expired = ($expiredTime && $expiredTime < time());
+                    $has_ref_usage = $benefit['has_ref_usage'] ?? 0;
 
-                    $is_grace_expired = ($expiredTime && time() > strtotime('+6 months', $expiredTime));
-
-                    $row_class = $is_expired || $benefit['has_ref_usage']
+                    $row_class = $is_expired || $has_ref_usage
                         ? "table-danger"
                         : (
-                            !$query_selected_usage_year &&
-                            ($benefit['tot_usage1'] > 0 || $benefit['tot_usage2'] > 0 || $benefit['tot_usage3'] > 0)
+                            empty($usage_year) &&
+                            (($benefit['tot_usage1'] ?? 0) > 0 || ($benefit['tot_usage2'] ?? 0) > 0 || ($benefit['tot_usage3'] ?? 0) > 0)
                             ? "table-info"
                             : ""
                         );
                 ?>
                 <tr class="<?= $row_class ?>" title="<?= $is_expired ? 'Benefit Expired' : '' ?>">
-                    <td><?= $benefit['no_pk'] ?></td>
+                    <td><?= htmlspecialchars($benefit['no_pk'] ?? '-') ?></td>
                     <td>
-                        <?= strtoupper($programe_name) ?>
-                        <?= $benefit['perubahan_tahun'] ? " Perubahan Manual Tahun Ke ".$benefit['perubahan_tahun'] : '' ?>
+                        <?= strtoupper(htmlspecialchars($programe_name)) ?>
+                        <?= ($benefit['perubahan_tahun'] ?? '') ? " Perubahan Manual Tahun Ke " . htmlspecialchars($benefit['perubahan_tahun']) : '' ?>
                     </td>
-                    <td><?= $benefit['school_name2'] ?></td>
-                    <td class="fw-semibold"><?= $benefit['generalname'] ?></td>
-                    <td><?= $benefit['benefit'] ?></td>
-                    <td><?= $benefit['subbenefit'] ?></td>
-                    <td><?= $benefit['subject'] ?></td>
-                    <td><?= $benefit['start_at'] ?></td>
-                    <td><?= $benefit['expired_at'] ?></td>
+                    <td><?= htmlspecialchars($benefit['school_name2'] ?? '-') ?></td>
+                    <td class="fw-semibold"><?= htmlspecialchars($benefit['generalname'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($benefit['benefit'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($benefit['subbenefit'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($benefit['subject'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($benefit['start_at'] ?? '-') ?></td>
+                    <td><?= htmlspecialchars($benefit['expired_at'] ?? '-') ?></td>
 
-                    <td class="text-center"><?= $benefit['qty'] ?></td>
-                    <td class="text-center"><?= $benefit['tot_usage1'] ?? 0 ?></td>
-                    <td class="text-center"><?= $benefit['qty2'] ?></td>
-                    <td class="text-center"><?= $benefit['tot_usage2'] ?? 0 ?></td>
-                    <td class="text-center"><?= $benefit['qty3'] ?></td>
-                    <td class="text-center"><?= $benefit['tot_usage3'] ?? 0 ?></td>
+                    <td class="text-center"><?= htmlspecialchars($benefit['qty'] ?? 0) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($benefit['tot_usage1'] ?? 0) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($benefit['qty2'] ?? 0) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($benefit['tot_usage2'] ?? 0) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($benefit['qty3'] ?? 0) ?></td>
+                    <td class="text-center"><?= htmlspecialchars($benefit['tot_usage3'] ?? 0) ?></td>
 
                     <td class="text-center">
                         <div class="dropdown" data-bs-boundary="window">
@@ -169,9 +242,9 @@
                                     </a>
                                 </li>
 
-                                <?php if ($benefit['confirmed'] == 1): ?>
+                                <?php if (($benefit['confirmed'] ?? 0) == 1): ?>
                                     <?php if ((!$is_expired && 
-                                        (($_SESSION['role'] === "ec" && $benefit['redeemable'] == 1) || ($_SESSION['role'] !== "ec" && !$benefit['has_ref_usage']))) || $_SESSION['role'] !== "ec"
+                                        (($_SESSION['role'] === "ec" && ($benefit['redeemable'] ?? 0) == 1) || ($_SESSION['role'] !== "ec" && !$has_ref_usage))) || $_SESSION['role'] !== "ec"
                                     ): ?>
                                         <li>
                                             <a class="dropdown-item text-warning"
@@ -205,16 +278,17 @@
                         </div>
                     </td>
                 </tr>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php endif; ?>
             </tbody>
         </table>
     </div>
-
 </div>
 
- 
-<?php $conn->close();?>
+<?php $conn->close(); ?>
+
 <script>
+$(document).ready(function() {
     $('#table_id').DataTable({
         dom: 'Bfrtilp',
         pageLength: 20,
@@ -270,9 +344,5 @@
             });
         }
     });
+});
 </script>
-
-
-    
-    
-    
