@@ -242,9 +242,9 @@ try {
         // 9. Insert history baru untuk event baru
         $description = "Moved from previous event (ID: $historyId) - New event: $newEventId";
         $insertSql = "INSERT INTO benefit_usages 
-                        (id_benefit_list, user_id, description, $currentQtyField, used_at, redeem_code, status) 
+                        (id_benefit_list, user_id, description, $currentQtyField, used_at, redeem_code) 
                     VALUES 
-                        ('$benefitId', '$userId', '$description', $qty, NOW(), '$newRedeemCodeForNew', 1)";
+                        ('$benefitId', '$userId', '$description', $qty, NOW(), '$newRedeemCodeForNew')";
         
         if (!mysqli_query($conn, $insertSql)) {
             throw new Exception('Failed to create new benefit record: ' . mysqli_error($conn));

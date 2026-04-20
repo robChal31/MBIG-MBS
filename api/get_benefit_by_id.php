@@ -223,7 +223,6 @@ $usageDetailSql = "SELECT
                         qty3,
                         used_at,
                         redeem_code,
-                        status,
                         created_at,
                         updated_at
                     FROM benefit_usages 
@@ -245,7 +244,6 @@ if (mysqli_num_rows($usageDetailResult) > 0) {
             'qty3' => (int)$usageRow['qty3'],
             'used_at' => $usageRow['used_at'],
             'redeem_code' => $usageRow['redeem_code'],
-            'status' => $usageRow['status'],
             'created_at' => $usageRow['created_at'],
             'updated_at' => $usageRow['updated_at']
         ];
