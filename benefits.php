@@ -361,25 +361,133 @@
         let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
 
-        $.ajax({
-            url: './get-confirmed-benefits.php',
-            type: 'POST',
-            data: {
-                types: selectedType,
-                usage_year : usage_year
+        // Destroy existing DataTable if any
+        if ($.fn.DataTable.isDataTable('#table_id')) {
+            $('#table_id').DataTable().destroy();
+        }
+
+        $('#benefits-container').html(`
+            <div class="table-responsive">
+                <table class="table align-middle" id="table_id" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th style="width:4%">No PK</th>
+                            <th>Jenis Program</th>
+                            <th>School</th>
+                            <th>EC Name</th>
+                            <th>Benefit</th>
+                            <th style="width:6%">Sub Benefit</th>
+                            <th>Subject</th>
+                            <th>Active From</th>
+                            <th>Expired At</th>
+                            <th class="text-center">Year 1</th>
+                            <th class="text-center">Total Usage Y1</th>
+                            <th class="text-center">Year 2</th>
+                            <th class="text-center">Total Usage Y2</th>
+                            <th class="text-center">Year 3</th>
+                            <th class="text-center">Total Usage Y3</th>
+                            <th class="text-center" style="width:10%">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        `);
+
+        // Initialize DataTable with server-side processing
+        var table = $('#table_id').DataTable({
+            processing: true,
+            serverSide: true,
+            ajax: {
+                url: './get-confirmed-benefits.php',
+                type: 'POST',
+                data: function(d) {
+                    d.types = selectedType;
+                    d.usage_year = usage_year;
+                },
+                error: function(xhr, error, code) {
+                    console.error('Error:', xhr.responseText);
+                    $('#benefits-container').html('<div class="alert alert-danger">Error loading data: ' + xhr.status + '</div>');
+                }
             },
-            beforeSend: function() {
-                $('#benefits-container').html('<div class="text-center" style="height: 200px; display: flex; align-items: center; justify-content: center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>')
+            columns: [
+                { data: 'no_pk', name: 'no_pk' },
+                { data: 'program', name: 'program' },
+                { data: 'school', name: 'school' },
+                { data: 'ec_name', name: 'ec_name' },
+                { data: 'benefit', name: 'benefit' },
+                { data: 'subbenefit', name: 'subbenefit' },
+                { data: 'subject', name: 'subject' },
+                { data: 'start_at', name: 'start_at' },
+                { data: 'expired_at', name: 'expired_at' },
+                { data: 'qty', className: 'text-center' },
+                { data: 'tot_usage1', className: 'text-center' },
+                { data: 'qty2', className: 'text-center' },
+                { data: 'tot_usage2', className: 'text-center' },
+                { data: 'qty3', className: 'text-center' },
+                { data: 'tot_usage3', className: 'text-center' },
+                { data: 'action', orderable: false, searchable: false, className: 'text-center' }
+            ],
+            order: [[0, 'desc']],
+            pageLength: 20,
+            lengthMenu: [10, 20, 50, 100],
+            dom: 'Bfrtilp',
+            buttons: [
+                { 
+                    extend: 'copyHtml5',
+                    className: 'btn-custom',
+                    attr: { style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;' }
+                },
+                { 
+                    extend: 'excelHtml5',
+                    className: 'btn-custom',
+                    attr: { style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' }
+                },
+                { 
+                    extend: 'csvHtml5',
+                    className: 'btn-custom',
+                    attr: { style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;' }
+                },
+                { 
+                    extend: 'pdfHtml5',
+                    className: 'btn-custom',
+                    attr: { style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;' }
+                }
+            ],
+            drawCallback: function(settings) {
+                // Apply row classes
+                var api = this.api();
+                var data = api.rows().data();
+                
+                api.rows().every(function(rowIdx, tableLoop, rowLoop) {
+                    var rowData = this.data();
+                    var rowNode = this.node();
+                    
+                    if (rowData.row_class) {
+                        $(rowNode).addClass(rowData.row_class);
+                    }
+                });
             },
-            success: function(response) {
-                $('#benefits-container').html(response)
-            },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                $('#benefits-container').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+            language: {
+                processing: '<div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>',
+                search: "Search:",
+                lengthMenu: "Show _MENU_ entries",
+                info: "Showing _START_ to _END_ of _TOTAL_ entries",
+                zeroRecords: "No matching records found"
             }
         });
     }
+
+    // Panggil filter
+    $('#filter-btn').click(function() {
+        getBenefit();
+    });
+
+    // Initial load
+    $(document).ready(function() {
+        $('.select2').select2({});
+        getBenefit();
+    });
 
     $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');
