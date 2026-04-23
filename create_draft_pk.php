@@ -360,6 +360,7 @@ ini_set('display_errors', 1);
   let idDraft   = '<?= $id_draft ?>';
   let program   = '<?= $program ?>';
   let schoolId  = '<?= $school_name ?>';
+  let idEc      = '<?= $id_ec ?>';
 
   let isDirty = false;
   let isSubmitting = false;
@@ -567,10 +568,11 @@ ini_set('display_errors', 1);
     return $.ajax({
       url: `./get_benefits_pk.php?id_draft=${idDraft}&program=${program}`,
       type: 'GET',
-      success: function (response) {
+      success: async function (response) {
         $('#benefit_container').html(response);
-        loadSchoolSelect();
         getPrograms(schoolId, formatGroupItems, program);
+        const userData = await getUserData(idEc);
+        loadSchoolSelect(userData.username);
       },
       error: function (jqXHR, textStatus, errorThrown) {
         console.log('Error benefit:', textStatus);
