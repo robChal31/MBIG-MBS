@@ -188,7 +188,7 @@ ini_set('display_errors', 1);
                     </div>
                     <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
                   <?php } else { ?>
-                    <select name="inputEC" id="select_ec" class="form-select form-select-sm select2" required>
+                    <select name="inputEC" id="inputEC" class="form-select form-select-sm select2" required>
                       <option value="">Pilih EC</option>
                       <?php foreach($ecs as $ec) { ?>
                         <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>>
@@ -385,9 +385,10 @@ ini_set('display_errors', 1);
     return data.text;
   }
 
-  function loadSchoolSelect() {
+  function loadSchoolSelect(email) {
+    email = email ?? '<?= $_SESSION['username'] ?>';
     $.ajax({
-      url: 'https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=<?= $_SESSION['username'] ?>',
+      url: `https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`,
       type: 'GET',
       dataType: 'json',
       beforeSend: function () {
@@ -585,6 +586,34 @@ ini_set('display_errors', 1);
     }
   }
 
+  async function getUserData(userId) {
+    try {
+      $('.loading_school').removeClass('d-none');
+
+      const res = await $.ajax({
+        url: 'get-user-data.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { id_user: userId }
+      });
+
+      return res;
+
+    } catch (err) {
+      console.error('Error:', err);
+      Swal.fire({
+        title: "Failed!",
+        text: "Failed to get user data",
+        icon: "error"
+      })
+      return null;
+
+    } finally {
+      $('.loading_school').addClass('d-none');
+    }
+  }
+
+
   $(document).ready(function(){
 
     $('.select2').select2({
@@ -607,7 +636,14 @@ ini_set('display_errors', 1);
       if (schoolId) getPrograms(schoolId, formatGroupItems);
     });
 
-    $('#select_ec').on('change', function() {
+    $('#inputEC').on('change', async function() {
+      const userId = $(this).val();
+      if (!userId) return;
+
+      const userData = await getUserData(userId);
+      if (!userData) return;
+
+      await loadSchoolSelect(userData.username);
       getMyPlanRef();
     });
 
