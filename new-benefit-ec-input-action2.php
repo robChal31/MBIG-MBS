@@ -127,7 +127,7 @@
             }
         }
 
-        $ec_query = "SELECT ec.*
+        $ec_query = "SELECT ec.*, db.cashback
                             FROM draft_benefit as db
                         LEFT JOIN user as ec on ec.id_user = db.id_ec
                         WHERE db.id_draft = $id_draft
@@ -139,6 +139,7 @@
         $ec_name = $ec_row['generalname'] ?? 'EC';
         $id_ec_r = $ec_row['id_user'] ?? $_SESSION['id_user'];
         $ec_email = $ec_row['username'] ?? $_SESSION['username'];
+        $cashback = $ec_row['cashback'] ?? 0;
     
         if ($segment !== '' && is_numeric($segment)) {
             $segment_id = (int) $segment;
@@ -314,6 +315,13 @@
             $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0');
         }
        
+        if($cashback > 0){
+            $row += 2;
+            $sheet->setCellValue('B'.$row, 'Cashback');
+            $sheet->setCellValue('C'.$row, $cashback . '%');
+            $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        }
+
         $row += 3;
 
         $sheet->setCellValue('A'.$row, 'Manfaat/fasilitas pengembangan sekolah');

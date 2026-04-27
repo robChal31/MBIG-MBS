@@ -664,7 +664,6 @@
       },
       success(response) {
         let options = '<option value="" disabled>Select a school</option>';
-        console.log('fetch schools:', response);
         if(response.length > 0) {
            response.forEach(data => {
             const selected = schoolId == data.id ? 'selected' : '';
@@ -804,7 +803,6 @@
           school_id: schoolId,
       },
       success: function(response) {
-        console.log('school programs:', response);
         let options = '<option value="" disabled selected>Select a program</option>';
         if(response.length > 0) {
           response.map((data) => {
@@ -839,7 +837,6 @@
             ec: ec,
         },
         success: function(response) {
-          console.log('myplan:', response);
           let options = '<option value="" selected>Select a plan</option>';
           if(response.length > 0) {
              response.map((data, index) => {
@@ -883,7 +880,6 @@
       data: { myplan_id: planId },
       dataType: 'json',
       success: function (res) {
-        console.log('plan data:', res);
         if (res && res.program) {
           const programName = res.program.trim();
           if (res.level_ids.length) {
@@ -1096,7 +1092,7 @@
       console.error('Init draft failed:', err);
     } finally {
       hideContentLoading();
-      $('#program').val(programCode.toLowerCase()).trigger('change');
+      $('#program').val(programCode).trigger('change');
     }
   }
 
@@ -1107,7 +1103,6 @@
       data: { program_code: programCode },
       dataType: 'json',
       success(res) {
-        console.log('fetchProgramOmzet', res);
         if (res.status !== 'success') {
           programOmzetSettings = null;
           applyOmzetMode(false);
@@ -1420,11 +1415,9 @@
 
   async function loadBooks() {
     const totalSeries = Object.keys(booksBySeries).length;
-    console.log('totalSeries: ', totalSeries);
     for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
 
       const books = await getBooks(seriesId);
-      console.log('books: ', books);
       if(books.length === 0) {
         Swal.fire({
           title: 'Daftar buku kosong, mohon infokan ke tim developer',
@@ -1473,7 +1466,6 @@
           additionalPriceToAdd = additionalPrice;
 
           selectedDiscount = selectedBook.discount ?? '';
-          console.log('book: ', book);
         });
 
         $('#additional_price').val(formatNumber(additionalPriceToAdd))
