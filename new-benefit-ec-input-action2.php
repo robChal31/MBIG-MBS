@@ -315,11 +315,14 @@
             $sheet->getStyle('H'.$row)->getNumberFormat()->setFormatCode('#,##0');
         }
        
+        $row += 2;
         if($cashback > 0){
-            $row += 2;
             $sheet->setCellValue('B'.$row, 'Cashback');
             $sheet->setCellValue('C'.$row, $cashback . '%');
             $sheet->getStyle('C'.$row)->getNumberFormat()->setFormatCode('#,##0');
+        }else {
+            $sheet->setCellValue('B'.$row, 'Tidak ada cashback');
+            $sheet->setCellValue('C'.$row, '');
         }
 
         $row += 3;
