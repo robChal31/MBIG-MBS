@@ -38,12 +38,22 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
         ];
     }
     
-    // Hitung selisih bulan dari start date
-    $monthDiff = ($currentDate->format('Y') - $startDate->format('Y')) * 12 + 
-                 ($currentDate->format('n') - $startDate->format('n'));
+    // 🔥 Hitung selisih bulan secara akurat (menggunakan diff, bukan year/month saja)
+    $diff = $startDate->diff($currentDate);
+    $totalMonths = ($diff->y * 12) + $diff->m;
+    
+    // 🔥 Jika selisih hari > 0 dan bulan sudah genap, tambah 1 bulan
+    // Contoh: 2025-05-27 ke 2026-05-04 → 11 bulan 7 hari → masih 11 bulan
+    // Contoh: 2025-05-27 ke 2026-05-28 → 12 bulan 1 hari → 12 bulan
+    if ($diff->days >= 365 && $diff->m == 0 && $diff->d > 0) {
+        $totalMonths = 12;
+    }
     
     // Tentukan tahun ke berapa
-    if ($monthDiff < 12) {
+    // Tahun ke-1: 0 - 11 bulan (belum genap 12 bulan)
+    // Tahun ke-2: 12 - 23 bulan
+    // Tahun ke-3: 24 - 35 bulan
+    if ($totalMonths < 12) {
         // Tahun ke-1
         $totalQuota = (int)$qty1;
         $usedQuota = (int)$usedQty1;
@@ -55,7 +65,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'available_quota' => $availableQuota > 0 ? $availableQuota : 0,
             'is_expired' => false
         ];
-    } elseif ($monthDiff < 24) {
+    } elseif ($totalMonths < 24) {
         // Tahun ke-2
         $totalQuota = (int)$qty2;
         $usedQuota = (int)$usedQty2;
@@ -67,7 +77,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'available_quota' => $availableQuota > 0 ? $availableQuota : 0,
             'is_expired' => false
         ];
-    } elseif ($monthDiff < 36) {
+    } elseif ($totalMonths < 36) {
         // Tahun ke-3
         $totalQuota = (int)$qty3;
         $usedQuota = (int)$usedQty3;
@@ -90,7 +100,6 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
         'is_expired' => true
     ];
 }
-
 // Cek method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse('error', 'Method not allowed', null, 405);
@@ -123,6 +132,7 @@ if ($receivedToken !== $expectedToken) {
 $email = $input['email'] ?? null;
 $benefitType = $input['benefit_type'] ?? null;
 $subject = $input['subject'] ?? null;
+$event_group_code = $input['event_group'] ?? 'ASTAPS';
 
 if (!$email) {
     jsonResponse('error', 'Email is required', null, 400);
@@ -139,6 +149,15 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 // Escape input
 $email = mysqli_real_escape_string($conn, $email);
 $benefitType = mysqli_real_escape_string($conn, $benefitType);
+$subject = mysqli_real_escape_string($conn, $subject);
+
+// 🔥 Split benefit_type jika mengandung ";" (multiple values)
+$benefitTypes = explode(';', $benefitType);
+$benefitTypes = array_map('trim', $benefitTypes); // Hilangkan spasi tambahan
+
+// 🔥 Split subject jika mengandung ";" (multiple values)
+$subjects = !empty($subject) ? explode(';', $subject) : [];
+$subjects = array_map('trim', $subjects);
 
 // 1. Cek user di mp_users berdasarkan email
 $checkUserSql = "SELECT id, name, email, institution_id FROM mp_users WHERE email = '$email'";
@@ -176,8 +195,27 @@ while ($row = mysqli_fetch_assoc($pksResult)) {
 }
 $pkIdsString = implode(',', $pkIds);
 
+// 🔥 Build query dengan multiple benefit types menggunakan OR
+$benefitTypeConditions = [];
+foreach ($benefitTypes as $type) {
+    $type = mysqli_real_escape_string($conn, $type);
+    $benefitTypeConditions[] = "sb.group = '$type'";
+}
+$benefitTypeCondition = implode(' OR ', $benefitTypeConditions);
+
+// 🔥 Build subject conditions jika ada multiple subjects
+$subjectCondition = "";
+if (!empty($subjects)) {
+    $subjectConditions = [];
+    foreach ($subjects as $subj) {
+        $subj = mysqli_real_escape_string($conn, $subj);
+        $subjectConditions[] = "(dt.subject IS NULL OR dt.subject = '' OR dt.subject = '$subj')";
+    }
+    $subjectCondition = " AND (" . implode(' OR ', $subjectConditions) . ")";
+}
+$peg_code_clausal = $event_group_code == '' ? ' AND p.peg_code IS NULL' : '';
 // 3. Ambil semua benefit dari pk -> draft_benefit_list -> draft_template_benefit -> benefits -> subbenefits
-//    yang match dengan benefit_type
+//    yang match dengan benefit_type (multiple values)
 $sql = "SELECT 
             p.id as pk_id,
             p.benefit_id as pk_benefit_id,
@@ -210,14 +248,14 @@ $sql = "SELECT
         LEFT JOIN draft_template_benefit dt ON d.id_template = dt.id_template_benefit
         LEFT JOIN benefits b ON dt.benefit = b.name
         LEFT JOIN subbenefits sb ON sb.benefit_id = b.id AND sb.name = dt.subbenefit
+        LEFT JOIN draft_benefit as db ON db.id_draft = d.id_draft
+        LEFT JOIN programs as prog ON prog.name = db.program OR prog.code = db.program
+        LEFT JOIN program_categories as pc ON pc.id = prog.program_category_id
+        LEFT JOIN program_event_groups as peg ON peg.id = pc.program_event_group_id
         WHERE p.id IN ($pkIdsString)
             AND (d.isDeleted = 0 OR d.isDeleted IS NULL)
-            AND sb.group = '$benefitType'";
-
-// Tambahkan filter subject jika ada
-if (!empty($subject)) {
-    $sql .= " AND (dt.subject IS NULL OR dt.subject = '' OR dt.subject = '$subject')";
-}
+            AND ($benefitTypeCondition) $peg_code_clausal
+            $subjectCondition";
 
 $result = mysqli_query($conn, $sql);
 

@@ -37,12 +37,22 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
         ];
     }
     
-    // Hitung selisih bulan dari start date
-    $monthDiff = ($currentDate->format('Y') - $startDate->format('Y')) * 12 + 
-                 ($currentDate->format('n') - $startDate->format('n'));
+    // 🔥 Hitung selisih bulan secara akurat (menggunakan diff, bukan year/month saja)
+    $diff = $startDate->diff($currentDate);
+    $totalMonths = ($diff->y * 12) + $diff->m;
+    
+    // 🔥 Jika selisih hari > 0 dan bulan sudah genap, tambah 1 bulan
+    // Contoh: 2025-05-27 ke 2026-05-04 → 11 bulan 7 hari → masih 11 bulan
+    // Contoh: 2025-05-27 ke 2026-05-28 → 12 bulan 1 hari → 12 bulan
+    if ($diff->days >= 365 && $diff->m == 0 && $diff->d > 0) {
+        $totalMonths = 12;
+    }
     
     // Tentukan tahun ke berapa
-    if ($monthDiff < 12) {
+    // Tahun ke-1: 0 - 11 bulan (belum genap 12 bulan)
+    // Tahun ke-2: 12 - 23 bulan
+    // Tahun ke-3: 24 - 35 bulan
+    if ($totalMonths < 12) {
         // Tahun ke-1
         $totalQuota = (int)$qty1;
         $usedQuota = (int)$usedQty1;
@@ -54,7 +64,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'available_quota' => $availableQuota > 0 ? $availableQuota : 0,
             'is_expired' => false
         ];
-    } elseif ($monthDiff < 24) {
+    } elseif ($totalMonths < 24) {
         // Tahun ke-2
         $totalQuota = (int)$qty2;
         $usedQuota = (int)$usedQty2;
@@ -66,7 +76,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'available_quota' => $availableQuota > 0 ? $availableQuota : 0,
             'is_expired' => false
         ];
-    } elseif ($monthDiff < 36) {
+    } elseif ($totalMonths < 36) {
         // Tahun ke-3
         $totalQuota = (int)$qty3;
         $usedQuota = (int)$usedQty3;
@@ -187,11 +197,16 @@ $benefitSql = "SELECT
                     d.updated_at,
                     dt.redeemable,
                     dt.subject as subject_benefit,
-                    sb.group as subbenefit_group
+                    sb.group as subbenefit_group,
+                    peg.code as event_group_code
                 FROM draft_benefit_list d
                 LEFT JOIN draft_template_benefit dt ON d.id_template = dt.id_template_benefit
                 LEFT JOIN benefits b ON dt.benefit = b.name
                 LEFT JOIN subbenefits sb ON sb.benefit_id = b.id AND sb.name = dt.subbenefit
+                LEFT JOIN draft_benefit as db ON db.id_draft = d.id_draft
+                LEFT JOIN programs as prog ON prog.name = db.program OR prog.code = db.program
+                LEFT JOIN program_categories as pc ON pc.id = prog.program_category_id
+                LEFT JOIN program_event_groups as peg ON peg.id = pc.program_event_group_id
                 WHERE d.id_benefit_list = '$benefitId'
             ";
 
@@ -279,6 +294,7 @@ $responseData = [
     'benefit' => [
         'id_benefit_list' => $benefitDetail['id_benefit_list'],
         'id_draft' => $benefitDetail['id_draft'],
+        'event_group_code' => $benefitDetail['event_group_code'],
         'id_template' => $benefitDetail['id_template'],
         'benefit_name' => $benefitDetail['benefit_name'],
         'subbenefit' => $benefitDetail['subbenefit'],
