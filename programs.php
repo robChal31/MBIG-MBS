@@ -62,9 +62,10 @@
 
   
   $programs = [];
-  $programs_q = "SELECT program.*, cat.name as category 
+  $programs_q = "SELECT program.*, cat.name as category, peg.code as event_group_code, peg.desc as event_group_desc 
                   FROM programs AS program 
                   LEFT JOIN program_categories as cat on cat.id = program.program_category_id
+                  LEFT JOIN program_event_groups as peg on peg.id = cat.program_event_group_id
                   ";
   $programs_exec = mysqli_query($conn, $programs_q);
   if (mysqli_num_rows($programs_exec) > 0) {
@@ -108,6 +109,8 @@
                             <th scope="col">Category</th>
                             <th scope="col">Is PK</th>
                             <th scope="col">Is Dynamic</th>
+                            <th scope="col">Event Group Code</th>
+                            <th scope="col">Event Group Desc</th>
                             <th scope="col">Created at</th>
                             <th scope="col">Updated at</th>
                             <th scope="col">Action</th>
@@ -132,6 +135,8 @@
                                   ? "<i class='fa fa-check-circle text-success'></i>"
                                   : "<i class='fa fa-minus-circle text-muted'></i>" ?>
                               </td>
+                              <td class="text-start"><?= $program['event_group_code'] ?? 'None' ?></td>
+                              <td class="text-start"><?= $program['event_group_desc'] ?? 'None' ?></td>
                               <td class="text-start"><?= $program['created_at'] ?></td>
                               <td class="text-start"><?= $program['updated_at'] ?></td>
                               <td class="text-center">

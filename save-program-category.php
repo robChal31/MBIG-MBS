@@ -29,6 +29,7 @@ function sanitize_input($conn, $input) {
 }
 
 $id_program_category    = sanitize_input($conn, $_POST['id_program_category']);
+$program_event_group_id = $_POST['program_event_group_id'];
 $name                   = sanitize_input($conn, $_POST['name']);
 
 
@@ -47,7 +48,7 @@ try {
         $old_name = $program_row['name'];
 
         $sql = "UPDATE program_categories 
-                    SET name = '$name', updated_at = NOW()
+                    SET name = '$name', program_event_group_id = '$program_event_group_id', updated_at = NOW()
                 WHERE id = '$id_program_category'";
 
         if (!$conn->query($sql)) {
@@ -56,8 +57,8 @@ try {
 
     } else {
         
-        $sql = "INSERT INTO program_categories (name, created_at) VALUES (
-            '$name', NOW())";
+        $sql = "INSERT INTO program_categories (name, program_event_group_id, created_at) VALUES (
+            '$name', '$program_event_group_id', NOW())";
 
         if (!$conn->query($sql)) {
             error_json('Query failed: ' . $conn->error);

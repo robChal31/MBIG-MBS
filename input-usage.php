@@ -66,6 +66,7 @@ $role = $_SESSION['role'];
 $subbenefit = '';
 $sql = "SELECT
             dbl.*, dtb.redeemable, db.ref_id, db.year, db.program, dtb.subject,
+            peg.code as event_group_code, peg.desc as event_group_desc,
             CASE 
                 WHEN EXISTS (
                     SELECT 1 
@@ -81,7 +82,10 @@ $sql = "SELECT
         FROM draft_benefit_list AS dbl
         LEFT JOIN draft_benefit AS db on db.id_draft = dbl.id_draft
         LEFT JOIN benefit_usages AS bu ON dbl.id_benefit_list = bu.id_benefit_list
-        LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template 
+        LEFT JOIN draft_template_benefit dtb on dtb.id_template_benefit = dbl.id_template
+        LEFT JOIN programs AS prog ON (prog.name = db.program OR prog.code = db.program)
+        LEFT JOIN program_categories AS pc ON pc.id = prog.program_category_id
+        LEFT JOIN program_event_groups AS peg ON peg.id = pc.program_event_group_id
         WHERE dbl.id_benefit_list = $id_benefit_list";
 
 $result = $conn->query($sql);
@@ -100,6 +104,7 @@ if (($now > $expiredDate) && $usages['redeemable'] == 1) {
 
 $subbenefit = $usages['subbenefit'] ? trim($usages['subbenefit']) : '';
 $subject    = $usages['subject'] ? trim($usages['subject']) : '';
+$event_group_code = $usages['event_group_code'] ? trim($usages['event_group_code']) : '';
 $subbenefit_q = "SELECT * FROM subbenefits WHERE name = '$subbenefit'";
 $subBQ_result = $conn->query($subbenefit_q);
 $subbenefit_data = $subBQ_result->fetch_assoc();
@@ -218,6 +223,7 @@ Nama Peserta: </textarea>
 <script>
     group = '<?= $group ?>';
     subject = '<?= $subject ?>';
+    event_group_code = '<?= $event_group_code ?>';
     $(document).ready(function() {
         $('.select2').select2({
             width: '100%'
@@ -333,9 +339,10 @@ Nama Peserta: </textarea>
         console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`);
         console.log('group: ', group);
         console.log('subject: ', subject);
+        console.log('event_group_code: ', event_group_code);
         if(redeemable == 1 && group) {
             $.ajax({
-                url: `https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`, 
+                url: `https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}&event_group=${event_group_code}`, 
                 method: 'GET',
                 cache: false,
                 contentType: false,

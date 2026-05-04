@@ -1,12 +1,13 @@
 <?php
-header('Access-Control-Allow-Origin: http://localhost:3000');
+
+include('../db_con.php');
+$config = require('../config.php');
+
+header('Access-Control-Allow-Origin: ' . $config['mp_url']);
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization, X-API-KEY');
 header('Access-Control-Allow-Credentials: true');
 header('Content-Type: application/json');
-
-include('../db_con.php');
-$config = require('../config.php');
 
 function jsonResponse($status, $message, $data = null, $httpCode = 200) {
     http_response_code($httpCode);

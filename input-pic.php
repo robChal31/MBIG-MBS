@@ -2,6 +2,7 @@
 
 session_start();
 include 'db_con.php';
+$config = require 'config.php';
 
 $id_draft = $_POST['id_draft'];
 $action = $_POST['action'];
@@ -85,7 +86,7 @@ if ($result->num_rows > 0) {
             <tr>
                 <td><strong>MPP Website</strong></td>
                 <td>:</td>
-                <td><a href='https://mentaripartner.com' target="_blank" data-toggle='tooltip' title='MPP Link'><i class="bi bi-link"></i> https://mentaripartner.com</a></td>
+                <td><a href='<?= $config['mp_url'] ?>' target="_blank" data-toggle='tooltip' title='MPP Link'><i class="bi bi-link"></i> <?=  $config['mp_url'] ?></a></td>
             </tr>
         </table>
 

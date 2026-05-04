@@ -1,21 +1,28 @@
 <?php
 
-session_start();
-include 'db_con.php';
-ini_set('display_errors', '1');
-ini_set('display_startup_errors', '1');
-error_reporting(E_ALL);
+    session_start();
+    include 'db_con.php';
+    ini_set('display_errors', '1');
+    ini_set('display_startup_errors', '1');
+    error_reporting(E_ALL);
 
 
-$id_program_category = $_POST['id_program_category'] ? $_POST['id_program_category'] : 0;
+    $id_program_category = $_POST['id_program_category'] ? $_POST['id_program_category'] : 0;
 
-$program_categories = [];
-$draft_program_q = "SELECT * FROM program_categories WHERE id = $id_program_category";
-$draft_exec = mysqli_query($conn, $draft_program_q);
-if (mysqli_num_rows($draft_exec) > 0) {
-  $program_categories = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
-}
-$program_category = $program_categories[0] ?? [];
+    $program_categories = [];
+    $draft_program_q = "SELECT * FROM program_categories WHERE id = $id_program_category";
+    $draft_exec = mysqli_query($conn, $draft_program_q);
+    if (mysqli_num_rows($draft_exec) > 0) {
+    $program_categories = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
+    }
+    $program_category = $program_categories[0] ?? [];
+
+    $program_event_groups = [];
+    $program_event_groups_q = "SELECT * FROM program_event_groups";
+    $program_event_groups_exec = mysqli_query($conn, $program_event_groups_q);
+    if (mysqli_num_rows($program_event_groups_exec) > 0) {
+        $program_event_groups = mysqli_fetch_all($program_event_groups_exec, MYSQLI_ASSOC);    
+    }
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
@@ -24,6 +31,17 @@ $program_category = $program_categories[0] ?? [];
                 <div class="col-12 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Program Category Name</label>
                     <input type="text" name="name" class="form-control form-control-sm" value="<?= $program_category['name'] ?? '' ?>" placeholder="program category name..." required>
+                </div>
+                <div class="col-12 mb-3">
+                    <label class="form-label d-flex">Program Event Group</label>
+                    <select name="program_event_group_id" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
+                        <option value="" disabled selected>Select Category</option>
+                        <?php foreach($program_event_groups as $peg) { ?>
+                            <option value="<?= $peg['id'] ?>" <?= $peg['id'] == ($program_category['program_event_group_id'] ?? '') ? 'selected' : '' ?>>
+                                [<?= $peg['code'] ?> - <?= $peg['desc'] ?>]
+                            </option>
+                        <?php } ; ?>
+                    </select>
                 </div>
                 
                 <input type="hidden" name="id_program_category" value="<?= $id_program_category == 0 ? '' : $id_program_category ?>">

@@ -62,7 +62,10 @@
 
   
   $program_categories = [];
-  $program_categories_q = "SELECT * FROM program_categories AS program WHERE program.deleted_at IS NULL";
+  $program_categories_q = "SELECT program_cat.*, peg.code as event_group_code, peg.desc as event_group_desc
+                            FROM program_categories AS program_cat 
+                            LEFT JOIN program_event_groups as peg on peg.id = program_cat.program_event_group_id
+                            WHERE program_cat.deleted_at IS NULL";
   $program_categories_exec = mysqli_query($conn, $program_categories_q);
   if (mysqli_num_rows($program_categories_exec) > 0) {
     $program_categories = mysqli_fetch_all($program_categories_exec, MYSQLI_ASSOC);    
@@ -95,6 +98,8 @@
                                 <tr>
                                     <th style="width:5%">No</th>
                                     <th>Name</th>
+                                    <th scope="col">Event Group Code</th>
+                                    <th scope="col">Event Group Desc</th>
                                     <th>Created At</th>
                                     <th>Updated At</th>
                                     <th class="text-center" style="width:10%">Action</th>
@@ -105,6 +110,8 @@
                                 <tr>
                                     <td class="text-center"><?= $no ?></td>
                                     <td class="fw-semibold"><?= $program_category['name'] ?></td>
+                                    <td class="fw-semibold"><?= $program_category['event_group_code'] ?? 'None' ?></td>
+                                    <td class="fw-semibold"><?= $program_category['event_group_desc'] ?? 'None' ?></td>
                                     <td><?= $program_category['created_at'] ?></td>
                                     <td><?= $program_category['updated_at'] ?></td>
                                     <td class="text-center">

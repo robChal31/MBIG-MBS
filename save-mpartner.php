@@ -139,7 +139,7 @@ try {
 
     // SEND EMAIL ONLY IF NEW
     if ($isNew ) {
-        $setupLink = "https://mentaripartner.com/setup-password.php?email=" . urlencode($email);
+        $setupLink = $config['mp_url'] . "/setup-password.php?email=" . urlencode($email);
 
         $subject = "Welcome to Mentari Partner";
 
@@ -232,7 +232,7 @@ try {
             'name' => $name,
         ]);
         
-        $nextjs_url = 'http://localhost:3000/api/mpartner/create';
+        $nextjs_url = $config['mp_url'] . '/api/mpartner/create';
         
         // Inisialisasi CURL
         $ch = curl_init($nextjs_url);

@@ -1,4 +1,9 @@
-<?php include 'header.php'; ?>
+<?php 
+
+    include 'header.php'; 
+    $config = require 'config.php';    
+
+?>
 <style>
   table.dataTable tbody td {
       vertical-align: middle !important;
@@ -111,7 +116,7 @@
 
                                             <?php if($row['is_pk']) : ?>
                                                 <li>
-                                                    <a class="dropdown-item text-primary" href="https://mentaripartner.com" target="_blank" title="Qty manfaat PK3 refill tiap Juli">
+                                                    <a class="dropdown-item text-primary" href="<?= $config['mp_url'] ?>" target="_blank" title="Qty manfaat PK3 refill tiap Juli">
                                                         <i class="fa fa-link me-2"></i> MPP Portal
                                                     </a>
                                                 </li>
