@@ -129,6 +129,7 @@ while ($r = mysqli_fetch_assoc($q)) {
                     });
                 },
                 success: function(response) {
+                    console.log('response: ', response);
                     Swal.close();
                     if(response.status == 'success') {
                         Swal.fire({

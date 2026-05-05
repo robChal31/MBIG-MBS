@@ -62,31 +62,38 @@ if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 // Escape email untuk query
 $email = mysqli_real_escape_string($conn, $email);
 
-// 1. Cek user di mp_users berdasarkan email
+// 1. Cek user
 $checkUserSql = "SELECT id, name, email, institution_id FROM mp_users WHERE email = '$email'";
 $userResult = mysqli_query($conn, $checkUserSql);
 
 if (mysqli_num_rows($userResult) == 0) {
-    jsonResponse('error', 'User not found in mp_users', null, 404);
+    jsonResponse('error', 'User not found in mp_users', null, 200);
 }
 
 $user = mysqli_fetch_assoc($userResult);
 $userId = $user['id'];
 
-// 2. Ambil semua pk_id dari mp_user_pks berdasarkan user_id
+// 2. Ambil semua pk_id - TIDAK LANGSUNG RETURN 404
 $getPksSql = "SELECT pk_id FROM mp_user_pks WHERE user_id = $userId";
 $pksResult = mysqli_query($conn, $getPksSql);
-
-if (mysqli_num_rows($pksResult) == 0) {
-    jsonResponse('error', 'No PK found for this user', null, 404);
-}
 
 $pkIds = [];
 while ($row = mysqli_fetch_assoc($pksResult)) {
     $pkIds[] = $row['pk_id'];
 }
 
-// 3. Ambil data dengan JOIN langsung
+// 3. Kalau ga ada PK, return sukses dengan data kosong
+if (empty($pkIds)) {
+    jsonResponse('success', 'No PK found for this user', [
+        'user' => [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'institution_id' => $user['institution_id']
+        ],
+        'benefits' => []
+    ], 200);
+}
 $pkIdsString = implode(',', $pkIds);
 $sql = "SELECT 
             p.id as pk_id, p.benefit_id, p.no_pk, p.start_at, p.expired_at, d.id_draft, d.id_benefit_list, d.id_template, d.benefit_name, d.subbenefit, d.description, d.keterangan, d.qty, d.qty2, d.qty3, d.manualValue, dt.subject,
@@ -104,7 +111,16 @@ $sql = "SELECT
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) == 0) {
-    jsonResponse('error', 'No benefits found for this user', null, 404);
+    jsonResponse('success', 'No benefits found for this user', [
+        'user' => [
+            'id' => $user['id'],
+            'name' => $user['name'],
+            'email' => $user['email'],
+            'institution_id' => $user['institution_id']
+        ],
+        'benefits' => []
+    ], 200);  // ← PAKAI 200, BUKAN 404
+    exit();
 }
 
 // 4. Susun response - GROUP BY benefit_id

@@ -161,9 +161,7 @@
                                 <!-- ACTION -->
                                 <td class="text-center">
                                     <div class="dropdown">
-                                        <i class="fas fa-ellipsis-v text-muted"
-                                        data-bs-toggle="dropdown"
-                                        style="cursor:pointer"></i>
+                                        <i class="fas fa-ellipsis-v text-muted" data-bs-toggle="dropdown" style="cursor:pointer"></i>
 
                                         <ul class="dropdown-menu dropdown-menu-end shadow-sm" style="font-size:.75rem">
 
@@ -173,24 +171,26 @@
                                                 </a>
                                             </li>
 
-                                            <?php if(!$row['email_sent']) { ?>
+                                            <!-- ✅ SATUKAN JADI 1 TOMBOL -->
+                                            <?php if(!$row['email_sent'] || !$row['mp_acc_created']) { ?>
                                                 <li>
-                                                    <a class="dropdown-item text-info" data-id="<?= $row['id'] ?>" data-action="emailAct" data-bs-toggle="modal" data-bs-target="#mpResendModal">
-                                                        <i class="fa fa-envelope me-2"></i> Send E-mail
-                                                    </a>
-                                                </li>
-                                            <?php } ?>
-
-                                           <?php if(!$row['mp_acc_created']) { ?>
-                                                <li>
-                                                    <a class="dropdown-item text-warning" data-id="<?= $row['id'] ?>" data-action="mpAct" data-bs-toggle="modal" data-bs-target="#mpResendModal">
-                                                        <i class="fa fa-user me-2"></i> Create MP Account
+                                                    <a class="dropdown-item text-info" data-id="<?= $row['id'] ?>" data-action="sendAct" data-bs-toggle="modal" data-bs-target="#mpResendModal">
+                                                        <i class="fa fa-envelope me-2"></i> 
+                                                        <?php 
+                                                        if(!$row['email_sent'] && !$row['mp_acc_created']) {
+                                                            echo 'Send Email & Create Account';
+                                                        } elseif(!$row['email_sent']) {
+                                                            echo 'Resend Welcome Email';
+                                                        } else {
+                                                            echo 'Create MP Account & Send Email';
+                                                        }
+                                                        ?>
                                                     </a>
                                                 </li>
                                             <?php } ?>
 
                                             <li>
-                                                <a class="dropdown-item text-primary" href="<?= $config['mp_url'] ?>" target="_blank" title="Qty manfaat PK3 refill tiap Juli">
+                                                <a class="dropdown-item text-primary" href="<?= $config['mp_url'] ?>" target="_blank">
                                                     <i class="fa fa-link me-2"></i> MPP Portal
                                                 </a>
                                             </li>
@@ -276,7 +276,6 @@
         let action = event.relatedTarget.getAttribute('data-action');
 
         var modalTitle = mpResendModal.querySelector('.modal-title')
-        modalTitle.textContent = action == 'emailAct' ?  "Send E-mail" : "Create MP Account";
         
         $.ajax({
             url: 'mp-act.php',

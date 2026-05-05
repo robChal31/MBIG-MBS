@@ -138,11 +138,52 @@ try {
     }
 
     // SEND EMAIL ONLY IF NEW
-    if ($isNew ) {
-        $setupLink = $config['mp_url'] . "/setup-password.php?email=" . urlencode($email);
-
+    if ($isNew) {
+        // Generate secure token (32 bytes = 64 karakter hex)
+        $resetToken = bin2hex(random_bytes(32));
+        $resetExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+        
+        // Kirim data ke Next.js API
+        $postData = json_encode([
+            'email' => $email,
+            'name' => $name,
+            'resetToken' => $resetToken,
+            'resetExpires' => $resetExpires
+        ]);
+        
+        $nextjs_url = $config['mp_url'] . '/api/mpartner/create';
+        
+        $ch = curl_init($nextjs_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($postData)
+        ]);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $curlError = curl_error($ch);
+        curl_close($ch);
+        
+        if ($curlError || $httpCode !== 200) {
+            throw new Exception('Failed to create user in Next.js: ' . ($curlError ?: 'HTTP ' . $httpCode));
+        }
+        
+        $result = json_decode($response, true);
+        
+        if ($result['status'] !== 'success') {
+            throw new Exception($result['message'] ?? 'Failed to create user in Next.js');
+        }
+        
+        // Buat link setup password dengan TOKEN
+        $setupLink = $config['mp_url'] . "/setup-password?token=" . urlencode($resetToken);
+        
+        // Kirim email dengan link token
         $subject = "Welcome to Mentari Partner";
-
+        
         $message = '
         <!DOCTYPE html>
         <html>
@@ -155,46 +196,42 @@ try {
                 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f7fc; padding: 40px 0;">
                     <tr>
                         <td align="center">
-                            <!-- Main Container -->
                             <table width="100%" max-width="600px" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.08); overflow: hidden;">
                                 
                                 <!-- Header with Gradient -->
                                 <tr>
                                     <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
-                                        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; letter-spacing: -0.5px;">Welcome to Mentari Partner</h1>
-                                        <p style="color: rgba(255,255,255,0.9); margin: 12px 0 0; font-size: 16px;">Your journey begins here</p>
+                                        <h1 style="color: #ffffff; margin: 0; font-size: 28px; font-weight: 600;">Welcome to Mentari Partner</h1>
+                                        <p style="color: rgba(255,255,255,0.9); margin: 12px 0 0; font-size: 16px;">Complete your registration</p>
                                     </td>
                                 </tr>
                                 
                                 <!-- Content Area -->
                                 <tr>
                                     <td style="padding: 40px 30px;">
-                                        <!-- Greeting -->
-                                        <h2 style="color: #2d3748; margin: 0 0 12px; font-size: 24px; font-weight: 600;">Hello ' . htmlspecialchars($name) . '! 👋</h2>
-                                        <p style="color: #4a5568; margin: 0 0 24px; font-size: 16px; line-height: 1.6;">Thank you for joining Mentari Partner. We\'re excited to have you on board and look forward to building a successful partnership together.</p>
+                                        <h2 style="color: #2d3748; margin: 0 0 12px; font-size: 24px;">Hello ' . htmlspecialchars($name) . '! 👋</h2>
+                                        <p style="color: #4a5568; margin: 0 0 24px; font-size: 16px; line-height: 1.6;">Thank you for joining Mentari Partner. Please set up your password to access your account.</p>
                                         
-                                        <!-- Info Box -->
                                         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f7fafc; border-left: 4px solid #667eea; border-radius: 8px; margin: 28px 0;">
                                             <tr>
                                                 <td style="padding: 20px;">
-                                                    <p style="margin: 0; color: #2d3748; font-size: 14px; line-height: 1.6;">
+                                                    <p style="margin: 0; color: #2d3748; font-size: 14px;">
                                                         <strong style="color: #667eea;">📋 Account Details</strong><br>
-                                                        You\'ve been registered as a Mentari Partner. Please set up your password to activate your account and access all features.
+                                                        Email: ' . htmlspecialchars($email) . '<br>
+                                                        Status: Waiting for password setup
                                                     </p>
                                                 </td>
                                             </tr>
                                         </table>
                                         
-                                        <!-- Button -->
                                         <table width="100%" cellpadding="0" cellspacing="0" border="0">
                                             <tr>
                                                 <td align="center" style="padding: 8px 0 24px;">
-                                                    <a href="' . $setupLink . '" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102,126,234,0.3); transition: all 0.3s ease;">🔐 Set Up Your Password</a>
+                                                    <a href="' . $setupLink . '" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 14px 36px; border-radius: 50px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(102,126,234,0.3);">🔐 Set Up Your Password</a>
                                                 </td>
                                             </tr>
                                         </table>
                                         
-                                        <!-- Alternative Link -->
                                         <p style="color: #718096; margin: 16px 0 0; font-size: 13px; text-align: center; line-height: 1.5;">
                                             Or copy and paste this link into your browser:<br>
                                             <a href="' . $setupLink . '" style="color: #667eea; text-decoration: none; word-break: break-all;">' . $setupLink . '</a>
@@ -220,58 +257,11 @@ try {
                 </table>
             </body>
         </html>';
-
+        
         $sent = sendEmail('bany@mentarigroups.com', $name, $subject, $message, $config);
-
+        
         if ($sent) {
-            $conn->query("UPDATE mp_users SET email_sent = 1 WHERE id = $id");
-        }
-
-         $postData = json_encode([
-            'email' => $email,
-            'name' => $name,
-        ]);
-        
-        $nextjs_url = $config['mp_url'] . '/api/mpartner/create';
-        
-        // Inisialisasi CURL
-        $ch = curl_init($nextjs_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'Content-Type: application/json',
-            'Content-Length: ' . strlen($postData)
-        ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        
-        // Eksekusi CURL
-        $response = curl_exec($ch);
-        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $curlError = curl_error($ch);
-        curl_close($ch);
-        
-        // Cek response dari Next.js API
-        if ($curlError) {
-            throw new Exception('CURL Error: ' . $curlError);
-        }
-        
-        $result = json_decode($response, true);
-        
-        // Jika sukses create user di Next.js
-        if ($httpCode == 200 && isset($result['status']) && $result['status'] == 'success') {
-            // Update mp_users set mp_acc_created = 1
-            $update_sql = "UPDATE mp_users SET mp_acc_created = 1 WHERE id = $id";
-            if (!$conn->query($update_sql)) {
-                throw new Exception('Failed to update mp_acc_created: ' . $conn->error);
-            }
-            // Set success message
-            $successMessage = 'Account created successfully in Mentari Partner platform';
-            
-        } else {
-            // Jika gagal, throw error dengan message dari API
-            $errorMessage = $result['message'] ?? 'Failed to create account in Next.js';
-            throw new Exception($errorMessage);
+            $conn->query("UPDATE mp_users SET email_sent = 1, mp_acc_created = 1 WHERE id = $id");
         }
     }
 
@@ -281,6 +271,7 @@ try {
         'status' => 'success',
         'message' => 'Saved successfully'
     ]);
+    exit();
 
 } catch (\Throwable $th) {
     $conn->rollback();

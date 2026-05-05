@@ -145,7 +145,7 @@
             $normals[$i]        = preg_replace("/[^0-9]/", "", $normals[$i]);
             $value = $diskons[$i];
             $value = trim($value);
-            $value = str_replace(['.', ','], ['','.' ], $value);
+            $value = str_replace(',', '.', $value);
             $diskons[$i] = (float) $value;
             $aloks[$i]          = preg_replace("/[^0-9-]/", "", $aloks[$i]);
             $book_ids[$i]       = $book_ids[$i];

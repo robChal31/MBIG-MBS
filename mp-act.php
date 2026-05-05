@@ -6,7 +6,8 @@ ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
 $id     = $_POST['id'] ?? 0;
-$action = $_POST['action'] ?? '';
+$action = $_POST['action'] ?? 'sendAct'; // Default ke sendAct
+
 $mpartner = [];
 $mp_sql = "SELECT mpu.*
             FROM mp_users AS mpu
@@ -17,22 +18,31 @@ if (mysqli_num_rows($draft_exec) > 0) {
 }
 
 $mpartner = $mpartner[0] ?? [];
-
 $email = $mpartner['email'] ?? '';
 $name = $mpartner['name'] ?? '';
+$email_sent = $mpartner['email_sent'] ?? 0;
+$mp_acc_created = $mpartner['mp_acc_created'] ?? 0;
 
-// Determine dialog content based on action
-$isEmailAction = ($action == 'emailAct');
-$title = $isEmailAction ? 'Resend Welcome Email' : 'Create Partner Account';
-$icon = $isEmailAction ? '📧' : '👤';
-$description = $isEmailAction 
-    ? 'This user hasn\'t received their welcome email yet.' 
-    : 'This user hasn\'t created an account on Mentari Partner platform yet.';
-$buttonText = $isEmailAction ? 'Send Email Now' : 'Create Account Now';
-$buttonIcon = $isEmailAction ? '✉️' : '➕';
+// Determine dialog content based on both flags
+$title = 'Send Email & Create Account';
+$icon = '📧';
+$description = '';
+
+if (!$email_sent && !$mp_acc_created) {
+    $description = 'This user hasn\'t received their welcome email and hasn\'t created an account yet.';
+} elseif (!$email_sent) {
+    $description = 'This user hasn\'t received their welcome email yet.';
+} else {
+    $description = 'This user hasn\'t created an account on Mentari Partner platform yet.';
+}
+
+$buttonText = 'Send Now';
+$buttonIcon = '✉️';
 ?>
 
-
+<!DOCTYPE html>
+<html>
+<head>
     <style>
         .modal-container {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -156,11 +166,13 @@ $buttonIcon = $isEmailAction ? '✉️' : '➕';
             gap: 6px;
         }
     </style>
+</head>
+<body>
 
 <div class="modal-container">
     <form action="save-mpartner-act.php" method="POST" enctype="multipart/form-data" id="form_input">
         <input type="hidden" name="id" value="<?= htmlspecialchars($id) ?>">
-        <input type="hidden" name="action" value="<?= htmlspecialchars($action) ?>">
+        <input type="hidden" name="action" value="sendAct">
         
         <!-- Icon -->
         <div class="modal-icon">
@@ -193,14 +205,8 @@ $buttonIcon = $isEmailAction ? '✉️' : '➕';
         
         <!-- Action Message -->
         <p class="modal-description" style="font-weight: 500; margin-top: 16px;">
-            <?= $isEmailAction ? 'Click send to resend the welcome email immediately.' : 'This will create an account to Mentari Partner.' ?>
+            Click send to process immediately.
         </p>
-        
-        <!-- <?php if (!$isEmailAction): ?>
-            <div class="warning-text">
-                ⚡ This action cannot be undone
-            </div>
-        <?php endif; ?> -->
         
         <!-- Buttons -->
         <div class="button-group">
@@ -212,6 +218,8 @@ $buttonIcon = $isEmailAction ? '✉️' : '➕';
     </form>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script>
 $(document).ready(function() {
     
@@ -231,7 +239,7 @@ $(document).ready(function() {
                 $('#submitBtnx').prop('disabled', true);
                 Swal.fire({
                     title: 'Processing...',
-                    html: '<?= $isEmailAction ? "Sending email..." : "Creating account..." ?>',
+                    html: 'Sending email and creating account...',
                     allowOutsideClick: false,
                     didOpen: () => {
                         Swal.showLoading();
@@ -278,11 +286,9 @@ $(document).ready(function() {
     
     // Close button handler
     $('.close').on('click', function() {
-        // If using SweetAlert2 modal
         if (typeof Swal !== 'undefined') {
             Swal.close();
         }
-        // If using Bootstrap modal
         $(this).closest('.modal').modal('hide');
     });
 });

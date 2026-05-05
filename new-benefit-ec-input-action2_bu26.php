@@ -216,7 +216,7 @@
                 $sheet->setCellValue('I'.$row, $data['qty']*($data['normalprice']-($data['discount']/100*$data['normalprice'])));
                 $totalrevenuediskon = $totalrevenuediskon + ($data['qty']*($data['normalprice']-($data['discount']/100*$data['normalprice'])));
                 $sheet->setCellvalue('J'.$row, $data['alokasi']);
-                $sheet->getStyle('D'.$row.':J'.$row)->getNumberFormat()->setFormatCode('#,##0');
+                $sheet->getStyle('C'.$row.':J'.$row)->getNumberFormat()->setFormatCode('#,##0');
                 $row++;
                 $totalqty=$totalqty+(int)$data['qty'];
             }
