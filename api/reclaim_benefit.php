@@ -226,7 +226,7 @@ try {
         // 7. Update history lama
         $updateSql = "UPDATE benefit_usages 
                     SET $currentQtyField = $totalNewQty,
-                        description = CONCAT(description, ' (Moved $qty slots to another event, from: $activeQty, used: $usedQty, new total: $totalNewQty)')
+                        description = CONCAT(description, '\n\n[Moved: $qty slots to another event]\nFrom: $activeQty total, Used: $usedQty, Remaining: $totalNewQty')
                     WHERE id = '$historyId'";
         
         if (!mysqli_query($conn, $updateSql)) {

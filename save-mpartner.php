@@ -64,6 +64,7 @@ function sanitize_input($conn, $input) {
 $id             = (int) ($_POST['id'] ?? 0);
 $name           = sanitize_input($conn, $_POST['name'] ?? '');
 $email          = sanitize_input($conn, $_POST['email'] ?? '');
+$phone_number   = sanitize_input($conn, $_POST['phone_number'] ?? '');
 $institution_id = (int) ($_POST['institution_id'] ?? 0);
 $pks            = $_POST['pks'] ?? [];
 
@@ -105,7 +106,9 @@ try {
 
     if ($is_mpartner_exist) {
         $sql = "UPDATE mp_users 
-                SET name = '$name', email = '$email', institution_id = '$institution_id'
+                SET name = '$name', email = '$email', 
+                institution_id = '$institution_id', 
+                phone_number = '$phone_number'
                 WHERE id = '$id'";
 
         if (!$conn->query($sql)) {
@@ -115,8 +118,8 @@ try {
     } else {
         $isNew = true;
 
-        $sql = "INSERT INTO mp_users (name, email, institution_id, email_sent) 
-                VALUES ('$name', '$email', '$institution_id', 0)";
+        $sql = "INSERT INTO mp_users (name, email, phone_number, institution_id, email_sent) 
+                VALUES ('$name', '$email', '$phone_number', '$institution_id', 0)";
 
         if (!$conn->query($sql)) {
             throw new Exception($conn->error);
@@ -258,7 +261,7 @@ try {
             </body>
         </html>';
         
-        $sent = sendEmail('bany@mentarigroups.com', $name, $subject, $message, $config);
+        $sent = sendEmail($email, $name, $subject, $message, $config);
         
         if ($sent) {
             $conn->query("UPDATE mp_users SET email_sent = 1, mp_acc_created = 1 WHERE id = $id");

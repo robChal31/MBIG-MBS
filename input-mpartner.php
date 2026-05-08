@@ -63,7 +63,14 @@ while ($r = mysqli_fetch_assoc($q)) {
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="email" name="email" class="form-control form-control-sm" value="<?= $mpartner['email'] ?? '' ?>" placeholder="email...">
                 </div>
-                <div class="col-12 mb-3">
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Phone Number</label>
+                    <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
+                    <input type="number" name="phone_number" class="form-control form-control-sm" value="<?= $mpartner['phone_number'] ?? '' ?>" placeholder="phone number...">
+                </div>
+
+                <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Institution</label>
                     <select name="institution_id" id="institution_id" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>--Select Institution --</option>

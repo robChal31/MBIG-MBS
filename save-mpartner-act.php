@@ -193,7 +193,7 @@ try {
     </html>';
     
     // Kirim email
-    $sent = sendEmail('bany@mentarigroups.com', $name, $subject, $message, $config);
+    $sent = sendEmail($email, $name, $subject, $message, $config);
     
     if ($sent) {
         $conn->query("UPDATE mp_users SET email_sent = 1 WHERE id = $id");

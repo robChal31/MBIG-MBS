@@ -85,6 +85,7 @@
                                 <th style="width:4%">No</th>
                                 <th>Name</th>
                                 <th>E-mail</th>
+                                <th>Phone Number</th>
                                 <th>Institution Name</th>
                                 <th>No PK</th>
                                 <th>E-mail have been sent</th>
@@ -103,6 +104,7 @@
                                         mps.id, 
                                         mps.name, 
                                         mps.email,
+                                        mps.phone_number,
                                         mps.email_sent, mps.mp_acc_created,
                                         GROUP_CONCAT(DISTINCT pk.no_pk SEPARATOR ', ') as no_pk,
                                         c.generalname, 
@@ -144,7 +146,8 @@
                                 <td><?= $row['id'] ?></td>
                                 <td><?= $row['name'] ?></td>
                                 <td class="fw-semibold"><?= $row['email'] ?></td>
-                                <td style="width: 25%"><?= $row['school_name2'] ?></td>
+                                <td class="fw-semibold"><?= $row['phone_number'] ?></td>
+                                <td><?= $row['school_name2'] ?></td>
                                 <td><?= $row['no_pk'] ?: '<span class="text-muted">-</span>' ?></td>
                                 <td class="text-center">
                                     <?= $row['email_sent']
