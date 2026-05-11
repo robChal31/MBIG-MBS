@@ -22,7 +22,7 @@ function jsonResponse($status, $message, $data = null, $httpCode = 200) {
 function generateRedeemCodeFromAPI($eventId, $qty, $discount = 100) {
     $url = 'https://hadiryuk.id/api/createpromo';
     $data = array(
-        'id_event' => 939,
+        'id_event' => $eventId,
         'quota' => $qty,
         'diskon' => $discount,
     );

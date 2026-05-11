@@ -105,7 +105,7 @@ $sql = "SELECT
         LEFT JOIN benefits as b on dt.benefit = b.name
         LEFT JOIN subbenefits as sb on sb.benefit_id = b.id and sb.name = dt.subbenefit
         WHERE up.user_id = $userId
-        ORDER BY p.benefit_id, d.id_benefit_list
+        ORDER BY p.expired_at DESC, p.benefit_id, d.id_benefit_list
     ";
 
 $result = mysqli_query($conn, $sql);
