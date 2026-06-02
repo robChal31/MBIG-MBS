@@ -123,15 +123,15 @@ if (!empty($template['benefit'])) {
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 1</label>
-                    <input type="text" name="qty1" class="form-control form-control-sm only_number" value="<?= $template['qty1'] ?? '' ?>" placeholder="quantity...">
+                    <input type="text" name="qty1" class="form-control form-control-sm" value="<?= $template['qty1'] ?? '' ?>" placeholder="quantity...">
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 2</label>
-                    <input type="text" name="qty2" class="form-control form-control-sm only_number" value="<?= $template['qty2'] ?? '' ?>" placeholder="quantity...">
+                    <input type="text" name="qty2" class="form-control form-control-sm" value="<?= $template['qty2'] ?? '' ?>" placeholder="quantity...">
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 3</label>
-                    <input type="text" name="qty3" class="form-control form-control-sm only_number" value="<?= $template['qty3'] ?? '' ?>" placeholder="quantity...">
+                    <input type="text" name="qty3" class="form-control form-control-sm" value="<?= $template['qty3'] ?? '' ?>" placeholder="quantity...">
                 </div>
                 <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Value</label>

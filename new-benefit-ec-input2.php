@@ -593,7 +593,7 @@
       var row   = $(this).closest('tr');
       var value = parseFloat($(this).val());
       var hiddenValue = row.find('input[name="valuedefault[]"]').val();
-      hiddenValue = hiddenValue <= 0 ? row.find('input[name="valben[]"]').val() : hiddenValue;
+      hiddenValue = hiddenValue <= 1 ? row.find('input[name="valben[]"]').val() : hiddenValue;
       hiddenValue = removeNonDigits(hiddenValue);
   
       if (!isNaN(value)) {
@@ -648,11 +648,12 @@
     handleInput(row.find('input[name="valben[]"]'));
     var disabledField2 = row.find('input[name="valben[]"]');
     var defaultvalue = row.find('input[name="valuedefault[]"]').val();
+    defaultvalue = isNaN(defaultvalue) ? 0 : defaultvalue;
 
     let disabledFieldValue = disabledField2.val().replace(/[^0-9]/g, '');
 
     var total = parseInt(member1)+parseInt(member2)+parseInt(member3);
-    if(defaultvalue != 0){
+    if(defaultvalue > 1){
       disabledField.val(formatNumber(total*defaultvalue));
     }else{
       disabledField.val(formatNumber(total*disabledFieldValue));
