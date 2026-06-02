@@ -10,7 +10,7 @@ include 'db_con.php';
 $username = $_POST['uname'];
 $password = md5($_POST['psw']);
 
-$stmt = $conn->prepare('SELECT * FROM user where username=? and password=?');
+$stmt = $conn->prepare('SELECT * FROM user where username=? and password=? and is_active=1');
 $stmt->bind_param('ss', $username, $password);
 
 $stmt->execute();
