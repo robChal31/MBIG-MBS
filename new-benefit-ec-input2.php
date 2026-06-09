@@ -629,11 +629,11 @@
       checkIfStillMinus = (checkIfStillMinus || year2 < 0 || year3 < 0) ? true : false;
     }
 
-    if (checkIfStillMinus){
-      $('#submt').prop('disabled', true);
-    }else{
-      $('#submt').prop('disabled', false);
-    }
+    // if (checkIfStillMinus){
+    //   $('#submt').prop('disabled', true);
+    // }else{
+    //   $('#submt').prop('disabled', false);
+    // }
 
   }
 
