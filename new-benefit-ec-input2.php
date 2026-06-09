@@ -882,7 +882,7 @@
     });
 
     // populateDropdown('row' + <?= $current_row ?>);
-    $('#submt').prop('disabled', true);
+    // $('#submt').prop('disabled', true);
     // initializeUpdateDisabledFields();
     if (tpl_data.length > 0) {
       tpl_data.forEach(tpl => {
