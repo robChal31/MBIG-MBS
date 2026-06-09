@@ -75,7 +75,7 @@ $last_path_with_query;
                             <a href="report.php" class="nav-link <?= $last_path_with_query == 'report.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Programs</a>
                         </li>
                         <li>
-                            <a href="report_adoption.php" class="nav-link <?= $last_path_with_query == 'report_adoption.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Adopsi</a>
+                            <a href="report_adoption2.php" class="nav-link <?= $last_path_with_query == 'report_adoption.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Adopsi</a>
                         </li>
                         <li>
                             <a href="report_usage.php" class="nav-link <?= $last_path_with_query == 'report_usage.php' ? "active" : '' ?>"><i class="fas fa-chart-line"></i> Usage</a>

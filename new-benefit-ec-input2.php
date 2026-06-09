@@ -37,10 +37,11 @@
       }
 
       //get draft benefit list count
-      $sql          = "SELECT b.*, a.* 
-                        FROM draft_benefit_list a 
-                        LEFT JOIN draft_template_benefit AS b on a.id_template = b.id_template_benefit 
-                      WHERE a.id_draft = '$id_draft'";
+      $sql          = "SELECT dbl.type, dbl.id_template, dbl.subbenefit,
+                        dbl.benefit_name, dbl.description, dtb.pelaksanaan, dbl.keterangan, dbl.qty, dbl.qty2, dbl.qty3, dtb.valueMoney, dbl.manualValue, dbl.calcValue, dtb.editable_qty
+                        FROM draft_benefit_list as dbl 
+                        LEFT JOIN draft_template_benefit AS dtb on dbl.id_template = dtb.id_template_benefit 
+                      WHERE dbl.id_draft = '$id_draft'";
       $result       = mysqli_query($conn, $sql);
       $current_row = mysqli_num_rows($result);
 
@@ -300,10 +301,8 @@
                                 <textarea id="description" name="description[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['description'] ?></textarea>
                               </td>
                               <?php 
-                                if($data['valueMoney'] == 0){
                                   $new_qty = ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']) == 0 ? 1 : ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']);
                                   $data['valueMoney'] = (int)$data['calcValue'] / ($new_qty);
-                                }
                               ?>
                                 <td>
                                   <textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['pelaksanaan'] ?></textarea>
