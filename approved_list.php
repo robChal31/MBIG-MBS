@@ -170,7 +170,12 @@
                                         </a>
                                     </li> -->
                                 <?php endif; ?>
+                                <?php if($role == 'admin' && !$row['verified'] && !$row['file_pk']) : ?>
+                                    <li>
+                                        <span class="dropdown-item text-danger">Waiting File PK</span>
+                                    </li>
 
+                                <?php endif; ?>
                                 <?php if($role == 'sa' && $row['verified'] && $user_id == 5 && !$row['confirmed']) : ?>
                                     <li>
                                         <a class="dropdown-item text-primary"
