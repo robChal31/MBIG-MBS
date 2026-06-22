@@ -104,7 +104,7 @@ if ($result->num_rows > 0) {
                     ?>
                             <tr>
                                 <td><?= $usage['used_at'] ?></td>
-                                <td><?= $usage['descr'] ?>cxzx</td>
+                                <td><?= $usage['descr'] ?></td>
                                 <?php
                                     if(count($usages) > 0 && $usages[0]['redeemable'] == 1) { ?>
                                         <td><?= $usage['redeem_code'] ?></td>

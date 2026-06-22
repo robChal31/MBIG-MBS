@@ -20,6 +20,81 @@ function jsonResponse($status, $message, $data = null, $httpCode = 200) {
     exit();
 }
 
+// 🔥 Fungsi untuk menentukan quota aktif berdasarkan tanggal
+function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $usedQty2, $usedQty3) {
+    $startDate = new DateTime($startAt);
+    $currentDate = new DateTime();
+    $expiredDate = new DateTime($expiredAt);
+    
+    // Jika sudah expired
+    if ($currentDate > $expiredDate) {
+        return [
+            'year' => null,
+            'total' => 0,
+            'used' => 0,
+            'available' => 0,
+            'is_expired' => true
+        ];
+    }
+    
+    // 🔥 Hitung selisih bulan secara akurat
+    $diff = $startDate->diff($currentDate);
+    $totalMonths = ($diff->y * 12) + $diff->m;
+    
+    // 🔥 Jika selisih hari > 0 dan bulan sudah genap, tambah 1 bulan
+    if ($diff->days >= 365 && $diff->m == 0 && $diff->d > 0) {
+        $totalMonths = 12;
+    }
+    
+    // Tentukan tahun ke berapa
+    if ($totalMonths < 12) {
+        // Tahun ke-1
+        $totalQuota = (int)$qty1;
+        $usedQuota = (int)$usedQty1;
+        $availableQuota = $totalQuota - $usedQuota;
+        return [
+            'year' => 1,
+            'total' => $totalQuota,
+            'used' => $usedQuota,
+            'available' => $availableQuota > 0 ? $availableQuota : 0,
+            'is_expired' => false
+        ];
+    } elseif ($totalMonths < 24) {
+        // Tahun ke-2
+        $totalQuota = (int)$qty2;
+        $usedQuota = (int)$usedQty2;
+        $availableQuota = $totalQuota - $usedQuota;
+        return [
+            'year' => 2,
+            'total' => $totalQuota,
+            'used' => $usedQuota,
+            'available' => $availableQuota > 0 ? $availableQuota : 0,
+            'is_expired' => false
+        ];
+    } elseif ($totalMonths < 36) {
+        // Tahun ke-3
+        $totalQuota = (int)$qty3;
+        $usedQuota = (int)$usedQty3;
+        $availableQuota = $totalQuota - $usedQuota;
+        return [
+            'year' => 3,
+            'total' => $totalQuota,
+            'used' => $usedQuota,
+            'available' => $availableQuota > 0 ? $availableQuota : 0,
+            'is_expired' => false
+        ];
+    }
+    
+    // Melebihi 3 tahun
+    return [
+        'year' => null,
+        'total' => 0,
+        'used' => 0,
+        'available' => 0,
+        'is_expired' => true
+    ];
+}
+
 // Cek method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse('error', 'Method not allowed', null, 405);
@@ -97,15 +172,18 @@ if (empty($pkIds)) {
 $pkIdsString = implode(',', $pkIds);
 $sql = "SELECT 
             p.id as pk_id, p.benefit_id, p.no_pk, p.start_at, p.expired_at, d.id_draft, d.id_benefit_list, d.id_template, d.benefit_name, d.subbenefit, d.description, d.keterangan, d.qty, d.qty2, d.qty3, d.manualValue, dt.subject,
-            d.calcValue, d.pelaksanaan, d.type, d.status, d.isDeleted, d.note, d.updated_at, dt.redeemable, sb.group as subbenefit_group
+            d.calcValue, d.pelaksanaan, d.type, d.status, d.isDeleted, d.note, d.updated_at, dt.redeemable, sb.group as subbenefit_group,
+            prog.name as program
         FROM mp_user_pks up
         INNER JOIN pk p ON up.pk_id = p.id
         INNER JOIN draft_benefit_list d ON p.benefit_id = d.id_draft
+        LEFT JOIN draft_benefit as db on db.id_draft = d.id_draft
+        LEFT JOIN programs as prog on (prog.name = db.program OR prog.code = db.program)
         LEFT JOIN draft_template_benefit as dt on dt.id_template_benefit = d.id_template
         LEFT JOIN benefits as b on dt.benefit = b.name
         LEFT JOIN subbenefits as sb on sb.benefit_id = b.id and sb.name = dt.subbenefit
         WHERE up.user_id = $userId
-        ORDER BY p.expired_at DESC, p.benefit_id, d.id_benefit_list
+        ORDER BY p.expired_at DESC, dt.redeemable DESC, p.benefit_id, d.id_benefit_list
     ";
 
 $result = mysqli_query($conn, $sql);
@@ -119,7 +197,7 @@ if (mysqli_num_rows($result) == 0) {
             'institution_id' => $user['institution_id']
         ],
         'benefits' => []
-    ], 200);  // ← PAKAI 200, BUKAN 404
+    ], 200);
     exit();
 }
 
@@ -196,12 +274,49 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
     
     if (!$pkExists) {
+        // 🔥 Ambil PK data untuk dihitung active_quota
+        $pkStartAt = $row['start_at'];
+        $pkExpiredAt = $row['expired_at'];
+        $qty1 = $row['qty'];
+        $qty2 = $row['qty2'];
+        $qty3 = $row['qty3'];
+        
+        // 🔥 Ambil usage data untuk benefit ini (qty1, qty2, qty3 yang sudah digunakan)
+        // Ini perlu query tambahan ke tabel benefit_usages
+        $usageSql = "SELECT 
+                        COALESCE(SUM(qty1), 0) as total_qty1_used,
+                        COALESCE(SUM(qty2), 0) as total_qty2_used,
+                        COALESCE(SUM(qty3), 0) as total_qty3_used
+                    FROM benefit_usages 
+                    WHERE id_benefit_list = '{$row['id_benefit_list']}'";
+        $usageResult = mysqli_query($conn, $usageSql);
+        $usageData = mysqli_fetch_assoc($usageResult);
+        
+        $usedQty1 = $usageData['total_qty1_used'] ?? 0;
+        $usedQty2 = $usageData['total_qty2_used'] ?? 0;
+        $usedQty3 = $usageData['total_qty3_used'] ?? 0;
+        
+        // 🔥 Hitung active_quota
+        $activeQuota = getActiveQuota(
+            $pkStartAt,
+            $pkExpiredAt,
+            $qty1,
+            $qty2,
+            $qty3,
+            $usedQty1,
+            $usedQty2,
+            $usedQty3
+        );
+        
         $benefitsMap[$benefitId]['related_pks'][] = [
             'id' => $row['pk_id'],
             'benefit_id' => $row['benefit_id'],
             'no_pk' => $row['no_pk'],
             'start_at' => $row['start_at'],
-            'expired_at' => $row['expired_at']
+            'expired_at' => $row['expired_at'],
+            'program' => $row['program'],
+            // 🔥 Tambahkan active_quota di sini
+            'active_quota' => $activeQuota
         ];
     }
 }

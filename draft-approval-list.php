@@ -123,7 +123,7 @@
 
                                     <!-- ACTION -->
                                     <td class="text-center">
-                                        <?php if($row['status'] < 1 && $row['id_user_approver'] == $id_user) { ?>
+                                        <?php if($row['status'] < 1 && $row['id_user_approver'] == $id_user && $row['draft_status'] != 2) { ?>
                                             <a target="_blank" href="approve-draft-benefit-form.php?id_draft=<?= $row['id_draft'] ?>&token=<?= $row['token'] ?>" class="btn btn-outline-primary btn-sm" style="font-size: .7rem;">
                                                 <i class="fas fa-fingerprint"></i> Approve
                                             </a>

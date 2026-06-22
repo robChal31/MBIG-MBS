@@ -38,23 +38,15 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
         ];
     }
     
-    // 🔥 Hitung selisih bulan secara akurat (menggunakan diff, bukan year/month saja)
+    // Hitung selisih bulan secara akurat
     $diff = $startDate->diff($currentDate);
     $totalMonths = ($diff->y * 12) + $diff->m;
     
-    // 🔥 Jika selisih hari > 0 dan bulan sudah genap, tambah 1 bulan
-    // Contoh: 2025-05-27 ke 2026-05-04 → 11 bulan 7 hari → masih 11 bulan
-    // Contoh: 2025-05-27 ke 2026-05-28 → 12 bulan 1 hari → 12 bulan
     if ($diff->days >= 365 && $diff->m == 0 && $diff->d > 0) {
         $totalMonths = 12;
     }
     
-    // Tentukan tahun ke berapa
-    // Tahun ke-1: 0 - 11 bulan (belum genap 12 bulan)
-    // Tahun ke-2: 12 - 23 bulan
-    // Tahun ke-3: 24 - 35 bulan
     if ($totalMonths < 12) {
-        // Tahun ke-1
         $totalQuota = (int)$qty1;
         $usedQuota = (int)$usedQty1;
         $availableQuota = $totalQuota - $usedQuota;
@@ -66,7 +58,6 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'is_expired' => false
         ];
     } elseif ($totalMonths < 24) {
-        // Tahun ke-2
         $totalQuota = (int)$qty2;
         $usedQuota = (int)$usedQty2;
         $availableQuota = $totalQuota - $usedQuota;
@@ -78,7 +69,6 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'is_expired' => false
         ];
     } elseif ($totalMonths < 36) {
-        // Tahun ke-3
         $totalQuota = (int)$qty3;
         $usedQuota = (int)$usedQty3;
         $availableQuota = $totalQuota - $usedQuota;
@@ -91,7 +81,6 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
         ];
     }
     
-    // Melebihi 3 tahun
     return [
         'active_year' => null,
         'total_quota' => 0,
@@ -100,6 +89,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
         'is_expired' => true
     ];
 }
+
 // Cek method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse('error', 'Method not allowed', null, 405);
@@ -128,38 +118,38 @@ if ($receivedToken !== $expectedToken) {
     jsonResponse('error', 'Invalid API token', null, 401);
 }
 
-// Validasi email dan benefit_type
+// Validasi email
 $email = $input['email'] ?? null;
 $benefitType = $input['benefit_type'] ?? null;
 $subject = $input['subject'] ?? null;
-$event_group_code = $input['event_group'] ?? 'ASTAPS';
+$event_group_code = $input['event_group'] ?? '';
 
 if (!$email) {
     jsonResponse('error', 'Email is required', null, 400);
-}
-
-if (!$benefitType) {
-    jsonResponse('error', 'benefit_type is required', null, 400);
 }
 
 if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
     jsonResponse('error', 'Invalid email format', null, 400);
 }
 
+// 🔥 FIX: Jika benefit_type null atau kosong, set ke array kosong
+$benefitTypes = [];
+if (!empty($benefitType)) {
+    $benefitTypes = explode(';', $benefitType);
+    $benefitTypes = array_map('trim', $benefitTypes);
+}
+
+// 🔥 FIX: Subject handling
+$subjects = [];
+if (!empty($subject)) {
+    $subjects = explode(';', $subject);
+    $subjects = array_map('trim', $subjects);
+}
+
 // Escape input
 $email = mysqli_real_escape_string($conn, $email);
-$benefitType = mysqli_real_escape_string($conn, $benefitType);
-$subject = mysqli_real_escape_string($conn, $subject);
 
-// 🔥 Split benefit_type jika mengandung ";" (multiple values)
-$benefitTypes = explode(';', $benefitType);
-$benefitTypes = array_map('trim', $benefitTypes); // Hilangkan spasi tambahan
-
-// 🔥 Split subject jika mengandung ";" (multiple values)
-$subjects = !empty($subject) ? explode(';', $subject) : [];
-$subjects = array_map('trim', $subjects);
-
-// 1. Cek user di mp_users berdasarkan email
+// 1. Cek user
 $checkUserSql = "SELECT id, name, email, institution_id FROM mp_users WHERE email = '$email'";
 $userResult = mysqli_query($conn, $checkUserSql);
 
@@ -170,8 +160,7 @@ if (mysqli_num_rows($userResult) == 0) {
 $user = mysqli_fetch_assoc($userResult);
 $userId = $user['id'];
 
-// 2. Ambil semua pk_id dari mp_user_pks berdasarkan user_id 
-//    dan join ke pk untuk cek expired_at (hanya yang belum expired)
+// 2. Ambil pk aktif
 $getPksSql = "SELECT up.pk_id, p.expired_at, p.benefit_id, p.no_pk, p.start_at
               FROM mp_user_pks up
               INNER JOIN pk p ON up.pk_id = p.id
@@ -181,7 +170,7 @@ $getPksSql = "SELECT up.pk_id, p.expired_at, p.benefit_id, p.no_pk, p.start_at
 $pksResult = mysqli_query($conn, $getPksSql);
 
 if (mysqli_num_rows($pksResult) == 0) {
-    jsonResponse('success', 'No active PK found for this user', [
+    jsonResponse('success', 'No active PK found', [
         'hasBenefit' => false,
         'message' => 'No active benefit packages found'
     ]);
@@ -195,15 +184,23 @@ while ($row = mysqli_fetch_assoc($pksResult)) {
 }
 $pkIdsString = implode(',', $pkIds);
 
-// 🔥 Build query dengan multiple benefit types menggunakan OR
-$benefitTypeConditions = [];
-foreach ($benefitTypes as $type) {
-    $type = mysqli_real_escape_string($conn, $type);
-    $benefitTypeConditions[] = "sb.group = '$type'";
+// 🔥 FIX: Build benefit type conditions - lebih simpel dan aman
+$benefitTypeCondition = "";
+if (!empty($benefitTypes)) {
+    $conditions = [];
+    foreach ($benefitTypes as $type) {
+        $type = mysqli_real_escape_string($conn, $type);
+        $conditions[] = "sb.group = '$type'";
+    }
+    // ✅ Tambahkan Kolektif Offline sebagai OR tambahan
+    $conditions[] = "sb.group = 'Kolektif Offline'";
+    $benefitTypeCondition = " AND (" . implode(' OR ', $conditions) . ")";
+} else {
+    // Jika benefit_type kosong, hanya cari Kolektif Offline
+    $benefitTypeCondition = " AND sb.group = 'Kolektif Offline'";
 }
-$benefitTypeCondition = implode(' OR ', $benefitTypeConditions);
 
-// 🔥 Build subject conditions jika ada multiple subjects
+// 🔥 FIX: Subject conditions
 $subjectCondition = "";
 if (!empty($subjects)) {
     $subjectConditions = [];
@@ -213,9 +210,15 @@ if (!empty($subjects)) {
     }
     $subjectCondition = " AND (" . implode(' OR ', $subjectConditions) . ")";
 }
-$peg_code_clausal = $event_group_code == '' ? ' AND p.peg_code IS NULL' : '';
-// 3. Ambil semua benefit dari pk -> draft_benefit_list -> draft_template_benefit -> benefits -> subbenefits
-//    yang match dengan benefit_type (multiple values)
+
+// 🔥 FIX: event_group_code condition - lebih aman
+$eventGroupCondition = "";
+if (!empty($event_group_code)) {
+    $event_group_code = mysqli_real_escape_string($conn, $event_group_code);
+    $eventGroupCondition = " AND peg.code = '$event_group_code'";
+}
+
+// 3. Query utama
 $sql = "SELECT 
             p.id as pk_id,
             p.benefit_id as pk_benefit_id,
@@ -254,21 +257,25 @@ $sql = "SELECT
         LEFT JOIN program_event_groups as peg ON peg.id = pc.program_event_group_id
         WHERE p.id IN ($pkIdsString)
             AND (d.isDeleted = 0 OR d.isDeleted IS NULL)
-            AND ($benefitTypeCondition) $peg_code_clausal
-            $subjectCondition";
+            $benefitTypeCondition
+            $subjectCondition
+            $eventGroupCondition";
 
 $result = mysqli_query($conn, $sql);
 
-// 4. Loop semua hasil, filter yang available quota > 0, dan susun response
+if (!$result) {
+    jsonResponse('error', 'Database error: ' . mysqli_error($conn), null, 500);
+}
+
+// 4. Loop hasil
 $benefitsList = [];
 while ($benefit = mysqli_fetch_assoc($result)) {
     $pkId = $benefit['pk_id'];
     $pkInfo = $pkDataList[$pkId];
     
-    // Cek expired
     $expired = strtotime($pkInfo['expired_at']) < time();
     
-    // Ambil usage per qty
+    // Ambil usage
     $usageSql = "SELECT 
                     COALESCE(SUM(qty1), 0) as total_qty1_used,
                     COALESCE(SUM(qty2), 0) as total_qty2_used,
@@ -279,12 +286,7 @@ while ($benefit = mysqli_fetch_assoc($result)) {
     $usageResult = mysqli_query($conn, $usageSql);
     $usage = mysqli_fetch_assoc($usageResult);
     
-    // Hitung sisa quota per tahun
-    $remainingQty1 = (int)$benefit['qty'] - (int)$usage['total_qty1_used'];
-    $remainingQty2 = (int)$benefit['qty2'] - (int)$usage['total_qty2_used'];
-    $remainingQty3 = (int)$benefit['qty3'] - (int)$usage['total_qty3_used'];
-    
-    // Hitung active quota berdasarkan tanggal
+    // Hitung active quota
     $activeQuota = getActiveQuota(
         $benefit['pk_start_at'],
         $benefit['pk_expired_at'],
@@ -296,7 +298,7 @@ while ($benefit = mysqli_fetch_assoc($result)) {
         $usage['total_qty3_used']
     );
     
-    // 🔥 SKIP jika available quota = 0
+    // SKIP jika available quota = 0
     if ($activeQuota['available_quota'] <= 0) {
         continue;
     }
@@ -310,23 +312,6 @@ while ($benefit = mysqli_fetch_assoc($result)) {
             'description' => $benefit['description'],
             'type' => $benefit['type'],
             'redeemable' => $benefit['redeemable'] == 1,
-            'quota' => [
-                'year1' => [
-                    'total' => (int)$benefit['qty'],
-                    'used' => (int)$usage['total_qty1_used'],
-                    'remaining' => $remainingQty1
-                ],
-                'year2' => [
-                    'total' => (int)$benefit['qty2'],
-                    'used' => (int)$usage['total_qty2_used'],
-                    'remaining' => $remainingQty2
-                ],
-                'year3' => [
-                    'total' => (int)$benefit['qty3'],
-                    'used' => (int)$usage['total_qty3_used'],
-                    'remaining' => $remainingQty3
-                ]
-            ],
             'active_quota' => [
                 'year' => $activeQuota['active_year'],
                 'total' => $activeQuota['total_quota'],
@@ -352,11 +337,10 @@ while ($benefit = mysqli_fetch_assoc($result)) {
     ];
 }
 
-// Cek apakah ada benefit yang tersedia
 if (count($benefitsList) == 0) {
     jsonResponse('success', 'No active benefit with available quota', [
         'hasBenefit' => false,
-        'message' => 'No active benefit with available quota found',
+        'message' => 'No benefit available',
         'user' => [
             'id' => $user['id'],
             'name' => $user['name'],
@@ -365,7 +349,6 @@ if (count($benefitsList) == 0) {
     ]);
 }
 
-// 5. Siapkan response data
 $responseData = [
     'hasBenefit' => true,
     'total_benefits' => count($benefitsList),

@@ -144,7 +144,7 @@ try {
     if ($isNew) {
         // Generate secure token (32 bytes = 64 karakter hex)
         $resetToken = bin2hex(random_bytes(32));
-        $resetExpires = date('Y-m-d H:i:s', strtotime('+24 hours'));
+        $resetExpires = date('Y-m-d H:i:s', strtotime('+48 hours'));
         
         // Kirim data ke Next.js API
         $postData = json_encode([

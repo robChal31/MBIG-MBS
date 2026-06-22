@@ -24,8 +24,7 @@ function generateRedeemCodeFromAPI($eventId, $qty, $discount = 100) {
     $data = array(
         'id_event' => $eventId,
         'quota' => $qty,
-        'diskon' => $discount,
-        'is_mp' => 1
+        'diskon' => $discount
     );
 
     $ch = curl_init($url);

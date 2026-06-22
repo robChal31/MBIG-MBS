@@ -198,7 +198,8 @@ $benefitSql = "SELECT
                     dt.redeemable,
                     dt.subject as subject_benefit,
                     sb.group as subbenefit_group,
-                    peg.code as event_group_code
+                    peg.code as event_group_code,
+                    prog.name as program_name
                 FROM draft_benefit_list d
                 LEFT JOIN draft_template_benefit dt ON d.id_template = dt.id_template_benefit
                 LEFT JOIN benefits b ON dt.benefit = b.name
@@ -336,7 +337,8 @@ $responseData = [
         'benefit_id' => $pkData['benefit_id'],
         'no_pk' => $pkData['no_pk'],
         'start_at' => $pkData['start_at'],
-        'expired_at' => $pkData['expired_at']
+        'expired_at' => $pkData['expired_at'],
+        'program' =>$benefitDetail['program_name'],
     ],
     'usages' => $usages
 ];

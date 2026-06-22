@@ -30,9 +30,10 @@ if (mysqli_num_rows($school_exec) > 0) {
 }
 
 $pks = [];
-$pks_q = "SELECT pk.benefit_id, pk.no_pk, pk.id, IFNULL(sc.name, db.school_name) as school_name
+$pks_q = "SELECT pk.benefit_id, pk.no_pk, pk.id, IFNULL(sc.name, db.school_name) as school_name, IFNULL(prog.name, db.program) as program
             FROM pk as pk
             LEFT JOIN draft_benefit as db on db.id_draft = pk.benefit_id
+            LEFT JOIN programs as prog on (prog.name = db.program OR prog.code = db.program)
             LEFT JOIN schools as sc on sc.id = db.school_name
             WHERE db.deleted_at IS NULL";
 $pks_exec = mysqli_query($conn, $pks_q);
@@ -50,7 +51,7 @@ while ($r = mysqli_fetch_assoc($q)) {
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
-        <form action="save-template.php" method="POST" enctype="multipart/form-data" id="form_input">
+        <form method="POST" enctype="multipart/form-data" id="form_input">
             <div class="row">
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Name</label>
@@ -75,8 +76,7 @@ while ($r = mysqli_fetch_assoc($q)) {
                     <select name="institution_id" id="institution_id" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>--Select Institution --</option>
                         <?php foreach($schools as $school) { ?>
-                            <option value="<?= $school['id'] ?>" 
-                                <?= $school['id'] == ($mpartner['institution_id'] ?? null) ? 'selected' : '' ?>>
+                            <option value="<?= $school['id'] ?>" <?= $school['id'] == ($mpartner['institution_id'] ?? null) ? 'selected' : '' ?>>
                                 <?= $school['name'] ?>
                             </option>
                         <?php } ?>
@@ -87,7 +87,7 @@ while ($r = mysqli_fetch_assoc($q)) {
                     <label class="form-label d-flex" style="font-size: .85rem;">PK</label>
                     <select name="pks[]" id="pks" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple required>
                         <?php foreach($pks as $pk) { ?>
-                            <option value="<?= $pk['id'] ?>">[ <?= $pk['school_name'] ?> ] - <?= $pk['no_pk'] ?></option>
+                            <option value="<?= $pk['id'] ?>">[ <?= $pk['school_name'] ?> - <?= $pk['program'] ?> ] - <?= $pk['no_pk'] ?></option>
                         <?php } ; ?>
                     </select>
                 </div>
