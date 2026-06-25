@@ -384,7 +384,7 @@
         $writer = new Xlsx($spreadsheet);
         $pattern = '/[^a-zA-Z0-9\s]/';
         $school_name_file = preg_replace($pattern, '', $school_name2);
-        $fileName = "Draft Benefit - ".$school_name_file."-".$_SESSION['generalname'].'-'.date('Ymd');
+        $fileName = "Draft Benefit - " . $uc_program . " - " .$school_name_file."-".$_SESSION['generalname'].'-'.date('Y-m-d_H-i-s');
         $fileName = addslashes($fileName);
     
         $excelFile = 'draft-benefit/'.$fileName.'.xlsx';
