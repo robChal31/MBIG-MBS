@@ -189,11 +189,11 @@ if (isset($temp_table)) {
                         ? ($benefit['program_name'] ?? '-')
                         : (($benefit['program_name'] ?? '-') . " Perubahan Tahun Ke " . ($benefit['prog_year'] ?? ''));
 
-                    $expiredTime = !empty($benefit['expired_at'])
-                        ? strtotime($benefit['expired_at'])
+                    $expiredDate = !empty($benefit['expired_at'])
+                        ? date('Y-m-d', strtotime($benefit['expired_at']))
                         : null;
 
-                    $is_expired = ($expiredTime && $expiredTime < time());
+                    $is_expired = $expiredDate && date('Y-m-d') > $expiredDate;
                     $has_ref_usage = $benefit['has_ref_usage'] ?? 0;
 
                     $row_class = $is_expired || $has_ref_usage
