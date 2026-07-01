@@ -161,13 +161,14 @@ try {
 
     }
 
+    // ========== FIXED: Always delete program_schools first ==========
+    $delete_sql = "DELETE FROM program_schools WHERE program_id = $id_program";
+    if (!$conn->query($delete_sql)) {
+        throw new Exception('Failed to delete program schools: ' . $conn->error);
+    }
+
+    // Insert new program_schools if any
     if(count($school_data) > 0) {
-        $delete_sql = "DELETE FROM program_schools WHERE program_id = $id_program";
-
-        if (!$conn->query($delete_sql)) {
-            throw new Exception('Query failed: ' . $conn->error);
-        }
-
         foreach($school_data as $sch) {
             $school_id_new              = $sch['institutionid'];
             $school_name_new            = mysqli_real_escape_string($conn, $sch['name']);
@@ -177,52 +178,57 @@ try {
             $school_ec_id_new           = $sch['ec_id'];
             $school_created_date_new    = $sch['created_date'];
 
+            // Check if school exists, if not insert
             $sql = "SELECT * FROM schools WHERE id = $school_id_new";
             $result = mysqli_query($conn, $sql);
 
             if (mysqli_num_rows($result) < 1) {
                 $sql = "INSERT INTO `schools` (`id`, `name`, `address`, `phone`, `segment`, `ec_id`, `created_date`) VALUES
                 ($school_id_new, '$school_name_new', '$school_address_new', '$school_phone_new', '$school_segment_new', '$school_ec_id_new', '$school_created_date_new')";
-                mysqli_query($conn,$sql);
+                if (!mysqli_query($conn, $sql)) {
+                    throw new Exception('Failed to insert school: ' . $conn->error);
+                }
             }
 
             $sql = "INSERT INTO program_schools (program_id, school_id, created_at) VALUES (
                 '$id_program', '$school_id_new', NOW())";
             
             if (!$conn->query($sql)) {
-                throw new Exception('Query failed: ' . $conn->error);
+                throw new Exception('Failed to insert program school: ' . $conn->error);
             }
-
         }
     }
 
-
+    // ========== Handle Omzet Ranges ==========
     $rangeIds = [];
     $q = $conn->query("SELECT id FROM program_omzet_ranges WHERE program_id = $id_program");
     while ($r = $q->fetch_assoc()) {
         $rangeIds[] = $r['id'];
     }
 
-    // delete discounts dulu (child)
+    // Delete discounts first (child records)
     if (!empty($rangeIds)) {
         $ids = implode(',', $rangeIds);
-        $conn->query("DELETE FROM program_discounts WHERE omzet_range_id IN ($ids)");
+        if (!$conn->query("DELETE FROM program_discounts WHERE omzet_range_id IN ($ids)")) {
+            throw new Exception('Failed to delete discounts: ' . $conn->error);
+        }
     }
 
-    // delete ranges (parent)
-    $conn->query("DELETE FROM program_omzet_ranges WHERE program_id = $id_program");
+    // Delete ranges (parent records)
+    if (!$conn->query("DELETE FROM program_omzet_ranges WHERE program_id = $id_program")) {
+        throw new Exception('Failed to delete omzet ranges: ' . $conn->error);
+    }
 
     $openEndedUsed = false;
 
-    // urutin dulu biar validasi overlap gampang
+    // Sort ranges by omzet_min for easier validation
     usort($ranges, function ($a, $b) {
         return (int) str_replace('.', '', $a['omzet_min'])
             <=> (int) str_replace('.', '', $b['omzet_min']);
     });
 
     foreach ($ranges as $range) {
-
-        // wajib ada omzet_min
+        // Omzet min is required
         if (!isset($range['omzet_min']) || $range['omzet_min'] === '') {
             throw new Exception('Omzet min is required');
         }
@@ -239,14 +245,13 @@ try {
 
         $discounts = array_map('floatval', $range['discounts'] ?? []);
 
-        // ===== VALIDASI =====
-
-        // max harus > min (kalau ada)
+        // ===== VALIDATION =====
+        // Max must be greater than min (if exists)
         if ($omzet_max !== null && $omzet_max <= $omzet_min) {
             throw new Exception('Omzet max must be greater than omzet min');
         }
 
-        // hanya boleh 1 open-ended range
+        // Only one open-ended range allowed
         if ($omzet_max === null) {
             if ($openEndedUsed) {
                 throw new Exception('Only one omzet range may have empty max');
@@ -254,15 +259,14 @@ try {
             $openEndedUsed = true;
         }
 
-        // ===== SIMPAN RANGE =====
+        // ===== SAVE RANGE =====
         $sql = "INSERT INTO program_omzet_ranges (program_id, omzet_min, omzet_max, max_discount)
             VALUES (
                 $id_program,
                 $omzet_min,
                 " . ($omzet_max === null ? 'NULL' : $omzet_max) . ",
                 $max_discount
-            )
-        ";
+            )";
 
         if (!$conn->query($sql)) {
             throw new Exception('Failed insert omzet range: ' . $conn->error);
@@ -270,16 +274,16 @@ try {
 
         $range_id = $conn->insert_id;
 
-        // ===== SIMPAN DISCOUNTS =====
+        // ===== SAVE DISCOUNTS =====
         foreach ($discounts as $d) {
             if ($d <= 0 || $d > $max_discount) {
                 continue;
             }
 
-            $conn->query("
-                INSERT INTO program_discounts (omzet_range_id, amount)
-                VALUES ($range_id, $d)
-            ");
+            $insert_discount = "INSERT INTO program_discounts (omzet_range_id, amount) VALUES ($range_id, $d)";
+            if (!$conn->query($insert_discount)) {
+                throw new Exception('Failed insert discount: ' . $conn->error);
+            }
         }
     }
 
