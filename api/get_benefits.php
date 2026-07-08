@@ -209,7 +209,7 @@ $responseData = [
         'email' => $user['email'],
         'institution_id' => $user['institution_id']
     ],
-    'benefits' => [] // Array of benefits grouped by benefit_id
+    'benefits' => []
 ];
 
 $benefitsMap = [];
@@ -217,16 +217,41 @@ $benefitsMap = [];
 while ($row = mysqli_fetch_assoc($result)) {
     $benefitId = $row['benefit_id'];
     
-    // If benefit_id not exists in map, create it
     if (!isset($benefitsMap[$benefitId])) {
         $benefitsMap[$benefitId] = [
             'benefit_id' => $benefitId,
-            'benefit_detail' => [], // Ini akan jadi array of benefit items
+            'benefit_detail' => [],
             'related_pks' => []
         ];
     }
     
-    // Add benefit detail ke array (bisa multiple items per benefit_id)
+    // 🔥 Ambil usage data untuk benefit ini
+    $usageSql = "SELECT 
+                    COALESCE(SUM(qty1), 0) as total_qty1_used,
+                    COALESCE(SUM(qty2), 0) as total_qty2_used,
+                    COALESCE(SUM(qty3), 0) as total_qty3_used
+                FROM benefit_usages 
+                WHERE id_benefit_list = '{$row['id_benefit_list']}'";
+    $usageResult = mysqli_query($conn, $usageSql);
+    $usageData = mysqli_fetch_assoc($usageResult);
+    
+    $usedQty1 = $usageData['total_qty1_used'] ?? 0;
+    $usedQty2 = $usageData['total_qty2_used'] ?? 0;
+    $usedQty3 = $usageData['total_qty3_used'] ?? 0;
+    
+    // 🔥 Hitung active_quota PER BENEFIT (bukan per PK)
+    $activeQuota = getActiveQuota(
+        $row['start_at'],      // start_at dari PK
+        $row['expired_at'],    // expired_at dari PK
+        $row['qty'],           // qty dari benefit
+        $row['qty2'],          // qty2 dari benefit
+        $row['qty3'],          // qty3 dari benefit
+        $usedQty1,
+        $usedQty2,
+        $usedQty3
+    );
+    
+    // Add benefit detail dengan active_quota di DALAM benefit_item
     $benefitItem = [
         'id_benefit_list' => $row['id_benefit_list'],
         'id_draft' => $row['id_draft'],
@@ -248,10 +273,12 @@ while ($row = mysqli_fetch_assoc($result)) {
         'updated_at' => $row['updated_at'],
         'redeemable' => $row['redeemable'],
         'subbenefit_group' => $row['subbenefit_group'],
-        'subject_benefit' => $row['subject']
+        'subject_benefit' => $row['subject'],
+        // 🔥 ACTIVE_QUOTA DI SINI (per benefit)
+        'active_quota' => $activeQuota
     ];
     
-    // Cek duplikat benefit_detail berdasarkan id_benefit_list
+    // Cek duplikat benefit_detail
     $exists = false;
     foreach ($benefitsMap[$benefitId]['benefit_detail'] as $existing) {
         if ($existing['id_benefit_list'] == $row['id_benefit_list']) {
@@ -264,7 +291,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         $benefitsMap[$benefitId]['benefit_detail'][] = $benefitItem;
     }
     
-    // Add PK to benefit (cek duplikat berdasarkan pk_id)
+    // Add PK tanpa active_quota (karena quota sudah di benefit)
     $pkExists = false;
     foreach ($benefitsMap[$benefitId]['related_pks'] as $existingPk) {
         if ($existingPk['id'] == $row['pk_id']) {
@@ -274,49 +301,14 @@ while ($row = mysqli_fetch_assoc($result)) {
     }
     
     if (!$pkExists) {
-        // 🔥 Ambil PK data untuk dihitung active_quota
-        $pkStartAt = $row['start_at'];
-        $pkExpiredAt = $row['expired_at'];
-        $qty1 = $row['qty'];
-        $qty2 = $row['qty2'];
-        $qty3 = $row['qty3'];
-        
-        // 🔥 Ambil usage data untuk benefit ini (qty1, qty2, qty3 yang sudah digunakan)
-        // Ini perlu query tambahan ke tabel benefit_usages
-        $usageSql = "SELECT 
-                        COALESCE(SUM(qty1), 0) as total_qty1_used,
-                        COALESCE(SUM(qty2), 0) as total_qty2_used,
-                        COALESCE(SUM(qty3), 0) as total_qty3_used
-                    FROM benefit_usages 
-                    WHERE id_benefit_list = '{$row['id_benefit_list']}'";
-        $usageResult = mysqli_query($conn, $usageSql);
-        $usageData = mysqli_fetch_assoc($usageResult);
-        
-        $usedQty1 = $usageData['total_qty1_used'] ?? 0;
-        $usedQty2 = $usageData['total_qty2_used'] ?? 0;
-        $usedQty3 = $usageData['total_qty3_used'] ?? 0;
-        
-        // 🔥 Hitung active_quota
-        $activeQuota = getActiveQuota(
-            $pkStartAt,
-            $pkExpiredAt,
-            $qty1,
-            $qty2,
-            $qty3,
-            $usedQty1,
-            $usedQty2,
-            $usedQty3
-        );
-        
         $benefitsMap[$benefitId]['related_pks'][] = [
             'id' => $row['pk_id'],
             'benefit_id' => $row['benefit_id'],
             'no_pk' => $row['no_pk'],
             'start_at' => $row['start_at'],
             'expired_at' => $row['expired_at'],
-            'program' => $row['program'],
-            // 🔥 Tambahkan active_quota di sini
-            'active_quota' => $activeQuota
+            'program' => $row['program']
+            // ❌ HAPUS active_quota dari sini
         ];
     }
 }
