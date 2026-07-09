@@ -118,17 +118,17 @@ $query_benefits .= " AND NOT EXISTS (SELECT 1 FROM draft_benefit ref WHERE ref.r
 $query_benefits .= " GROUP BY dbl.id_benefit_list";
 
 // Apply usage year filter di HAVING clause
-if (!empty($usage_year)) {
-    $usage_conditions = [];
-    foreach ($usage_year as $value) {
-        $usage_conditions[] = "COALESCE(bu.tot_usage$value, 0) > 0";
-    }
-    $query_benefits .= " HAVING " . implode(" OR ", $usage_conditions);
-}
+// if (!empty($usage_year)) {
+//     $usage_conditions = [];
+//     foreach ($usage_year as $value) {
+//         $usage_conditions[] = "COALESCE(bu.tot_usage$value, 0) > 0";
+//     }
+//     $query_benefits .= " HAVING " . implode(" OR ", $usage_conditions);
+// }
 
 // Urutkan berdasarkan no_pk terbaru
 $query_benefits .= " ORDER BY p.no_pk DESC";
-
+var_dump($query_benefits);
 // Eksekusi query
 $exec_benefits = mysqli_query($conn, $query_benefits);
 $benefits = [];
