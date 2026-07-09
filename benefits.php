@@ -363,7 +363,7 @@
         let usage_year = $('select[name="usage_year[]"]').val();
 
         $.ajax({
-            url: './get-confirmed-benefits-bu.php',
+            url: './get-confirmed-benefits.php',
             type: 'POST',
             data: {
                 types: selectedType,
