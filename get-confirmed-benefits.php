@@ -78,7 +78,7 @@ $query_benefits = "
             ELSE 0 
         END AS has_ref_usage
     FROM draft_benefit db
-    INNER JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
+    LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
     LEFT JOIN (
         SELECT 
             id_benefit_list,
