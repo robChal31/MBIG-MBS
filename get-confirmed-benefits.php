@@ -128,7 +128,7 @@ $query_benefits .= " GROUP BY dbl.id_benefit_list";
 
 // Urutkan berdasarkan no_pk terbaru
 $query_benefits .= " ORDER BY p.no_pk DESC";
-var_dump($query_benefits);
+// var_dump($query_benefits);
 // Eksekusi query
 $exec_benefits = mysqli_query($conn, $query_benefits);
 $benefits = [];
