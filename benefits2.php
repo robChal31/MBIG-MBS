@@ -112,65 +112,6 @@
 ?>
     <div class="container-fluid p-4">
         <div class="col-12">
-            <div class="card rounded shadow-sm p-3 mb-4">
-                <!-- HEADER -->
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <div>
-                        <h6 class="fw-bold mb-0">Filter Benefit</h6>
-                        <small class="text-muted">Refine data based on benefit type</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="collapse" data-bs-target="#filterBenefitBody">
-                        <i class="fa fa-sliders-h me-1"></i> Toggle
-                    </button>
-                </div>
-
-                <!-- BODY -->
-                <div class="collapse show" id="filterBenefitBody">
-                    <div class="row g-3 align-items-end">
-
-                        <!-- BENEFIT TYPE -->
-                        <div class="col-12 <?= $role == 'ec' ? 'd-none' : '' ?>">
-                            <label class="form-label small fw-semibold">Benefit Type</label>
-
-                            <select class="form-select form-select-sm select2" id="benefitType" name="type[]" multiple>
-                                <?php foreach($types as $type) : ?>
-                                    <option value="<?= $type['id_templates'] ?>" selected>
-                                        <?= $type['benefit'] ?>
-                                    </option>
-                                <?php endforeach; ?>
-                            </select>
-
-                            <!-- helper buttons -->
-                            <div class="d-flex gap-2 mt-1">
-                                <button type="button" class="btn btn-outline-secondary btn-xs" id="selectAllBenefit">
-                                    Select All
-                                </button>
-                                <button type="button" class="btn btn-outline-secondary btn-xs" id="clearAllBenefit">
-                                    Clear
-                                </button>
-                            </div>
-                        </div>
-
-                        <!-- USAGE YEAR (NO SELECT ALL) -->
-                        <div class="col-md-6 col-12">
-                            <label class="form-label small fw-semibold">Usage Year</label>
-                            <select class="form-select form-select-sm select2" id="usageYear" name="usage_year[]" multiple>
-                                <option value="1">Year 1</option>
-                                <option value="2">Year 2</option>
-                                <option value="3">Year 3</option>
-                            </select>
-                        </div>
-
-                        <!-- ACTION -->
-                        <div class="col-md-6 col-12 d-flex justify-content-md-end align-items-end">
-                            <button class="btn btn-primary btn-sm px-4 fw-semibold" id="filter-btn">
-                                <i class="fa fa-filter me-1"></i> Apply Filter
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
             
             <div class="card shadow rounded h-100 p-4">
                 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -360,14 +301,12 @@
     });
 
     function getBenefit() {
-        let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
 
         $.ajax({
-            url: './get-confirmed-benefits.php',
+            url: './get-confirmed-benefits2.php',
             type: 'POST',
             data: {
-                types: selectedType,
                 usage_year : usage_year
             },
             beforeSend: function() {

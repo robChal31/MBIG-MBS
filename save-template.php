@@ -95,6 +95,11 @@ try {
         if (!$conn->query($query_benefit_role)) {
             throw new Exception('Query failed: ' . $conn->error);
         }
+
+        $query_draft_benefit_list = "UPDATE draft_benefit_list SET subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description' WHERE id_template = '$id_template'";
+        if (!$conn->query($query_draft_benefit_list)) {
+            throw new Exception('Query failed: ' . $conn->error);
+        }
     } else {
         $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable, benefit_order, highlight_color, info, manual_input, editable_qty) VALUES (
             '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable', '$order', '$color', '$info', '$manual_input', '$editable_qty')";
