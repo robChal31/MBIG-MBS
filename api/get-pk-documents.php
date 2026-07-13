@@ -80,7 +80,8 @@ $sql = "SELECT
             p.start_at, 
             p.expired_at,
             db.id_draft as benefit_id,
-            db.program as program_name,
+            IFNULL(prog.name, db.program) as program_name,
+            pc.name as program_category,
             sp.name as pic_name,
             sp.jabatan as pic_position,
             sp.email as pic_email,
@@ -88,6 +89,8 @@ $sql = "SELECT
         FROM mp_user_pks as up
         INNER JOIN pk as p ON up.pk_id = p.id
         LEFT JOIN draft_benefit as db ON db.id_draft = p.benefit_id
+        LEFT JOIN programs as prog on (prog.name = db.program OR prog.code = db.program)
+        LEFT JOIN program_categories as pc on pc.id = prog.program_category_id
         LEFT JOIN school_pic as sp ON sp.id_draft = db.id_draft
         WHERE up.user_id = $userId
         GROUP BY p.id
@@ -110,7 +113,8 @@ while ($row = mysqli_fetch_assoc($result)) {
     
     $pkDocuments[] = [
         'id' => (string)$row['pk_id'],
-        'name' => $row['program_name'] ?? 'Program',
+        'name' => $row['program_name'],
+        'program_category' => $row['program_category'],
         'pk' => [
             'no_pk' => $row['no_pk'],
             'id_draft' => $row['benefit_id'],

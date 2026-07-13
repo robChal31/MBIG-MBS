@@ -182,7 +182,7 @@ $sql = "SELECT
         LEFT JOIN draft_template_benefit as dt on dt.id_template_benefit = d.id_template
         LEFT JOIN benefits as b on dt.benefit = b.name
         LEFT JOIN subbenefits as sb on sb.benefit_id = b.id and sb.name = dt.subbenefit
-        WHERE up.user_id = $userId
+        WHERE up.user_id = $userId AND dt.benefit NOT LIKE '%Dana Pengembangan%'
         ORDER BY p.expired_at DESC, dt.redeemable DESC, p.benefit_id, d.id_benefit_list
     ";
 

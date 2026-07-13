@@ -59,10 +59,10 @@
 
                 $sql = "SELECT 
                             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment,
-                            b.program, IFNULL(sc.name, b.school_name) as school_name2,
+                            b.program, prog.name as program_name, IFNULL(sc.name, b.school_name) as school_name2,
                             c.generalname, pk.id as pk_id, b.verified, a.token,
                             b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed,
-                            b.jenis_pk, c.leadid, c.leadid2, c.leadid3, pk.perubahan_tahun
+                            b.jenis_pk, c.leadid, c.leadid2, c.leadid3, b.year
                         FROM draft_benefit b
                         LEFT JOIN (
                             SELECT *
@@ -76,6 +76,7 @@
                             )
                         ) a ON a.id_draft = b.id_draft
                         LEFT JOIN schools sc on sc.id = b.school_name
+                        LEFT JOIN programs as prog on (prog.name = b.program OR prog.code = b.program)
                         LEFT JOIN user c on c.id_user = b.id_ec 
                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
 
@@ -96,7 +97,9 @@
 
                         $status_class = 'bg-info';
                         $status_msg   = 'Waiting Verification';
-
+                        $program_name = $row['year'] == 1
+                                                ? $row['program_name']
+                                                : $row['program_name']." Perubahan Tahun Ke ".$row['year'];
                         if($row['verified'] == 1){
                             $status_class = $row['confirmed'] == 1 ? 'bg-success' : 'bg-primary';
                             $status_msg   = $row['confirmed'] == 1 ? 'Confirmed' : 'Waiting Confirmation';
@@ -109,8 +112,7 @@
                     <td><?= ucfirst($row['segment']) ?></td>
                     <td><?= $row['date'] ?></td>
                     <td>
-                        <?= strtoupper($row['program']) ?>
-                        <?= $row['perubahan_tahun'] ? "<br><small class='text-muted'>Perubahan Tahun {$row['perubahan_tahun']}</small>" : '' ?>
+                        <?= strtoupper($program_name) ?>
                     </td>
                     <td><?= $row['jenis_pk'] == 2 ? 'Amandemen' : 'Baru' ?></td>
 

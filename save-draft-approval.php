@@ -486,7 +486,8 @@
                             dbl.id_template, 
                             br.code, 
                             IFNULL(sc.name, db.school_name) AS school_name2, 
-                            user.*
+                            user.*,
+                            prog.name as program_name
                         FROM 
                             draft_benefit db 
                         LEFT JOIN 
@@ -501,6 +502,7 @@
                                     WHEN br.code = 'mkt' THEN user.role = 'admin' 
                                     ELSE user.role = br.code 
                                 END)
+                        LEFT JOIN programs as prog on (prog.name = db.program OR prog.code = db.program)
                         WHERE 
                             db.verified = 1
                             AND db.id_draft = $id_draft
@@ -514,7 +516,7 @@
                 $fileUrl                = '';
                 while ($dra = $result->fetch_assoc()){
                     $unit_bussiness_code[]  = $dra['code'];
-                    $program                = strtoupper($dra['program']);
+                    $program                = strtoupper($dra['program_name']);
                     $school_name            = $dra['school_name2'];
                     $fileUrl                = $dra['fileUrl'];
                 }
