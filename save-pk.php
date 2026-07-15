@@ -97,8 +97,11 @@ try {
     $is_no_pk_exist = $is_no_pk_exist_exec->num_rows > 0;
 
     $target_dir = "dokumen/";
-    $target_file_pk = $target_dir . basename($_FILES["file_pk"]["name"]);
-    $target_file_benefit = $target_dir . basename($_FILES["file_benefit"]["name"]);
+    $file_pk_name = basename($_FILES["file_pk"]["name"]);
+    $file_benefit_name = basename($_FILES["file_benefit"]["name"]);
+    $unique_id = uniqid() . '_' . date('Ymd_His');
+    $target_file_pk = $target_dir . $unique_id . '_' . $file_pk_name;
+    $target_file_benefit = $target_dir . $unique_id . '_' . $file_benefit_name;
 
     $uploadOk = 1;
     $fileExtension_pk = strtolower(pathinfo($target_file_pk, PATHINFO_EXTENSION));

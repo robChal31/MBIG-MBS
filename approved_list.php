@@ -62,7 +62,7 @@
                             b.program, prog.name as program_name, IFNULL(sc.name, b.school_name) as school_name2,
                             c.generalname, pk.id as pk_id, b.verified, a.token,
                             b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed,
-                            b.jenis_pk, c.leadid, c.leadid2, c.leadid3, b.year
+                            b.jenis_pk, c.leadid, c.leadid2, c.leadid3, b.year, IFNULL(seg.segment, '-') as segment_name
                         FROM draft_benefit b
                         LEFT JOIN (
                             SELECT *
@@ -78,6 +78,7 @@
                         LEFT JOIN schools sc on sc.id = b.school_name
                         LEFT JOIN programs as prog on (prog.name = b.program OR prog.code = b.program)
                         LEFT JOIN user c on c.id_user = b.id_ec 
+                        LEFT JOIN segments as seg on seg.id = b.segment
                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
 
                 if($_SESSION['role'] == 'ec'){
@@ -109,7 +110,7 @@
                     <td><?= $row['id_draft'] ?></td>
                     <td class="fw-semibold"><?= $row['generalname'] ?></td>
                     <td><?= $row['school_name2'] ?></td>
-                    <td><?= ucfirst($row['segment']) ?></td>
+                    <td><?= ucfirst($row['segment_name']) ?></td>
                     <td><?= $row['date'] ?></td>
                     <td>
                         <?= strtoupper($program_name) ?>
@@ -142,7 +143,7 @@
                                            data-id="<?= $row['id_draft'] ?>"
                                            data-bs-toggle="modal"
                                            data-bs-target="#pkModal">
-                                            <i class="fa fa-plus me-2"></i> Create PK
+                                            <i class="fa fa-plus me-2"></i> Add PK
                                         </a>
                                     </li>
                                 <?php endif; ?>
