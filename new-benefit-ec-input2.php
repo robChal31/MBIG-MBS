@@ -120,379 +120,690 @@
 ?>
 
 <style>
-  select {
-    max-width: 400px; /* Adjust the value to your desired maximum width */
-    word-wrap: break-word;
+  /* ===== GLOBAL STYLE ===== */
+  :root {
+    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --success-gradient: linear-gradient(135deg, #00b09b, #96c93d);
+    --danger-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    --warning-gradient: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+    --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-md: 0 4px 20px rgba(0,0,0,0.08);
+    --shadow-lg: 0 10px 40px rgba(0,0,0,0.12);
+    --shadow-xl: 0 20px 60px rgba(0,0,0,0.15);
+    --radius: 16px;
+    --radius-sm: 10px;
   }
 
-  textarea {
-    width: 100%;
-    height: 130px;
-    transition: width 3s ease;
+  /* ===== CARD HEADER ===== */
+  .card-header-custom {
+    background: var(--primary-gradient);
+    color: white;
+    padding: 20px 24px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  /* .text-area-cont:hover {
-    width: 35% !important;
-  } */
-
-  .benefit-ket {
-    display: none;
+  .card-header-custom .title {
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
   }
 
-  table.dataTable tbody td {
-      padding: 2px !important;
-      vertical-align: middle !important;
-      text-align: center !important;
+  .card-header-custom .subtitle {
+    font-size: 0.8rem;
+    opacity: 0.9;
+    font-weight: 300;
   }
 
-  /* .txt-area:hover {
-    height: 200px;
-  } */
-
-    /* Style the dropdown options */
-  .select2-container .select2-dropdown {
-    width: 60vw !important; /* Set the dropdown's overall width */
+  .card-header-custom .badge-custom {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    border: 1px solid rgba(255,255,255,0.3);
   }
 
-  .select2-container .select2-results__option {
-      /* white-space: nowrap; 
-      overflow: hidden; 
-      text-overflow: ellipsis;  */
-      max-width: 60vw; 
-      font-size: 14px;
+  /* ===== CARD BODY ===== */
+  .card-body-custom {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 0 0 var(--radius) var(--radius);
   }
 
-  /* Optional styling for the optgroup label */
-  .select2-optgroup-label {
-      font-weight: bold;
-      cursor: pointer;
+  .card-modern {
+    border: none;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
   }
 
-  /* Initially hide the options inside the optgroup */
-  .select2-results__options optgroup {
-      display: none;
+  .card-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-xl);
   }
 
-  .td-cust {
-    vertical-align: middle;
-    text-align: center;
-  }
-  
-  #input_form thead td {
-    background: #f8f9fa;
+  /* ===== BUTTONS ===== */
+  .btn-gradient-primary {
+    background: var(--primary-gradient);
+    border: none;
+    color: white;
     font-weight: 600;
-    font-size: 12px;
+    padding: 10px 28px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+  }
+
+  .btn-gradient-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+    color: white;
+  }
+
+  .btn-gradient-success {
+    background: var(--success-gradient);
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 8px 20px;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 176, 155, 0.3);
+  }
+
+  .btn-gradient-success:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 25px rgba(0, 176, 155, 0.4);
+    color: white;
+  }
+
+  .btn-gradient-danger {
+    background: var(--danger-gradient);
+    border: none;
+    color: white;
+    border-radius: 50px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(245, 87, 108, 0.3);
+  }
+
+  .btn-gradient-danger:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 25px rgba(245, 87, 108, 0.4);
+    color: white;
+  }
+
+  .btn-back {
+    background: rgba(255,255,255,0.2);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    border-radius: 50px;
+    padding: 6px 18px;
+    font-size: 0.8rem;
+    transition: all 0.3s ease;
+  }
+
+  .btn-back:hover {
+    background: rgba(255,255,255,0.3);
+    color: white;
+    transform: translateX(-3px);
+  }
+
+  /* ===== TABLE STYLING ===== */
+  #input_form {
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    width: 100%;
+  }
+
+  #input_form thead td {
+    background: linear-gradient(135deg, #f8f9fc 0%, #eef1f5 100%);
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #2d3748;
+    padding: 12px 8px !important;
+    border-bottom: 2px solid #e2e8f0;
   }
 
   #input_form tbody td {
-    font-size: 12px;
-    vertical-align: middle;
+    padding: 6px 4px !important;
+    vertical-align: middle !important;
+    text-align: center !important;
+    border-bottom: 1px solid #f0f2f5;
+    transition: background 0.2s ease;
+  }
+
+  #input_form tbody tr:hover {
+    background: rgba(102, 126, 234, 0.04);
+  }
+
+  #input_form tbody tr:last-child td {
+    border-bottom: none;
   }
 
   #input_form input,
   #input_form textarea,
   #input_form select {
     font-size: 12px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+  }
+
+  #input_form input:focus,
+  #input_form textarea:focus,
+  #input_form select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+    outline: none;
   }
 
   #input_form input[readonly],
   #input_form textarea[readonly] {
-    background-color: #f5f6f8;
-    color: #495057;
+    background-color: #f7fafc;
+    color: #4a5568;
+    border-color: #edf2f7;
   }
 
-  #input_form {
-    border-collapse: collapse;
-    border: #ccc solid 1px;
+  #input_form .form-control-sm {
+    min-height: 32px;
+    padding: 4px 10px;
   }
 
+  #input_form textarea {
+    height: 60px;
+    resize: vertical;
+    min-height: 40px;
+    transition: height 0.3s ease;
+  }
+
+  #input_form textarea:focus {
+    height: 100px;
+  }
+
+  /* ===== SUMMARY CARD ===== */
+  .summary-card {
+    background: linear-gradient(135deg, #fafbff 0%, #f0f4ff 100%);
+    border-radius: var(--radius-sm);
+    border: 1px solid #e8edf5;
+    padding: 16px 20px;
+  }
+
+  .summary-card table {
+    margin-bottom: 0;
+  }
+
+  .summary-card th {
+    font-weight: 600;
+    font-size: 12px;
+    color: #4a5568;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  .summary-card td {
+    font-size: 13px;
+    padding: 6px 8px;
+    color: #2d3748;
+  }
+
+  .summary-card .value-highlight {
+    font-weight: 700;
+    color: #667eea;
+  }
+
+  .summary-card .value-success {
+    font-weight: 700;
+    color: #00b09b;
+  }
+
+  .summary-card .value-danger {
+    font-weight: 700;
+    color: #f5576c;
+  }
+
+  /* ===== HIDDEN COLUMNS ===== */
+  .col-benefit,
+  .col-subbenefit {
+    display: none !important;
+  }
+
+  /* ===== SCROLLBAR ===== */
+  .table-wrapper::-webkit-scrollbar {
+    height: 8px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 10px;
+  }
+
+  .table-wrapper::-webkit-scrollbar-thumb:hover {
+    background: #5a6fd6;
+  }
+
+  /* ===== ANIMATIONS ===== */
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card-modern {
+    animation: fadeInUp 0.6s ease forwards;
+  }
+
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+
+  .btn-gradient-primary:hover {
+    animation: pulse 1s ease infinite;
+  }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 768px) {
+    .card-header-custom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    
+    .card-header-custom .d-flex {
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    #input_form {
+      font-size: 11px;
+    }
+
+    #input_form thead td {
+      font-size: 9px;
+      padding: 8px 4px !important;
+    }
+
+    #input_form input,
+    #input_form textarea,
+    #input_form select {
+      font-size: 10px;
+    }
+  }
+
+  /* ===== SELECT2 OVERRIDE ===== */
+  .select2-container .select2-dropdown {
+    border-radius: 8px;
+    border-color: #e2e8f0;
+    box-shadow: var(--shadow-md);
+  }
+
+  .select2-container--default .select2-selection--single {
+    border-radius: 6px;
+    border-color: #e2e8f0;
+    height: 34px;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 34px;
+    font-size: 12px;
+  }
+
+  .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 34px;
+  }
+
+  .select2-results__option {
+    font-size: 12px;
+    padding: 8px 12px;
+  }
+
+  .select2-results__option--highlighted {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  }
+
+  .select2-optgroup-label {
+    font-weight: 700;
+    color: #2d3748;
+    cursor: pointer;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .select2-container .select2-dropdown {
+    width: 60vw !important; /* Set the dropdown's overall width */
+  }
+
+  .select2-container .select2-results__option {
+    max-width: 60vw; 
+    font-size: 14px;
+  }
+
+  /* ===== CHECKBOX STYLING ===== */
+  .custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #4a5568;
+  }
+
+  .custom-checkbox input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    accent-color: #667eea;
+    cursor: pointer;
+    border-radius: 4px;
+  }
+
+  /* ===== TOOLTIP ===== */
+  .tooltip-inner {
+    background: #2d3748;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 11px;
+  }
+
+  .bs-tooltip-top .tooltip-arrow::before {
+    border-top-color: #2d3748;
+  }
 </style>
 
-  <!-- Content Start -->
-  <div class="content">
-    <!-- Navbar Start -->
-    <?php include 'navbar.php'; ?>
-    <!-- Navbar End -->
-      
+<!-- Content Start -->
+<div class="content">
+  <!-- Navbar Start -->
+  <?php include 'navbar.php'; ?>
+  <!-- Navbar End -->
 
-    <!-- Form Start -->
-    <div class="container-fluid">
-      <div class="d-flex justify-content-end mb-2">
-        <a href="<?= "new-benefit-ec-input.php?id_draft=$id_draft" ?>" class="btn btn-outline-primary btn-sm d-flex align-items-center gap-2" style="font-size: .8rem;">
+  <!-- Form Start -->
+  <div class="container-fluid py-3">
+    
+    <!-- Back Button -->
+    <div class="mb-3">
+      <a href="<?= "new-benefit-ec-input.php?id_draft=$id_draft" ?>" class="btn btn-outline-secondary d-inline-flex align-items-center gap-2" style="border-radius: 50px; font-size: 0.8rem; padding: 6px 18px; border-color: #d1d5db;">
         <i class="fas fa-arrow-left"></i>
-          Back to input 
-        </a>
-      </div>
-
-      <div class="row p-2">
-        <div class="col-12">
-          <div class="card rounded h-100 p-4">
-
-            <div class="d-flex justify-content-between align-items-center my-2">
-              <div class="d-flex align-items-center mb-3">
-                <div class="me-3">
-                  <i class="fas fa-calculator text-primary fs-4"></i>
-                </div>
-                <div>
-                  <h5 class="mb-0 fw-semibold fs-6">Draft Benefit Calculation</h5>
-                  <small class="text-muted fs-7">
-                    Atur benefit, quantity, dan perhitungan nilai program
-                  </small>
-                </div>
-              </div>
-
-              <button type="button"
-                class="btn btn-success btn-sm d-flex align-items-center gap-2"
-                id="add_row">
-                <i class="fas fa-plus"></i>
-                Add Row
-              </button>
-            </div>
-
-            <form method="POST" action="new-benefit-ec-input-action2.php" enctype="multipart/form-data" id='draft_form' >
-              <div class="">
-                <div style="width: 100%; overflow-x: auto; padding: 15px 0px;">
-                  <div style="width: 135%">
-                    <input type="hidden" value="<?= $sumalok ?>" name="sumalok">
-                    <input type="hidden" value="<?= $program ?>" name="program">
-                    <input type="hidden" value="<?= $year ?>" name="year">
-                    <input type="hidden" value="<?= $ref_id ?>" name="ref_id">
-                    <table class="table table-bordered mb-0 dataTable no-footer" id="input_form">
-                      <thead>
-                        <tr>
-                          <td class="td-cust text-center" rowspan="2">Benefit</td>
-                          <td class="td-cust text-center" rowspan="2">Sub Benefit</td>
-                          <td class="td-cust text-center" rowspan="2" style="width:15%">Nama Benefit</td>
-                          <td class="td-cust text-center" rowspan="2" style="width:20%">Deskripsi</td>
-                          <td class="td-cust text-center" rowspan="2" style="width: 15%">Pelaksanaan</td>
-                          <td class="td-cust text-center" rowspan="2" style="min-width:100px">Nilai Benefit</td>
-                          <!-- <td class="td-cust text-center" rowspan="2" class="benefit-ket">Keterangan</td> -->
-                          <td class="td-cust text-center" colspan="3">Quantity Per Tahun</td>
-                          <td class="td-cust text-center" rowspan="2">Nilai Value</td>
-                          <td class="td-cust text-center" rowspan="2">Action</td>
-                        </tr>
-                        <tr>
-                          <td style="width: 50px">1</td>
-                          <td style="width: 50px">2</td>
-                          <td style="width: 50px">3</td>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <?php if (!$use_template_as_default) {
-
-                          $x = 1;
-                          echo '<input type="hidden" name="editmode" value="true">';
-                          while ($data = $result->fetch_assoc()): ?>
-                            <tr id="row<?= $x; ?>">
-                              <td>
-                                <span class="benefit"><?= $data['type'] ?></span>
-                                <input type='hidden' name='benefit[]' value='<?= $data['type'] ?>'>
-                                <input type='hidden' name='id_templates[]' value='<?= $data['id_template'] ?>'>
-                              </td>
-                              <td>
-                                <span class="subbenefit"><?= $data['subbenefit'] ?></span>
-                                <input type='hidden' name='subbenefit[]' value="<?= $data['subbenefit'] ?>">
-                              </td>
-                              <td>
-                                <?= $data['benefit_name'] ?>
-                                <input type='hidden' name='benefit_name[]' value='<?= $data['benefit_name'] ?>'>
-                              </td>
-                              <td class="text-area-cont">
-                                <textarea id="description" name="description[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['description'] ?></textarea>
-                              </td>
-                              <?php 
-                                  $new_qty = ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']) == 0 ? 1 : ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']);
-                                  $data['valueMoney'] = (int)$data['calcValue'] / ($new_qty);
-                              ?>
-                                <td>
-                                  <textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['pelaksanaan'] ?></textarea>
-                                </td>
-                                <td>
-                                  <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="0" onchange="updateDisabledField(this)" value="<?= number_format($data['valueMoney'], '0', ',', '.'); ?>" readonly>
-                                </td>
-                                <input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan" value="<?= $data['keterangan'] ?>">
-                                <td>
-                                  <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="Quantity Tahun 1" value="<?= $data['qty'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($data['editable_qty'] == '0' || $year == 2 || $year == 3){echo "readonly";} ?>>
-                                </td>
-                                <td>
-                                  <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="Quantity Tahun 2" value="<?= $data['qty2'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['editable_qty'] == '0' || $year == 3){echo "readonly";} ?> >
-                                </td>
-                                <td>
-                                  <input type="number" class="form-control form-control-sm tah3" id="member3" name="member3[]" placeholder="Quantity Tahun 3" value="<?= $data['qty3'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['editable_qty'] == '0'){echo "readonly";} ?>>
-                                </td>
-                                <td>
-                                  <input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]" placeholder="0" value="<?= number_format($data['calcValue'], '0', ',', '.') ?>" readonly>
-                                </td>
-                                <input type="hidden" name="valuedefault[]" value="<?= $data['valueMoney'] ?>">
-                                <td>
-                                    <button type="button" class="btn_remove btn btn-danger btn-sm" data-row="row<?= $x ?>"><i class="fas fa-trash"></i></button>
-                                </td>
-                              
-                            </tr>
-                          <?php $x++; endwhile; ?>
-                        <?php }; ?>
-
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-                <div class="mt-4">
-                  <div class="card border-0 shadow-sm mt-4">
-                    <div class="card-body p-3">
-                      <table class="table table-sm mb-0">
-                        <tr>
-                          <th>Periode</th>
-                          <th>Tahun 1</th>
-                          <th>Tahun 2</th>
-                          <th>Tahun 3</th>
-                        </tr>
-                        <tr>
-                          <td>Qty per tahun</td>
-                          <td><span id="qtyth1">0</span></td>
-                          <td><span id="qtyth2">0</span></td>
-                          <td><span id="qtyth3">0</span></td>
-                        </tr> 
-                        <tr>
-                          <td>Nilai per tahun</td>
-                          <td>
-                            <span id="valth1">0</span>
-                            <input type="hidden" name="total_benefit1" id="total_benefit1" value="0">
-                          </td>
-                          <td>
-                            <span id="valth2">0</span>
-                            <input type="hidden" name="total_benefit2" id="total_benefit2" value="0">
-                          </td>
-                          <td>
-                            <span id="valth3">0</span>
-                            <input type="hidden" name="total_benefit3" id="total_benefit3" value="0">
-                          </td>
-                        </tr> 
-                        <tr>
-                            <td>Total Alokasi Benefit</td>
-                            <td>Rp <?= number_format($sumalok, '0', ',', '.') ?></td>
-                            <td><?= ($program == 'prestasi' || $ref_id || $show_year_2_and_3 == 1) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
-                            <td><?= ($program == 'prestasi' || $ref_id || $show_year_2_and_3 == 1) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
-                        </tr>
-                        <!-- <tr>
-                            <td>Total Benefit</td>
-                            <td colspan="1"><p id="totalbenefit">Rp 0</p><input type="hidden" name="total_benefit" id="total_benefit" value="0"></td>
-                            <td colspan="1"><p id="totalbenefit2">Rp 0</p><input type="hidden" name="total_benefit2" id="total_benefit2" value="0"></td>
-                            <td colspan="1"><p id="totalbenefit3">Rp 0</p><input type="hidden" name="total_benefit3" id="total_benefit3" value="0"></td>
-                        </tr> -->
-                        <tr>
-                            <td>Selisih</td>
-                            <td><p id="selisihbenefit1"></p><input type="hidden" name="selisih_benefit1" id="selisih_benefit1" value="0"></td>
-                            <?php if($program != 'cbls1' || ($program == 'cbls3' && !$ref_id) || $program!='bsp'):?>
-                              <td><p id="selisihbenefit2"></p><input type="hidden" name="selisih_benefit2" id="selisih_benefit2" value="0"></td>
-                              <td><p id="selisihbenefit3"></p><input type="hidden" name="selisih_benefit3" id="selisih_benefit3" value="0"></td>
-                            <?php endif; ?>
-                        </tr>
-                      </table>
-                    </div>
-                  </div>
-                  <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top">
-                    <div class="mb-3 form-check">
-                      <input type="checkbox" class="form-check-input" id="save_as_d" name="save_as_draft" value="1">
-                      <label class="form-check-label" for="save_as_d">Check to save as draft</label>
-                    </div>
-                    <button type="submit" class="btn btn-primary fw-semibold px-4 d-flex align-items-center gap-2" id="submt">
-                      <span class="btn-icon">
-                        <i class="bi bi-arrow-right"></i>
-                      </span>
-
-                      Submit
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
+        Back to input
+      </a>
     </div>
 
-    <template id="row-template">
-      <tr>
-        <td>
-          <span class="benefit"></span>
-          <input type="hidden" name="benefit[]" value="">
-          <input type="hidden" name="id_templates[]" value="">
-        </td>
-
-        <td>
-          <span class="subbenefit"></span>
-          <input type="hidden" name="subbenefit[]" value="">
-        </td>
-
-        <td>
-          <select name="benefit_id[]" class="form-select form-select-sm select2" onchange="getBenefitData(this)">
-          </select>
-          <input type="hidden" name="benefit_name[]" value="">
-        </td>
-
-        <td class="text-area-cont">
-          <textarea name="description[]" class="form-control form-control-sm txt-area"></textarea>
-        </td>
-
-        <td>
-          <textarea name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea>
-        </td>
-
-        <td>
-          <input type="text"
-            class="form-control form-control-sm"
-            name="valben[]"
-            value="0"
-            readonly
-            onchange="updateDisabledField(this)">
-        </td>
-
-        <input type="hidden" name="keterangan[]" value="">
-
-        <td>
-          <input type="number"
-            class="form-control form-control-sm tah1"
-            name="member[]"
-            value="0"
-            min="0"
-            onchange="updateDisabledField(this)">
-        </td>
-
-        <td>
-          <input type="number"
-            class="form-control form-control-sm tah2"
-            name="member2[]"
-            value="0"
-            min="0"
-            onchange="updateDisabledField(this)">
-        </td>
-
-        <td>
-          <input type="number"
-            class="form-control form-control-sm tah3"
-            name="member3[]"
-            value="0"
-            min="0"
-            onchange="updateDisabledField(this)">
-        </td>
-
-        <td>
-          <input type="text"
-            class="form-control form-control-sm usage"
-            name="calcValue[]"
-            value="0"
-            readonly>
-        </td>
-
-        <input type="hidden" name="valuedefault[]" value="">
-
-        <td>
-          <button type="button" class="btn_remove btn btn-danger btn-sm">
-            <i class="fas fa-trash"></i>
+    <!-- Main Card -->
+    <div class="card-modern">
+      
+      <!-- Card Header -->
+      <div class="card-header-custom">
+        <div>
+          <div class="d-flex align-items-center gap-3">
+            <div style="width: 44px; height: 44px; background: rgba(255,255,255,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px);">
+              <i class="fas fa-calculator fs-5" style="color: white;"></i>
+            </div>
+            <div>
+              <div class="title">
+                <!-- <i class="fas fa-file-invoice me-2"></i> -->
+                Draft Benefit Calculation
+              </div>
+              <div class="subtitle">
+                Atur benefit, quantity, dan perhitungan nilai program
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <button type="button" class="btn-gradient-success" id="add_row">
+            <i class="fas fa-plus me-1"></i> Add Row
           </button>
-        </td>
-      </tr>
-    </template>
+        </div>
+      </div>
+
+      <!-- Card Body -->
+      <div class="card-body-custom">
+
+        <form method="POST" action="new-benefit-ec-input-action2.php" enctype="multipart/form-data" id='draft_form'>
+      
+          <input type="hidden" value="<?= $sumalok ?>" name="sumalok">
+          <input type="hidden" value="<?= $program ?>" name="program">
+          <input type="hidden" value="<?= $year ?>" name="year">
+          <input type="hidden" value="<?= $ref_id ?>" name="ref_id">
+          <div style="width: 100%; overflow-x: auto; padding: 15px 0px;">
+            <div style="width: 135%">
+              <!-- Table Wrapper -->
+              <div class="table-wrapper" style="width: 100%; overflow-x: auto; padding: 4px 0;">
+                <table class="table table-bordered mb-0" id="input_form">
+                  <thead>
+                    <tr>
+                      <td class="td-cust text-center col-benefit" rowspan="2">Benefit</td>
+                      <td class="td-cust text-center col-subbenefit" rowspan="2">Sub Benefit</td>
+                      <td class="td-cust text-center" rowspan="2" style="width:20%;">Nama Benefit</td>
+                      <td class="td-cust text-center" rowspan="2" style="width:20%;">Deskripsi</td>
+                      <td class="td-cust text-center" rowspan="2" style="width:15%;">Pelaksanaan</td>
+                      <td class="td-cust text-center" rowspan="2" style="width:10%;">Nilai Benefit</td>
+                      <td class="td-cust text-center" colspan="3" style="width:15%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
+                      <td class="td-cust text-center" rowspan="2" style="width:15%;">Nilai Value</td>
+                      <td class="td-cust text-center" rowspan="2" style="width:5%;">Action</td>
+                    </tr>
+                    <tr>
+                      <td style="width:55px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
+                        <span class="badge" style="background: #667eea; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">1</span>
+                      </td>
+                      <td style="width:55px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
+                        <span class="badge" style="background: #764ba2; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">2</span>
+                      </td>
+                      <td style="width:55px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
+                        <span class="badge" style="background: #f5576c; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">3</span>
+                      </td>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <?php if (!$use_template_as_default) {
+                      $x = 1;
+                      while ($data = $result->fetch_assoc()): ?>
+                        <tr id="row<?= $x; ?>">
+                          <td class="col-benefit">
+                            <span class="benefit"><?= $data['type'] ?></span>
+                            <input type='hidden' name='benefit[]' value='<?= $data['type'] ?>'>
+                            <input type='hidden' name='id_templates[]' value='<?= $data['id_template'] ?>'>
+                          </td>
+                          <td class="col-subbenefit">
+                            <span class="subbenefit"><?= $data['subbenefit'] ?></span>
+                            <input type='hidden' name='subbenefit[]' value="<?= $data['subbenefit'] ?>">
+                          </td>
+                          <td>
+                            <span style="font-weight: 500; font-size: 12px;"><?= $data['benefit_name'] ?></span>
+                            <input type='hidden' name='benefit_name[]' value='<?= $data['benefit_name'] ?>'>
+                          </td>
+                          <td class="text-area-cont">
+                            <textarea id="description" name="description[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['description'] ?></textarea>
+                          </td>
+                          <?php 
+                              $new_qty = ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']) == 0 ? 1 : ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']);
+                              $data['valueMoney'] = (int)$data['calcValue'] / ($new_qty);
+                          ?>
+                          <td>
+                            <textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['pelaksanaan'] ?></textarea>
+                          </td>
+                          <td>
+                            <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="0" onchange="updateDisabledField(this)" value="<?= number_format($data['valueMoney'], '0', ',', '.'); ?>" readonly>
+                          </td>
+                          <input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan" value="<?= $data['keterangan'] ?>">
+                          <td>
+                            <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="0" value="<?= $data['qty'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($data['editable_qty'] == '0' || $year == 2 || $year == 3){echo "readonly";} ?>>
+                          </td>
+                          <td>
+                            <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="0" value="<?= $data['qty2'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['editable_qty'] == '0' || $year == 3){echo "readonly";} ?> >
+                          </td>
+                          <td>
+                            <input type="number" class="form-control form-control-sm tah3" id="member3" name="member3[]" placeholder="0" value="<?= $data['qty3'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['editable_qty'] == '0'){echo "readonly";} ?>>
+                          </td>
+                          <td>
+                            <input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]" placeholder="0" value="<?= number_format($data['calcValue'], '0', ',', '.') ?>" readonly>
+                          </td>
+                          <input type="hidden" name="valuedefault[]" value="<?= $data['valueMoney'] ?>">
+                          <td>
+                            <button type="button" class="btn_remove btn btn-gradient-danger btn-sm" data-row="row<?= $x ?>" style="padding: 4px 10px; font-size: 12px;">
+                              <i class="fas fa-trash"></i>
+                            </button>
+                          </td>
+                        </tr>
+                      <?php $x++; endwhile; ?>
+                    <?php }; ?>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <!-- Summary Section -->
+          <div class="mt-4">
+            <div class="summary-card">
+              <table class="table table-sm mb-0">
+                <tr>
+                  <th style="width: 12%;">Periode</th>
+                  <th style="width: 22%;">
+                    <span class="badge" style="background: #667eea; color: white; padding: 4px 12px; border-radius: 50px; font-size: 11px;">Tahun 1</span>
+                  </th>
+                  <th style="width: 22%;">
+                    <span class="badge" style="background: #764ba2; color: white; padding: 4px 12px; border-radius: 50px; font-size: 11px;">Tahun 2</span>
+                  </th>
+                  <th style="width: 22%;">
+                    <span class="badge" style="background: #f5576c; color: white; padding: 4px 12px; border-radius: 50px; font-size: 11px;">Tahun 3</span>
+                  </th>
+                </tr>
+                <tr>
+                  <td style="font-weight: 500; color: #4a5568;">Qty per tahun</td>
+                  <td><span id="qtyth1" class="value-highlight">0</span></td>
+                  <td><span id="qtyth2" class="value-highlight">0</span></td>
+                  <td><span id="qtyth3" class="value-highlight">0</span></td>
+                </tr> 
+                <tr>
+                  <td style="font-weight: 500; color: #4a5568;">Nilai per tahun</td>
+                  <td>
+                    <span id="valth1" class="value-success">Rp 0</span>
+                    <input type="hidden" name="total_benefit1" id="total_benefit1" value="0">
+                  </td>
+                  <td>
+                    <span id="valth2" class="value-success">Rp 0</span>
+                    <input type="hidden" name="total_benefit2" id="total_benefit2" value="0">
+                  </td>
+                  <td>
+                    <span id="valth3" class="value-success">Rp 0</span>
+                    <input type="hidden" name="total_benefit3" id="total_benefit3" value="0">
+                  </td>
+                </tr> 
+                <tr style="background: rgba(102, 126, 234, 0.06); border-radius: 8px;">
+                  <td style="font-weight: 600; color: #2d3748;">Total Alokasi Benefit</td>
+                  <td style="font-weight: 700; color: #667eea;">Rp <?= number_format($sumalok, '0', ',', '.') ?></td>
+                  <td style="font-weight: 700; color: #667eea;"><?= ($program == 'prestasi' || $ref_id || $show_year_2_and_3 == 1) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
+                  <td style="font-weight: 700; color: #667eea;"><?= ($program == 'prestasi' || $ref_id || $show_year_2_and_3 == 1) ? ('Rp ' . number_format($sumalok, '0', ',', '.')) : '' ?></td>
+                </tr>
+                <tr>
+                  <td style="font-weight: 600; color: #2d3748;">Selisih</td>
+                  <td>
+                    <p id="selisihbenefit1" style="margin: 0; font-weight: 700;"></p>
+                    <input type="hidden" name="selisih_benefit1" id="selisih_benefit1" value="0">
+                  </td>
+                  <?php if($program != 'cbls1' || ($program == 'cbls3' && !$ref_id) || $program!='bsp'):?>
+                    <td>
+                      <p id="selisihbenefit2" style="margin: 0; font-weight: 700;"></p>
+                      <input type="hidden" name="selisih_benefit2" id="selisih_benefit2" value="0">
+                    </td>
+                    <td>
+                      <p id="selisihbenefit3" style="margin: 0; font-weight: 700;"></p>
+                      <input type="hidden" name="selisih_benefit3" id="selisih_benefit3" value="0">
+                    </td>
+                  <?php endif; ?>
+                </tr>
+              </table>
+            </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top" style="border-top-color: #e2e8f0 !important;">
+            <div class="custom-checkbox">
+              <input type="checkbox" id="save_as_d" name="save_as_draft" value="1">
+              <label for="save_as_d">
+                <i class="far fa-save me-1" style="color: #667eea;"></i>
+                Save as draft
+              </label>
+            </div>
+            <button type="submit" class="btn-gradient-primary" id="submt">
+              <i class="fas fa-paper-plane me-2"></i> Submit
+            </button>
+          </div>
+
+
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Row -->
+  <template id="row-template">
+    <tr>
+      <td class="col-benefit">
+        <span class="benefit"></span>
+        <input type="hidden" name="benefit[]" value="">
+        <input type="hidden" name="id_templates[]" value="">
+      </td>
+      <td class="col-subbenefit">
+        <span class="subbenefit"></span>
+        <input type="hidden" name="subbenefit[]" value="">
+      </td>
+      <td>
+        <select name="benefit_id[]" class="form-select form-select-sm select2" onchange="getBenefitData(this)">
+        </select>
+        <input type="hidden" name="benefit_name[]" value="">
+      </td>
+      <td class="text-area-cont">
+        <textarea name="description[]" class="form-control form-control-sm txt-area"></textarea>
+      </td>
+      <td>
+        <textarea name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea>
+      </td>
+      <td>
+        <input type="text" class="form-control form-control-sm" name="valben[]" value="0" readonly onchange="updateDisabledField(this)">
+      </td>
+      <input type="hidden" name="keterangan[]" value="">
+      <td>
+        <input type="number" class="form-control form-control-sm tah1" name="member[]" value="0" min="0" onchange="updateDisabledField(this)">
+      </td>
+      <td>
+        <input type="number" class="form-control form-control-sm tah2" name="member2[]" value="0" min="0" onchange="updateDisabledField(this)">
+      </td>
+      <td>
+        <input type="number" class="form-control form-control-sm tah3" name="member3[]" value="0" min="0" onchange="updateDisabledField(this)">
+      </td>
+      <td>
+        <input type="text" class="form-control form-control-sm usage" name="calcValue[]" value="0" readonly>
+      </td>
+      <input type="hidden" name="valuedefault[]" value="">
+      <td>
+        <button type="button" class="btn_remove btn btn-gradient-danger btn-sm" style="padding: 4px 10px; font-size: 12px;">
+          <i class="fas fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  </template>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
 <script type="text/javascript">
@@ -511,22 +822,18 @@
     $('input[name="member[]"]').each(function () {
       updateDisabledField(this);
     });
-
     accumulateValues();
   }
 
   function removeNonDigits(numberString) {
     let nonDigitRegex = /\D/g;
-
     let result = numberString.replace(nonDigitRegex, '');
-
     return result;
   }
 
   function formatNumber(number) {
     let parts = number.toString().split('.');
     let integerPart = parts[0];
-
     let formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
     if (parts.length > 1) {
       let decimalPart = parts[1];
@@ -539,7 +846,6 @@
   async function getBenefitData(element){
     var row = $(element).closest('tr');
     var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
-    var manval = row.find('input[name="manval[]"]')
 
     $.ajax({
       url: 'get_benefit_datas.php',
@@ -551,9 +857,7 @@
       success: function(data) {
         row.find('input[name="benefit[]"]').val(data[0].benefit);
         row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
-        // row.find('span[name="benefit"]').html(data[0].benefit);
         row.find('span.benefit').html(data[0].benefit);
-        // row.find('span[name="subbenefit"]').html(data[0].subbenefit);
         row.find('span.subbenefit').html(data[0].subbenefit);
         row.find('textarea[name="description[]"]').html(data[0].description);
         row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
@@ -571,7 +875,6 @@
         
         var program = '<?= $program ?>';
         if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
-
           row.find('input[name="valben[]"]').prop("readonly", false);
         }else{
           row.find('input[name="valben[]"]').prop("readonly", true);
@@ -634,7 +937,6 @@
     }else{
       $('#submt').prop('disabled', false);
     }
-
   }
 
   function updateDisabledField(element) {
@@ -660,14 +962,6 @@
     accumulateValues();
   }
 
-  function initializeUpdateDisabledFields() {
-    var elements = document.querySelectorAll('input[name="member[]"]');
-    
-    elements.forEach(function(element) {
-      updateDisabledField(element); // Panggil fungsi updateDisabledField untuk setiap elemen
-    });
-  }
-
   function handleInput(inputElement) {
     var row = inputElement.closest('tr');
     let selected = row.find('select[name="benefit_id[]"]').val();
@@ -680,13 +974,11 @@
     } else {
       var cleanedInput = value.replace(/[^0-9]/g, '');
       var number = parseFloat(cleanedInput);
-
       let formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
       inputElement.val(formatted);
     }
   }
 
-  // Populate dropdown options
   function populateDropdown(rowId, templateId = null) {
     var selectedTemplate = $('select[name="benefit_id[]"]').map(function() {
       return $(this).val();
@@ -701,7 +993,6 @@
         selectedTemplate: selectedTemplate
       },
       success: async function(data) {
-        var dropdown  = $('#' + rowId + ' select');
         const $select = $('#' + rowId).find('select');
         $select.html(data).select2({
           placeholder: 'Select a benefit',
@@ -716,81 +1007,38 @@
         });
 
         if (templateId) {
-          // pastikan option ada
           if ($select.find('option[value="' + templateId + '"]').length) {
             $select.val(templateId).trigger('change.select2');
-
-            await new Promise(r => setTimeout(r, 0)); // allow DOM settle
+            await new Promise(r => setTimeout(r, 0));
             getBenefitData($select[0]);
-          } else {
-            console.warn('OPTION NOT FOUND:', templateId);
           }
         }
-
       },
       error: function(xhr, status, error) {
         console.log('error', error);
-        console.log('status', status);
-        console.log('xhr', xhr);
       }
     });
   }
 
-  // Custom function to format the group items and make them clickable
   function formatGroupItems(data) {
-
     if (data.element && data.element.tagName === 'OPTGROUP') {
-        return $(`<div class="select2-optgroup-label" style=" color: #333; padding: 5px; cursor: pointer;">
+        return $(`<div class="select2-optgroup-label" style="color: #333; padding: 6px 12px; cursor: pointer; background: #f7fafc; border-bottom: 1px solid #e2e8f0;">
                     <b>${data.text}</b>
                 </div>`);
     }
-
     if (data.element && data.element.tagName === 'OPTION') {
       let colorHighlight = $(data.element).attr('data-color'); 
       if(colorHighlight) {
-        return $(`<span style="background-color: #${colorHighlight}; padding: 5px; color: white">${data.text}</span>`);
+        return $(`<span style="background-color: #${colorHighlight}; padding: 4px 12px; border-radius: 4px; color: white;">${data.text}</span>`);
       }
-
-      // You can use this value to customize how each option is rendered
-      // return $(`<span style="display: block; background-color: #f5f5f5; padding: 5px; color: blue;">${data.text}</span> - ${colorHighlight}`);
-      
     }
-
     return data.text;
   }
 
   function formatAndValidate(input, alokasi, row) {
     var cleanedInput = input.replace(/[^0-9]/g, '');
     var number = parseFloat(cleanedInput) || 0;
-
-    // Get member values from the row
-    var member1 = parseInt(row.find('input[name="member[]"]').val()) || 0;
-    var member2 = parseInt(row.find('input[name="member2[]"]').val()) || 0;
-    var member3 = parseInt(row.find('input[name="member3[]"]').val()) || 0;
-
-    let total_member1 = member1 * number;
-    let total_member2 = member2 * number;
-    let total_member3 = member3 * number;
-
-    var benefitSetting = <?php echo json_encode($benefitSetting); ?>;
-    let maxBenefitPercentage = parseInt(benefitSetting.max_benefit_percentage);
-
-    // let max_alokasi = alokasi * (maxBenefitPercentage / 100);
-
-    // if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
-    //   alert(`Total nilai tidak boleh lebih dari ${maxBenefitPercentage}% dari alokasi.`);
-    //   return '0';
-    // }
-
-    // let max_alokasi = alokasi * 0.15;
-
-    // if(total_member1 > max_alokasi || total_member2 > max_alokasi || total_member3 > max_alokasi) {
-    //   alert(`Total nilai tidak boleh lebih dari 15% dari alokasi.`);
-    //   return '0';
-    // }
-
     var formatted = number.toLocaleString('id-ID', { maximumFractionDigits: 2 });
-
     return number;
   }
 
@@ -805,7 +1053,6 @@
     $row.attr('id', newRow);
     $row.find('.btn_remove').attr('data-row', newRow);
 
-    // isi default dari template
     $row.find('input[name="id_templates[]"]').val(tpl.id_template_benefit);
 
     $('#input_form').append($row);
@@ -818,6 +1065,10 @@
   $(document).ready(function(){
     $('.select2').select2();
     
+    // Atau kalau mau dengan delay biar lebih smooth
+    setTimeout(function() {
+        $('.sidebar-toggler').click();
+    }, 100);
     $('#add_row').on('click', function () {
       if (x >= maxRows) return;
       x++;
@@ -827,7 +1078,6 @@
       const $row = $(clone).find('tr');
 
       $row.attr('id', 'row' + x);
-      $row.find('.action-row').attr('data-action-row', 'row' + x);
       $row.find('.btn_remove').attr('data-row', 'row' + x);
 
       $('#input_form').append($row);
@@ -838,7 +1088,6 @@
       var rowId = $(this).data('row');
       $('#' + rowId).remove();
       accumulateValues();
-
     });
 
     $('#draft_form').submit(function(e) {
@@ -848,42 +1097,37 @@
         text: "Make sure the data is correct before submitting it!",
         icon: "warning",
         showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
+        confirmButtonColor: "#667eea",
+        cancelButtonColor: "#f5576c",
         confirmButtonText: "Yes, save it!"
       }).then((result) => {
         if (result.isConfirmed) {
           Swal.fire({
             title: "Processing...",
-            html: '<div class="spinner"></div>', // You can use a CSS spinner here
+            html: '<div class="spinner"></div>',
             allowOutsideClick: false,
             allowEscapeKey: false,
             allowEnterKey: false,
             didOpen: () => {
-              Swal.showLoading(); // This shows a built-in loading animation
+              Swal.showLoading();
             }
           });
-
           $(this).unbind('submit').submit();
         }
       });
     })
 
-    // Add event listener to toggle groups when clicking on the group label
     $(document).on('click', '.select2-optgroup-label', function (e) {
         const $group = $(this).closest('.select2-results__group');
-        $group.nextUntil('.select2-results__group').toggle(); // Hide/show options
-        e.stopPropagation(); // Prevent dropdown close
+        $group.nextUntil('.select2-results__group').toggle();
+        e.stopPropagation();
     });
 
-    // Additional event listener for when options in a group are shown
     $(document).on('click', '.select2-results__group', function () {
-        $(this).find('.select2-results__options').toggle(); // Show or hide options on group click
+        $(this).find('.select2-results__options').toggle();
     });
 
-    // populateDropdown('row' + <?= $current_row ?>);
     $('#submt').prop('disabled', true);
-    // initializeUpdateDisabledFields();
     if (tpl_data.length > 0) {
       tpl_data.forEach(tpl => {
         addRow(tpl);
@@ -894,12 +1138,10 @@
       initEditCalculation();
     }, 0);
 
-    // input + textarea
     $('form :input').on('change keyup', function () {
       isDirty = true;
     });
 
-    // select2
     $('form select').on('select2:select select2:unselect', function () {
       isDirty = true;
     });
@@ -909,7 +1151,6 @@
       isDirty = false;
     });
 
-    // detect leave page
     window.addEventListener('beforeunload', function (e) {
       if (isDirty && !isSubmitting) {
         e.preventDefault();
@@ -919,7 +1160,6 @@
   });
 
   $(document).on('mousedown', 'select[name="benefit_id[]"]', function(event) {
-    // Lakukan sesuatu saat select ditekan mouse
     var row = $(this).closest('tr');
     var rowId = row.attr('id');
 

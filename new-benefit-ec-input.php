@@ -1483,6 +1483,10 @@
 
 </script>
 <script>
+  setTimeout(function() {
+    $('.sidebar-toggler').click();
+  }, 100);
+  
   let lastApplyPromise = Promise.resolve();
 
   let schoolReady     = false;
@@ -1528,7 +1532,11 @@
   });
 
   $(document).ready(async function(){
-    $('.select2').select2();
+    setTimeout(function() {
+      $('.select2').select2({
+        width: '100%',
+      });
+    }, 200);
 
     $('.select2[multiple]').select2({
       placeholder: 'Select option',

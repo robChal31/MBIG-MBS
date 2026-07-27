@@ -227,34 +227,23 @@
         $(document).ready(function() {
             $('.toast').toast('show');
             $('[data-bs-toggle="tooltip"]').tooltip();
-
-            $('#collapsibleNav').on('shown.bs.collapse', function () {
-                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            });
-
-            $('#collapsibleNav').on('hidden.bs.collapse', function () {
-                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-            });
-
-            // Auto collapse the nav if the current URL matches any of the links inside it
-            var currentPath = window.location.pathname;
-            $('#collapsibleNav a').each(function () {
-                if (this.href.includes(currentPath)) {
-                    $('#collapsibleNav').collapse('show');
+            
+            $('.nav-link[data-bs-toggle="collapse"]').on('click', function() {
+                var isExpanded = $(this).attr('aria-expanded') === 'true';
+                var icon = $(this).find('.chevron-icon');
+                if (isExpanded) {
+                    icon.css('transform', 'rotate(180deg)');
+                } else {
+                    icon.css('transform', 'rotate(0deg)');
                 }
             });
 
-            $('#collapsibleNav2').on('shown.bs.collapse', function () {
-                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-down').addClass('fa-chevron-up');
-            });
-
-            $('#collapsibleNav2').on('hidden.bs.collapse', function () {
-                $(this).prev().find('.chevron-icon').removeClass('fa-chevron-up').addClass('fa-chevron-down');
-            });
-
-            $('#collapsibleNav2 a').each(function () {
-                if (this.href.includes(currentPath)) {
-                    $('#collapsibleNav2').collapse('show');
+            // Set initial state
+            $('.nav-link[data-bs-toggle="collapse"]').each(function() {
+                var isExpanded = $(this).attr('aria-expanded') === 'true';
+                var icon = $(this).find('.chevron-icon');
+                if (isExpanded) {
+                    icon.css('transform', 'rotate(180deg)');
                 }
             });
 

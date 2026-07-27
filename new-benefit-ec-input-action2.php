@@ -33,6 +33,68 @@
         return $randomString;
     }
 
+    // ===================== FUNGSI SEND EMAIL =====================
+    function sendEmail($to, $subject, $body, $attachment = null, $cc = []) {
+        global $config;
+        
+        $mail = new PHPMailer(true);
+        
+        try {
+            // Konfigurasi SMTP
+            $mail->isSMTP();
+            $mail->Host       = 'smtp.gmail.com';
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $config['smtp_username'];
+            $mail->Password   = $config['smtp_password'];
+            $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            $mail->Port       = $config['port'] ?? 465;
+            
+            // Pengirim
+            $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
+            
+            // Penerima
+            if (is_array($to)) {
+                foreach ($to as $recipient) {
+                    $email = $recipient['email'] ?? '';
+                    $name = $recipient['name'] ?? '';
+                    if (!empty($email)) {
+                        $mail->addAddress($email, $name);
+                    }
+                }
+            } else {
+                $mail->addAddress($to);
+            }
+            
+            // CC
+            if (!empty($cc) && is_array($cc)) {
+                foreach ($cc as $c) {
+                    $email = $c['email'] ?? '';
+                    $name = $c['name'] ?? '';
+                    if (!empty($email)) {
+                        $mail->addCC($email, $name);
+                    }
+                }
+            }
+            
+            // Attachment
+            if ($attachment && file_exists($attachment)) {
+                $mail->addAttachment($attachment);
+            }
+            
+            // Content
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body    = $body;
+            $mail->send();
+            
+            return true;
+            
+        } catch (Exception $e) {
+            return "Email gagal: {$mail->ErrorInfo}";
+        }
+    }
+    // ===================== END FUNGSI SEND EMAIL =====================
+
     $program = ISSET($_POST["program"]) ? $_POST["program"] : (ISSET($_SESSION["program"]) ? $_SESSION['program'] : '');
     $sumalok = ISSET($_POST["sumalok"]) ? $_POST["sumalok"] : (ISSET($_SESSION["sumalok"]) ? $_SESSION['sumalok'] : 0);
 
@@ -68,42 +130,54 @@
     $ref_id         = ISSET($_POST["ref_id"]) ? $_POST["ref_id"] : NULL;
     $program_year   = ISSET($_POST["year"]) ? $_POST["year"] : NULL;
 
-    $benefits       = $_POST["benefit"];
-    $subbenefits    = $_POST["subbenefit"];
+    $benefits       = ISSET($_POST["benefit"]) ? $_POST["benefit"] : [];
+    
+    $subbenefits    = ISSET($_POST["subbenefit"]) ? $_POST["subbenefit"] : [];
     $benefitIds     = ISSET($_POST["benefit_id"]) ? $_POST["benefit_id"] : NULL;
-    $benefitNames   = $_POST["benefit_name"];
-    $descriptions   = $_POST["description"];
-    $pelaksanaans   = $_POST["pelaksanaan"];
-    $keterangans    = $_POST["keterangan"];
-    $members        = $_POST["member"];
-    $members2       = $_POST["member2"];
-    $members3       = $_POST["member3"];
-    $calcValues     = $_POST["calcValue"];
+    $benefitNames   = ISSET($_POST["benefit_name"]) ? $_POST["benefit_name"] : NULL;
+    $descriptions   = ISSET($_POST["description"]) ? $_POST["description"] : NULL;
+    $pelaksanaans   = ISSET($_POST["pelaksanaan"]) ? $_POST["pelaksanaan"] : NULL;
+    $keterangans    = ISSET($_POST["keterangan"]) ? $_POST["keterangan"] : NULL;
+    $members        = ISSET($_POST["member"]) ? $_POST["member"] : NULL;
+    $members2       = ISSET($_POST["member2"]) ? $_POST["member2"] : NULL;
+    $members3       = ISSET($_POST["member3"]) ? $_POST["member3"] : NULL;
+    $calcValues     = ISSET($_POST["calcValue"]) ? $_POST["calcValue"] : NULL;
     $manvals        = ISSET($_POST["manval"]) ? $_POST["manval"] : NULL;
-    $valbens        = $_POST["valben"];
-    $id_templates   = $_POST["id_templates"];
-    $editmode       = ISSET($_POST["editmode"]) ? $_POST["editmode"] : NULL;
+    $valbens        = ISSET($_POST["valben"]) ? $_POST["valben"] : NULL;
+    $id_templates   = ISSET($_POST["id_templates"]) ? $_POST["valben"] : NULL;
 
 
     if($selisih_benefit < 0){
-        echo "Selisih Benefit Minus";
+        $_SESSION['toast_status'] = 'Error';
+        $_SESSION['toast_msg'] = 'Total Benefit tidak boleh kurang dari 0';
+        header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
         exit();
     }
     
     if($program == 'cbls3' || $program == 'bsp' || $program == 'pk3' || $program == 'cbls1'){
         if(($total_benefit1 > $sumalok) || ($total_benefit2 > $sumalok) || ($total_benefit3 > $sumalok)){
-            echo "Total benefit melebihi alokasi";
+            $_SESSION['toast_status'] = 'Error';
+            $_SESSION['toast_msg'] = 'Total Benefit melebihi alokasi';
+            header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
             exit();
         }
     }else{
         if($total_benefit > ($sumalok*3)){
-            echo "Total benefit melebihi alokasi";
+            $_SESSION['toast_status'] = 'Error';
+            $_SESSION['toast_msg'] = 'Total Benefit melebihi alokasi';
+            header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
             exit();
         }
     }
     
     $leng = count($benefits);
     
+    if($leng == 0){
+        $_SESSION['toast_status'] = 'Error';
+        $_SESSION['toast_msg'] = 'Benefit tidak boleh kosong';
+        header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
+        exit();
+    }
     mysqli_autocommit($conn, false);
 
     $temp_status = $save_as_draft ? 9 : 0;
@@ -113,10 +187,8 @@
         $sql = "UPDATE draft_benefit set alokasi = $sumalok, total_benefit = $total_benefit, selisih_benefit = $selisih_benefit, status = $temp_status, fileUrl = NULL, updated_at = current_timestamp() where id_draft = $id_draft";
         mysqli_query($conn,$sql);
         
-        if($editmode == 'true'){
-            mysqli_query($conn, "DELETE FROM `draft_benefit_list` where id_draft = '$id_draft';");
-            mysqli_query($conn, "DELETE FROM draft_approval where id_draft = '$id_draft';");
-        }
+        mysqli_query($conn, "DELETE FROM `draft_benefit_list` where id_draft = '$id_draft';");
+        mysqli_query($conn, "DELETE FROM draft_approval where id_draft = '$id_draft';");
 
         for($i = 0; $i < $leng; $i++){
             $manual_val = preg_replace("/[^0-9-]/", "", $valbens[$i]);
@@ -362,11 +434,7 @@
             $sheet->mergeCells('D'.$row.':F'.$row);
 
             if($data['manualValue'] == 0){
-                $valueMoney = $data['valueMoney'] ?: (
-                    $editmode != 'true'
-                        ? $data['calcValue']
-                        : ((int)$data['calcValue'] / max(1, ((int)$data['qty']+(int)$data['qty2']+(int)$data['qty3'])))
-                );
+                $valueMoney = $data['valueMoney'] ?: $data['calcValue'];
                 $sheet->setCellValue('G'.$row, $valueMoney);
                 $sheet->setCellValue('J'.$row, $data['qty'] * $valueMoney);
 
@@ -567,9 +635,8 @@
             $previous_year = $program_year - 1;
             $is_adendum = $program_year != 1 ? ", formulir ini adalah perubahan pada tahun ke $program_year dan adalah perubahan dari tahun sebelumnya yaitu tahun ke $previous_year, " : "";
         
-            $mail = new PHPMailer(true);
-
-            $message = "
+            // ===================== KIRIM EMAIL KE LEADER =====================
+            $messageLeader = "
                             <style>
                                 * {
                                     font-family: Helvetica, sans-serif;
@@ -601,7 +668,7 @@
                         ";
 
             if($leaderId == $leaderId3 || $leaderId == 70) {
-                $message = "
+                $messageLeader = "
                             <style>
                                 * {
                                     font-family: Helvetica, sans-serif;
@@ -614,9 +681,9 @@
 
                             <div class='container'>
                                 <p>
-                                    $ecname telah mengajukan formulir <strong>$uc_program</strong>$is_adendum untuk <strong>$school_name</strong> 
+                                    $ec_name telah mengajukan formulir <strong>$uc_program</strong>$is_adendum untuk <strong>$school_name</strong> 
                                 </p>
-                                <p>Wah, seru banget nih! $ecname sudah menunggu kamu untuk memeriksa formulir $uc_program di $school_name. Jika ada beberapa hal yang belum disetujui, berikan arahan dan masukan dengan baik dan konstruktif untuk membantu tim meningkatkan formulirnya.</p>
+                                <p>Wah, seru banget nih! $ec_name sudah menunggu kamu untuk memeriksa formulir $uc_program di $school_name. Jika ada beberapa hal yang belum disetujui, berikan arahan dan masukan dengan baik dan konstruktif untuk membantu tim meningkatkan formulirnya.</p>
                                 <p>Silakan klik tombol berikut untuk approval dan pastikan akun kamu <strong>sudah login</strong> terlebih dahulu.</p>
                                 <p style='margin: 20px 0px;'>
                                     <a href='https://mentarigroups.com/benefit/approve-draft-benefit-form.php?id_draft=$id_draft&token=$tokenLeader' style='background:#f77f00; color:#ffffff; font-weight:bold; text-decoration:none; padding: 10px 20px; border-radius: 8px;' target='_blank'>
@@ -632,65 +699,36 @@
                             </div>
                         ";
             }
-                
-            try {
-        
-                $mail->isSMTP(); 
-                $mail->Host       = 'smtp.gmail.com';
-                $mail->SMTPAuth   = true;
-                $mail->Username   = $config['smtp_username'];
-                $mail->Password   = $config['smtp_password'];
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                $mail->Port       = $config['port'] ?? 465;
-            
-                //Recipients
-                $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
-                
-                // $mail->addAddress('bany@mentarigroups.com', $leaderName);
-                $mail->addAddress($leaderEmail, $leaderName);
-                if ($leaderId == 70) {
-                    foreach ($cc as $c) {
-                        $mail->addCC($c['email'], $c['name']);
-                    }
-                }
 
-                $mail->addAttachment($excelFile,$fileName);
-                //Content
-                $mail->isHTML(true);
-                $uc_program = strtoupper($program_name);
-                $mail->Subject = 'Keren, '.$ec_name.' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
-                $mail->Body    = $message;
-                $mail->send();
-                
-            } catch (Exception $e) {
-                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-            }
-        
-            $mail = new PHPMailer(true);
-            try {
-                $mail->isSMTP();
-                $mail->Host       = 'smtp.gmail.com';
-                $mail->SMTPAuth   = true;
-                $mail->Username   = $config['smtp_username'];
-                $mail->Password   = $config['smtp_password'];
-                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
-                $mail->Port       = $config['port'] ?? 465; 
+            $uc_program = strtoupper($program_name);
+            $subjectLeader = 'Keren, ' . $ec_name . ' telah mengajukan formulir ' . $uc_program . ' untuk ' . $school_name;
             
-                //Recipients
-                $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
-                
-                // $mail->addAddress('bany@mentarigroups.com', $ec_name);
-                $mail->addAddress($ec_email, $ec_name);
-                $mail->addAttachment($excelFile,$fileName);
-                //Content
-                $mail->isHTML(true);
-                $uc_program = strtoupper($program_name); 
-                $mail->Subject = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program. '  ' . $school_name;
-                $mail->Body    = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
-                $mail->send();
-        
-            } catch (Exception $e) {
-                echo "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            $ccList = ($leaderId == 70) ? $cc : [];
+            $resultLeader = sendEmail(
+                ['email' => $leaderEmail, 'name' => $leaderName],
+                $subjectLeader,
+                $messageLeader,
+                $excelFile,
+                $ccList
+            );
+
+            if ($resultLeader !== true) {
+                echo $resultLeader;
+            }
+
+            // ===================== KIRIM EMAIL KE EC =====================
+            $subjectEC = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program . ' ' . $school_name;
+            $bodyEC = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
+            
+            $resultEC = sendEmail(
+                ['email' => $ec_email, 'name' => $ec_name],
+                $subjectEC,
+                $bodyEC,
+                $excelFile
+            );
+
+            if ($resultEC !== true) {
+                echo $resultEC;
             }
         }
 

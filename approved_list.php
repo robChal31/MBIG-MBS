@@ -96,8 +96,8 @@
                 if (mysqli_num_rows($result) > 0) {
                     while($row = mysqli_fetch_assoc($result)) {
 
-                        $status_class = 'bg-info';
-                        $status_msg   = 'Waiting Verification';
+                        $status_class = $row['file_pk'] ? 'bg-info' : 'bg-warning';
+                        $status_msg   = $row['file_pk'] ? 'Waiting Verification' : 'Waiting SA to Upload';
                         $program_name = $row['year'] == 1
                                                 ? $row['program_name']
                                                 : $row['program_name']." Perubahan Tahun Ke ".$row['year'];

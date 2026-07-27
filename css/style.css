@@ -395,3 +395,30 @@ hr {
   font-weight: 600;
   margin-bottom: 20px;
 }
+
+/* ===== FIX CHEVRON ICON SIDEBAR ===== */
+/* Hilangin background circle di chevron */
+.sidebar .navbar .navbar-nav .nav-link .chevron-icon {
+    width: auto !important;
+    height: auto !important;
+    min-width: auto !important;
+    background: transparent !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-left: auto !important;
+    font-size: 12px !important;
+    display: inline-block !important;
+    color: var(--dark) !important;
+    transition: transform 0.3s ease !important;
+}
+
+/* Rotasi chevron saat expanded */
+.sidebar .navbar .nav-link[aria-expanded="true"] .chevron-icon {
+    transform: rotate(180deg) !important;
+}
+
+/* Warna chevron saat active */
+.sidebar .navbar .navbar-nav .nav-link.active .chevron-icon {
+    color: #fff !important;
+}
