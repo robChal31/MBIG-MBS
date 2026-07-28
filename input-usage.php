@@ -412,39 +412,39 @@ Nama Peserta: </textarea>
                 }
             });
 
-            $('#event').on('change', function() {
-                if($(this).val()) {
-                    $.ajax({
-                        url: 'https://hadiryuk.id/api/ticket/' + $(this).val(), 
-                        method: 'GET',
-                        cache:false,
-                        contentType: false,
-                        processData: false,
-                        success: function(response) {
-                            if(response.length > 0) {
-                                $('#id_ticket').val(response[0].id_ticket) 
-                            }else {
-                                Swal.fire({
-                                    title: "Failed to get ticket, please try again!",
-                                    text: response.message,
-                                    icon: "error"
-                                });
+            // $('#event').on('change', function() {
+            //     if($(this).val()) {
+            //         $.ajax({
+            //             url: 'https://hadiryuk.id/api/ticket/' + $(this).val(), 
+            //             method: 'GET',
+            //             cache:false,
+            //             contentType: false,
+            //             processData: false,
+            //             success: function(response) {
+            //                 if(response.length > 0) {
+            //                     $('#id_ticket').val(response[0].id_ticket) 
+            //                 }else {
+            //                     Swal.fire({
+            //                         title: "Failed to get ticket, please try again!",
+            //                         text: response.message,
+            //                         icon: "error"
+            //                     });
                                 
-                            }
+            //                 }
                             
-                        },
-                        error: function(xhr, status, error) {
-                            Swal.fire({
-                                title: "Failed to get ticket",
-                                text: error + '. \nPlease try again later or contact the developer.',
-                                icon: "error"
-                            });
-                        }
-                    });
-                }else {
-                    $('#id_ticket').val('')
-                }
-            })
+            //             },
+            //             error: function(xhr, status, error) {
+            //                 Swal.fire({
+            //                     title: "Failed to get ticket",
+            //                     text: error + '. \nPlease try again later or contact the developer.',
+            //                     icon: "error"
+            //                 });
+            //             }
+            //         });
+            //     }else {
+            //         $('#id_ticket').val('')
+            //     }
+            // })
         }else if(redeemable == 1 && !group) {
             Swal.fire({
                 title: "Benefit has no group.",

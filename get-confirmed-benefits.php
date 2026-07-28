@@ -293,7 +293,7 @@ $(document).ready(function() {
         dom: 'Bfrtilp',
         pageLength: 20,
         lengthMenu: [10, 20, 50, 100],
-        order: [[7, 'desc']],
+        order: [[8, 'desc']],
         buttons: [
             { 
                 extend: 'copyHtml5',
