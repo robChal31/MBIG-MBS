@@ -76,6 +76,17 @@ function file_pk_error_session($message){
     exit();
 }
 
+function sanitizeFileName($filename) {
+    // Remove special characters, keep only alphanumeric, dash, underscore, dot
+    $filename = preg_replace('/[^a-zA-Z0-9._-]/', '_', $filename);
+    // Remove multiple underscores
+    $filename = preg_replace('/_+/', '_', $filename);
+    // Remove leading/trailing underscores and dots
+    $filename = trim($filename, '._');
+    return $filename;
+}
+
+
 $id_draft = $_POST['id_draft'];
 $no_pk = $_POST['no_pk'];
 $start_date = $_POST['start_date'];
@@ -97,8 +108,8 @@ try {
     $is_no_pk_exist = $is_no_pk_exist_exec->num_rows > 0;
 
     $target_dir = "dokumen/";
-    $file_pk_name = basename($_FILES["file_pk"]["name"]);
-    $file_benefit_name = basename($_FILES["file_benefit"]["name"]);
+    $file_pk_name = sanitizeFileName(basename($_FILES["file_pk"]["name"]));
+    $file_benefit_name = sanitizeFileName(basename($_FILES["file_benefit"]["name"]));
     $unique_id = uniqid() . '_' . date('Ymd_His');
     $target_file_pk = $target_dir . $unique_id . '_' . $file_pk_name;
     $target_file_benefit = $target_dir . $unique_id . '_' . $file_benefit_name;

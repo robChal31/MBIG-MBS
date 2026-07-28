@@ -337,6 +337,7 @@ Nama Peserta: </textarea>
         let redeemable = <?= $usages['redeemable'] ?>
 
         console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}`);
+        console.log(`https://hadiryuk.id/api/EventBenefit?type=${group}&subject=${subject}&event_group=${event_group_code}`);
         console.log('group: ', group);
         console.log('subject: ', subject);
         console.log('event_group_code: ', event_group_code);
