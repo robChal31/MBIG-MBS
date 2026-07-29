@@ -2,6 +2,7 @@
 
 include('../db_con.php');
 $config = require('../config.php');
+$helper = require('../helper.php');
 
 header('Access-Control-Allow-Origin: ' . $config['mp_url']);
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
@@ -252,11 +253,12 @@ while ($row = mysqli_fetch_assoc($result)) {
     );
     
     // Add benefit detail dengan active_quota di DALAM benefit_item
+    $benefitName = sanitizeText($row['benefit_name'], $helper['removeLocationOnText']);
     $benefitItem = [
         'id_benefit_list' => $row['id_benefit_list'],
         'id_draft' => $row['id_draft'],
         'id_template' => $row['id_template'],
-        'benefit_name' => $row['benefit_name'],
+        'benefit_name' => $benefitName,
         'subbenefit' => $row['subbenefit'],
         'description' => $row['description'],
         'keterangan' => $row['keterangan'],
