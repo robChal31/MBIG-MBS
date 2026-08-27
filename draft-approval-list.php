@@ -53,13 +53,15 @@
                                             IFNULL(sc.name, b.school_name) as school_name2,
                                             c.generalname, d.generalname as leadername,
                                             d.id_user as id_user_approver, b.deleted_at,
-                                            IFNULL(seg.segment, b.segment) as segment_name
+                                            IFNULL(seg.segment, b.segment) as segment_name, 
+                                            IFNULL(prog.name, b.program) as program_name
                                         FROM draft_approval a
                                         INNER JOIN draft_benefit b ON a.id_draft = b.id_draft
                                         LEFT JOIN schools sc ON sc.id = b.school_name
                                         LEFT JOIN segments seg ON seg.id = b.segment
                                         LEFT JOIN user c ON c.id_user = b.id_ec
                                         LEFT JOIN user d ON d.id_user = a.id_user_approver
+                                        LEFT JOIN programs as prog on (prog.name = b.program OR prog.code = b.program)
                                         LEFT JOIN (
                                             SELECT id_draft, MAX(date) AS max_date
                                             FROM draft_approval
@@ -84,8 +86,8 @@
                                     while($row = mysqli_fetch_assoc($result)) {
 
                                         $program_name = $row['year'] == 1
-                                            ? $row['program']
-                                            : $row['program'] . " Perubahan Tahun Ke " . $row['year'];
+                                            ? $row['program_name']
+                                            : $row['program_name'] . " Perubahan Tahun Ke " . $row['year'];
 
                                         $status_text = $row['draft_status'] == 0 ? 'Waiting Approval'
                                             : ($row['draft_status'] == 1 ? 'Approved' : 'Rejected');

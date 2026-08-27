@@ -219,7 +219,7 @@
                 ];
 
                 $cc[] = [
-                    'email' => "yully.mentarigroups@gmail.com",
+                    'email' => "yully@mentaribooks.com",
                     'name' => "Yully"
                 ];
 
@@ -319,7 +319,7 @@
                 ];
 
                 $cc[] = [
-                    'email' => "yully.mentarigroups@gmail.com",
+                    'email' => "yully@mentaribooks.com",
                     'name' => "Yully"
                 ];
 
@@ -540,7 +540,7 @@
                 }
 
                 $cc[] = [
-                    'email' => "yully.mentarigroups@gmail.com",
+                    'email' => "yully@mentaribooks.com",
                     'name' => "Yully"
                 ];
         

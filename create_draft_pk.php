@@ -84,7 +84,7 @@ ini_set('display_errors', 1);
   $jabatan      = '';
   
   if($id_draft) {
-    $sql = "SELECT *, p.code as program_code
+    $sql = "SELECT *, p.code as program_code, sp.name as pic_name
               FROM draft_benefit as db
             LEFT JOIN user as ec on ec.id_user = db.id_ec
             LEFT JOIN school_pic as sp on sp.id_draft = db.id_draft
@@ -102,7 +102,7 @@ ini_set('display_errors', 1);
       $level        = $dra['level'];
       $wilayah      = $dra['wilayah'];
       $program      = $dra['program_code'];
-      $pic_name     = $dra['name'];
+      $pic_name     = $dra['pic_name'];
       $pic_email    = $dra['email'];
       $pic_phone    = $dra['no_tlp'];
       $jabatan      = $dra['jabatan'];
@@ -251,6 +251,7 @@ ini_set('display_errors', 1);
                       }
                     ?>
                   </select>
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit yang muncul, tergantung dari cakupan subjek yang dipilih</small>
                 </div>
 
                 <!-- PK & PROGRAM -->
@@ -364,6 +365,8 @@ ini_set('display_errors', 1);
 
   let isDirty = false;
   let isSubmitting = false;
+
+  let countChanges = 0;
   
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
@@ -546,13 +549,17 @@ ini_set('display_errors', 1);
   }
 
   function getAllBenefits(program, levels = [], subjects = []) {
+    console.log('countChanges:', countChanges);
+    console.log('idDraft:', idDraft);
     $.ajax({
       url: './get_benefits_pk.php',
       type: 'GET',
       data: {
         program: program,
         levels: levels,
-        subjects: subjects
+        subjects: subjects,
+        id_draft: idDraft,
+        countChanges: countChanges
       },
       success: function(response) {
         $('#benefit_container').html(response);
@@ -560,11 +567,15 @@ ini_set('display_errors', 1);
       },
       error: function(xhr) {
         console.log(xhr.responseText);
+      },
+      complete: function() {
+        countChanges++;
       }
     });
   }
 
   function initDraftData() {
+    console.log('initDraftData');
     return $.ajax({
       url: `./get_benefits_pk.php?id_draft=${idDraft}&program=${program}`,
       type: 'GET',
@@ -615,12 +626,15 @@ ini_set('display_errors', 1);
     }
   }
 
-
   $(document).ready(function(){
 
     $('.select2').select2({
       width: '100%'
     });
+
+    setTimeout(function() {
+      $('.sidebar-toggler').click();
+    }, 100);
 
     $('#discount_program').on('input', function () {
       let value = $(this).val();
@@ -657,7 +671,6 @@ ini_set('display_errors', 1);
 
     if (idDraft) {
       initDraftData();
-      idDraft = null;
     } else {
       loadSchoolSelect();
     }

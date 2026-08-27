@@ -37,13 +37,29 @@
       }
 
       //get draft benefit list count
-      $sql          = "SELECT dbl.type, dbl.id_template, dbl.subbenefit,
-                        dbl.benefit_name, dbl.description, dtb.pelaksanaan, dbl.keterangan, dbl.qty, dbl.qty2, dbl.qty3, dtb.valueMoney, dbl.manualValue, dbl.calcValue, dtb.editable_qty
-                        FROM draft_benefit_list as dbl 
-                        LEFT JOIN draft_template_benefit AS dtb on dbl.id_template = dtb.id_template_benefit 
-                      WHERE dbl.id_draft = '$id_draft'";
-      $result       = mysqli_query($conn, $sql);
-      $current_row = mysqli_num_rows($result);
+      $sql = "SELECT 
+                dbl.type, dbl.id_template, dbl.subbenefit, dbl.benefit_name, dbl.description, dtb.pelaksanaan, dtb.multiple_subject, dtb.multiple_level,
+                dbl.keterangan, dbl.qty, dbl.qty2, dbl.qty3, dtb.valueMoney, dbl.manualValue, dbl.calcValue, dtb.editable_qty,
+            -- 🔥 Gabungkan subject_ids jadi 1 string
+            (
+                SELECT GROUP_CONCAT(DISTINCT bs.subject_id SEPARATOR ',')
+                FROM benefit_subjects bs
+                WHERE bs.draft_benefit_list_id = dbl.id_benefit_list
+            ) AS subject_ids,
+            -- 🔥 Gabungkan level_ids jadi 1 string
+            (
+                SELECT GROUP_CONCAT(DISTINCT bol.level_id SEPARATOR ',')
+                FROM benefit_org_levels bol
+                WHERE bol.draft_benefit_list_id = dbl.id_benefit_list
+            ) AS level_ids
+        FROM draft_benefit db
+        LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
+        LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
+        WHERE db.id_draft = $id_draft
+        GROUP BY dbl.id_benefit_list";
+
+      $template_data_result = mysqli_query($conn, $sql);
+      $current_row = mysqli_num_rows($template_data_result);
 
       if ($current_row < 1) {
         $use_template_as_default = true;
@@ -60,9 +76,7 @@
         while ($row = mysqli_fetch_assoc($tpl_result)) {
           $tpl_data[] = $row;
         }
-
       }
-
     }
 
   }else{
@@ -116,6 +130,21 @@
 
   if ($result_price && mysqli_num_rows($result_price) > 0) {
       $benefitSetting = mysqli_fetch_assoc($result_price);
+  }
+  // 🔥 Ambil semua subject (1 query aja)
+  $all_subjects = [];
+  $subject_query = "SELECT sub.id, sub.name FROM program_adoption_subjects as pas LEFT JOIN subjects as sub on pas.subject_id = sub.id  WHERE pas.draft_id = $id_draft";
+  $subject_result = mysqli_query($conn, $subject_query);
+  while ($row = mysqli_fetch_assoc($subject_result)) {
+      $all_subjects[] = $row;
+  }
+
+  // 🔥 Ambil semua level (1 query aja)
+  $all_levels = [];
+  $level_query = "SELECT lv.id, lv.name FROM program_adoption_levels as pal LEFT JOIN levels as lv on pal.level_id = lv.id  WHERE pal.draft_id = $id_draft";
+  $level_result = mysqli_query($conn, $level_query);
+  while ($row = mysqli_fetch_assoc($level_result)) {
+      $all_levels[] = $row;
   }
 ?>
 
@@ -292,44 +321,9 @@
     border-bottom: none;
   }
 
-  #input_form input,
-  #input_form textarea,
-  #input_form select {
-    font-size: 12px;
-    border-radius: 6px;
-    border: 1px solid #e2e8f0;
-    transition: all 0.2s ease;
-  }
-
-  #input_form input:focus,
-  #input_form textarea:focus,
-  #input_form select:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
-    outline: none;
-  }
-
-  #input_form input[readonly],
-  #input_form textarea[readonly] {
-    background-color: #f7fafc;
-    color: #4a5568;
-    border-color: #edf2f7;
-  }
-
   #input_form .form-control-sm {
     min-height: 32px;
     padding: 4px 10px;
-  }
-
-  #input_form textarea {
-    height: 60px;
-    resize: vertical;
-    min-height: 40px;
-    transition: height 0.3s ease;
-  }
-
-  #input_form textarea:focus {
-    height: 100px;
   }
 
   /* ===== SUMMARY CARD ===== */
@@ -452,7 +446,62 @@
     }
   }
 
-  /* ===== SELECT2 OVERRIDE ===== */
+  .select2-benefit + .select2-container--default .select2-selection--single {
+    border-radius: 6px;
+    border-color: #e2e8f0;
+    height: 34px;
+  }
+
+  .select2-benefit + .select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 34px;
+    font-size: 12px;
+  }
+
+  .select2-benefit + .select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 34px;
+  }
+
+  .select2-benefit + .select2-container .select2-results__option--highlighted {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+  }
+
+  .select2-benefit + .select2-container .select2-optgroup-label {
+    font-weight: 700;
+    color: #2d3748;
+    cursor: pointer;
+    padding: 8px 12px;
+    background: #f7fafc;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  /* ===== SELECT2 MULTIPLE (SUBJECT & LEVEL) ===== */
+  .select2-container--default .select2-selection--multiple {
+    min-height: 34px;
+    border-radius: 6px;
+    border: 1px solid #e2e8f0;
+    font-size: 11px;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 10px;
+    margin: 2px;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+    color: white;
+    margin-right: 4px;
+  }
+
+  .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+    color: #f5576c;
+  }
+
+  /* ===== SELECT2 DEFAULT (BIASA) ===== */
   .select2-container .select2-dropdown {
     border-radius: 8px;
     border-color: #e2e8f0;
@@ -493,11 +542,11 @@
   }
 
   .select2-container .select2-dropdown {
-    width: 60vw !important; /* Set the dropdown's overall width */
+    width: 40vw !important;
   }
 
   .select2-container .select2-results__option {
-    max-width: 60vw; 
+    max-width: 40vw; 
     font-size: 14px;
   }
 
@@ -529,6 +578,100 @@
 
   .bs-tooltip-top .tooltip-arrow::before {
     border-top-color: #2d3748;
+  }
+
+  /* FIX SELECT2 MULTIPLE */
+  #input_form .select2-container {
+      width: 100% !important;
+  }
+
+  #input_form .select2-container--default .select2-selection--multiple {
+      min-height: 34px !important;
+      height: auto !important;
+      padding: 2px 4px !important;
+      border: 1px solid #e2e8f0 !important;
+      border-radius: 6px !important;
+      box-sizing: border-box !important;
+  }
+
+  /* Search input Select2 jangan sampai jadi vertikal */
+  #input_form .select2-container--default
+  .select2-selection--multiple
+  .select2-search--inline {
+      float: none !important;
+      display: inline-block !important;
+      vertical-align: middle !important;
+  }
+
+  #input_form .select2-container--default
+  .select2-selection--multiple
+  .select2-search--inline
+  .select2-search__field {
+      width: 100% !important;
+      min-width: 80px !important;
+      height: 28px !important;
+      min-height: 28px !important;
+      margin: 0 !important;
+      padding: 4px 6px !important;
+      border: none !important;
+      outline: none !important;
+      box-shadow: none !important;
+      background: transparent !important;
+      writing-mode: horizontal-tb !important;
+  }
+
+  /* Choice/tag */
+  #input_form .select2-selection--multiple .select2-selection__choice {
+      float: left !important;
+      margin-top: 3px !important;
+      margin-bottom: 3px !important;
+  }
+
+  /* Dropdown */
+  #input_form .select2-container--open .select2-dropdown {
+      width: auto !important;
+      min-width: 200px !important;
+      max-width: 400px !important;
+  }
+
+  /* ===== TABLE STYLING ===== */
+  #input_form {
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      width: 100%;
+      table-layout: fixed;  /* 🔥 KRUSIAL */
+  }
+
+  /* ===== KOLOM WIDTH ===== */
+  #input_form thead td {
+      background: linear-gradient(135deg, #f8f9fc 0%, #eef1f5 100%);
+      font-weight: 700;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: #2d3748;
+      padding: 12px 8px !important;
+      border-bottom: 2px solid #e2e8f0;
+  }
+
+  #input_form tbody td {
+      padding: 6px 4px !important;
+      vertical-align: middle !important;
+      text-align: center !important;
+      border-bottom: 1px solid #f0f2f5;
+      transition: background 0.2s ease;
+      overflow: hidden;        /* 🔥 Potong konten yang kepanjangan */
+      text-overflow: ellipsis; /* 🔥 Tambah ... jika kepanjangan */
+      white-space: nowrap;     /* 🔥 Cegah wrap */
+  }
+
+  /* 🔥 Kolom Nama Benefit - biarkan teks wrap jika perlu */
+  #input_form tbody td:nth-child(3) {
+      white-space: normal;
+      word-wrap: break-word;
   }
 </style>
 
@@ -592,33 +735,35 @@
               <div class="table-wrapper" style="width: 100%; overflow-x: auto; padding: 4px 0;">
                 <table class="table table-bordered mb-0" id="input_form">
                   <thead>
-                    <tr>
-                      <td class="td-cust text-center col-benefit" rowspan="2">Benefit</td>
-                      <td class="td-cust text-center col-subbenefit" rowspan="2">Sub Benefit</td>
-                      <td class="td-cust text-center" rowspan="2" style="width:20%;">Nama Benefit</td>
-                      <td class="td-cust text-center" rowspan="2" style="width:20%;">Deskripsi</td>
-                      <td class="td-cust text-center" rowspan="2" style="width:15%;">Pelaksanaan</td>
-                      <td class="td-cust text-center" rowspan="2" style="width:10%;">Nilai Benefit</td>
-                      <td class="td-cust text-center" colspan="3" style="width:15%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
-                      <td class="td-cust text-center" rowspan="2" style="width:15%;">Nilai Value</td>
-                      <td class="td-cust text-center" rowspan="2" style="width:5%;">Action</td>
-                    </tr>
-                    <tr>
-                      <td style="width:55px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
-                        <span class="badge" style="background: #667eea; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">1</span>
-                      </td>
-                      <td style="width:55px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
-                        <span class="badge" style="background: #764ba2; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">2</span>
-                      </td>
-                      <td style="width:55px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
-                        <span class="badge" style="background: #f5576c; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">3</span>
-                      </td>
-                    </tr>
+                      <tr>
+                        <td class="td-cust text-center col-benefit" rowspan="2" style="width:5%;">Benefit</td>
+                        <td class="td-cust text-center col-subbenefit" rowspan="2" style="width:5%;">Sub Benefit</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:15%;">Nama Benefit</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:18%;">Deskripsi</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:10%;">Pelaksanaan</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:10%;">Subject</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:10%;">Level</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Benefit</td>
+                        <td class="td-cust text-center" colspan="3" style="width:12%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Value</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:5%;">Action</td>
+                      </tr>
+                      <tr>
+                        <td style="width:40px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
+                          <span class="badge" style="background: #667eea; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">1</span>
+                        </td>
+                        <td style="width:40px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
+                          <span class="badge" style="background: #764ba2; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">2</span>
+                        </td>
+                        <td style="width:40px; text-align:center; background: linear-gradient(135deg, #e8edf5, #dce4f0);">
+                          <span class="badge" style="background: #f5576c; color: white; font-size: 10px; padding: 5px 10px; border-radius: 50px;">3</span>
+                        </td>
+                      </tr>
                   </thead>
                   <tbody>
                     <?php if (!$use_template_as_default) {
                       $x = 1;
-                      while ($data = $result->fetch_assoc()): ?>
+                      while ($data = $template_data_result->fetch_assoc()): ?>
                         <tr id="row<?= $x; ?>">
                           <td class="col-benefit">
                             <span class="benefit"><?= $data['type'] ?></span>
@@ -637,11 +782,56 @@
                             <textarea id="description" name="description[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['description'] ?></textarea>
                           </td>
                           <?php 
-                              $new_qty = ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']) == 0 ? 1 : ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']);
-                              $data['valueMoney'] = (int)$data['calcValue'] / ($new_qty);
+                            $new_qty = ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']) == 0 ? 1 : ((int)$data['qty'] + (int)$data['qty2'] + (int)$data['qty3']);
+                            $data['valueMoney'] = (int)$data['calcValue'] / ($new_qty);
                           ?>
                           <td>
                             <textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['pelaksanaan'] ?></textarea>
+                          </td>
+                          <td>
+                            <?php if ($data['multiple_subject'] == 1): ?>
+                              <select name="subject_<?= $data['id_template'] ?>[]" class="form-select form-select-sm select2" multiple>
+                                <?php 
+                                  // Parse subject_ids dari string ke array
+                                  $selected_subjects = !empty($data['subject_ids']) 
+                                      ? explode(',', $data['subject_ids']) 
+                                      : [];
+                                  
+                                  // Ambil semua subject (1 query aja di awal)
+                                  foreach ($all_subjects as $subject): 
+                                ?>
+                                  <option value="<?= $subject['id'] ?>" <?= in_array($subject['id'], $selected_subjects) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($subject['name']) ?>
+                                  </option>
+                                <?php endforeach; ?>
+                              </select>
+                            <?php else: ?>
+                              <input type="hidden" name="subject_<?= $data['id_template'] ?>[]" value="">
+                              <span class="text-muted" style="font-size: 11px;">-</span>
+                            <?php endif; ?>
+                          </td>
+                          
+                          <!-- 🔥 LEVEL (MULTIPLE) -->
+                          <td>
+                            <?php if ($data['multiple_level'] == 1): ?>
+                              <select name="level_<?= $data['id_template'] ?>[]" class="form-select form-select-sm select2" multiple>
+                                <?php 
+                                // Parse level_ids dari string ke array
+                                  $selected_levels = !empty($data['level_ids']) 
+                                      ? explode(',', $data['level_ids']) 
+                                      : [];
+                                  
+                                  foreach ($all_levels as $level): 
+                                ?>
+                                  <option value="<?= $level['id'] ?>" <?= in_array($level['id'], $selected_levels) ? 'selected' : '' ?>>
+                                    <?= htmlspecialchars($level['name']) ?>
+                                  </option>
+                                  <?php endforeach; ?>
+                              </select>
+                            <?php else: ?>
+                              <input type="hidden" name="level_<?= $data['id_template'] ?>[]" value="">
+                              <span class="text-muted" style="font-size: 11px;">-</span>
+                            <?php endif; ?>
                           </td>
                           <td>
                             <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="0" onchange="updateDisabledField(this)" value="<?= number_format($data['valueMoney'], '0', ',', '.'); ?>" readonly>
@@ -750,8 +940,6 @@
               <i class="fas fa-paper-plane me-2"></i> Submit
             </button>
           </div>
-
-
         </form>
       </div>
     </div>
@@ -770,7 +958,7 @@
         <input type="hidden" name="subbenefit[]" value="">
       </td>
       <td>
-        <select name="benefit_id[]" class="form-select form-select-sm select2" onchange="getBenefitData(this)">
+        <select name="benefit_id[]" class="form-select form-select-sm select2-benefit" onchange="getBenefitData(this)">
         </select>
         <input type="hidden" name="benefit_name[]" value="">
       </td>
@@ -779,6 +967,32 @@
       </td>
       <td>
         <textarea name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea>
+      </td>
+      <td>
+        <select name="subject[]" class="form-select form-select-sm select2" multiple>
+          <option value="">Pilih Subject</option>
+          <?php 
+            $subject_query = "SELECT id, name FROM subjects ORDER BY name ASC";
+            $subject_result = mysqli_query($conn, $subject_query);
+            while ($subject_row = mysqli_fetch_assoc($subject_result)): 
+          ?>
+            <option value="<?= $subject_row['id'] ?>"><?= htmlspecialchars($subject_row['name']) ?></option>
+          <?php endwhile; ?>
+        </select>
+      </td>
+        
+      <!-- 🔥 LEVEL -->
+      <td>
+        <select name="level[]" class="form-select form-select-sm select2" multiple>
+          <option value="">Pilih Level</option>
+          <?php 
+            $level_query = "SELECT id, name FROM levels ORDER BY name ASC";
+            $level_result = mysqli_query($conn, $level_query);
+            while ($level_row = mysqli_fetch_assoc($level_result)): 
+          ?>
+            <option value="<?= $level_row['id'] ?>"><?= htmlspecialchars($level_row['name']) ?></option>
+          <?php endwhile; ?>
+        </select>
       </td>
       <td>
         <input type="text" class="form-control form-control-sm" name="valben[]" value="0" readonly onchange="updateDisabledField(this)">
@@ -809,9 +1023,10 @@
 <script type="text/javascript">
   let isDirty = false;
   let isSubmitting = false;
-
+            
   const tpl_data = <?= json_encode($tpl_data) ?>;
-
+  const allSubjects = <?= json_encode($all_subjects) ?>;
+  const allLevels = <?= json_encode($all_levels) ?>;
   var maxRows = 100; 
   let x = <?=  $current_row ?>;
   x = x ? parseInt(x) : 0;
@@ -844,48 +1059,105 @@
   }
 
   async function getBenefitData(element){
-    var row = $(element).closest('tr');
-    var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
+      var row = $(element).closest('tr');
+      var benefitId = row.find('select[name="benefit_id[]"]').find(":selected").val();
 
-    $.ajax({
-      url: 'get_benefit_datas.php',
-      type: 'POST',
-      data: {
-        benefitId: benefitId,
-        program : '<?= $program ?>'
-      },
-      success: function(data) {
-        row.find('input[name="benefit[]"]').val(data[0].benefit);
-        row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
-        row.find('span.benefit').html(data[0].benefit);
-        row.find('span.subbenefit').html(data[0].subbenefit);
-        row.find('textarea[name="description[]"]').html(data[0].description);
-        row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
-        row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
-        row.find('textarea[name="pelaksanaan[]"]').html(data[0].pelaksanaan);
-        row.find('input[name="valuedefault[]"]').val(data[0].valueMoney);
-        row.find('input[name="valben[]"]').val(formatNumber(data[0].valueMoney));
-        row.find('input[name="member[]"]').val(formatNumber(data[0].qty1));
-        row.find('input[name="member2[]"]').val(formatNumber(data[0].qty2));
-        row.find('input[name="member3[]"]').val(formatNumber(data[0].qty3));
+      $.ajax({
+          url: 'get_benefit_datas.php',
+          type: 'POST',
+          data: {
+              benefitId: benefitId,
+              program: '<?= $program ?>'
+          },
+          success: function(data) {
+            row.find('input[name="benefit[]"]').val(data[0].benefit);
+            row.find('input[name="id_templates[]"]').val(data[0].id_template_benefit);
+            row.find('span.benefit').html(data[0].benefit);
+            row.find('span.subbenefit').html(data[0].subbenefit);
+            row.find('textarea[name="description[]"]').html(data[0].description);
+            row.find('input[name="subbenefit[]"]').val(data[0].subbenefit);
+            row.find('input[name="benefit_name[]"]').val(data[0].benefit_name);
+            row.find('textarea[name="pelaksanaan[]"]').html(data[0].pelaksanaan);
+            row.find('input[name="valuedefault[]"]').val(data[0].valueMoney);
+            row.find('input[name="valben[]"]').val(formatNumber(data[0].valueMoney));
+            row.find('input[name="member[]"]').val(formatNumber(data[0].qty1));
+            row.find('input[name="member2[]"]').val(formatNumber(data[0].qty2));
+            row.find('input[name="member3[]"]').val(formatNumber(data[0].qty3));
 
-        row.find('input[name="member[]"]').prop("readonly", data[0].editable_qty == 0);
-        row.find('input[name="member2[]"]').prop("readonly", data[0].editable_qty == 0);
-        row.find('input[name="member3[]"]').prop("readonly", data[0].editable_qty == 0);
-        
-        var program = '<?= $program ?>';
-        if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
-          row.find('input[name="valben[]"]').prop("readonly", false);
-        }else{
-          row.find('input[name="valben[]"]').prop("readonly", true);
+            row.find('input[name="member[]"]').prop("readonly", data[0].editable_qty == 0);
+            row.find('input[name="member2[]"]').prop("readonly", data[0].editable_qty == 0);
+            row.find('input[name="member3[]"]').prop("readonly", data[0].editable_qty == 0);
+
+            // 🔥 Ambil id_template dari data
+            var templateId = data[0].id_template_benefit;
+
+            // ========== 🔥 SUBJECT ==========
+            // Cari select subject di row ini
+            var subjectSelect = row.find('select[name="subject[]"]');
+            var subjectContainer = subjectSelect.closest('td');
+
+            // Hapus span text-muted jika ada
+            subjectContainer.find('span.text-muted').remove();
+
+            if (data[0].multiple_subject == 1) {
+                // 🔥 Ubah name select jadi pake templateId
+                subjectSelect.attr('name', 'subject_' + templateId + '[]');
+                // Tampilkan select
+                subjectSelect.show();
+                // Reset pilihan
+                subjectSelect.val([]).trigger('change');
+                // Set nilai yang sudah dipilih
+                if (data[0].subject_ids) {
+                    var subjectIds = data[0].subject_ids.split(',').map(Number);
+                    subjectSelect.val(subjectIds).trigger('change');
+                }
+            } else {
+                // Sembunyikan select dan tampilkan tanda "-"
+                subjectSelect.hide();
+                subjectContainer.html('<span class="text-muted" style="font-size: 11px;">-</span><input type="hidden" name="subject_' + templateId + '[]" value="">');
+            }
+
+            // ========== 🔥 LEVEL ==========
+            var levelSelect = row.find('select[name="level[]"]');
+            var levelContainer = levelSelect.closest('td');
+
+            // Hapus span text-muted jika ada
+            levelContainer.find('span.text-muted').remove();
+
+            if (data[0].multiple_level == 1) {
+                // 🔥 Ubah name select jadi pake templateId
+                levelSelect.attr('name', 'level_' + templateId + '[]');
+                // Tampilkan select
+                levelSelect.show();
+                // Reset pilihan
+                levelSelect.val([]).trigger('change');
+                // Set nilai yang sudah dipilih
+                if (data[0].level_ids) {
+                    var levelIds = data[0].level_ids.split(',').map(Number);
+                    levelSelect.val(levelIds).trigger('change');
+                }
+            } else {
+                // Sembunyikan select dan tampilkan tanda "-"
+                levelSelect.hide();
+                levelContainer.html('<span class="text-muted" style="font-size: 11px;">-</span><input type="hidden" name="level_' + templateId + '[]" value="">');
+            }
+
+            var program = '<?= $program ?>';
+            if((data[0].benefit_name==="Paket Literasi Menjadi Indonesia" && program=='bsp') || (data[0].benefit_name==="Paket Literasi Bahasa Inggris Storyland 20 series" && program=='bsp') || data[0].subbenefit==="Free Copy" || data[0].benefit_name.includes("ASTA") || data[0].benefit_name.includes("Oxford") || data[0].benefit_name.includes("OXFORD") || data[0].subbenefit==="Bebas Biaya Pengiriman" || data[0].subbenefit==="Deposit untuk Hidayatullah" || data[0].benefit_name == "Material" || data[0].manual_input == "1"){
+                row.find('input[name="valben[]"]').prop("readonly", false);
+            }else{
+                row.find('input[name="valben[]"]').prop("readonly", true);
+            }
+
+            if(data[0].manual_input == "0"){
+                row.find('input[name="valben[]"]').prop("readonly", true);
+            }
+            updateDisabledField(element);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error fetching benefit data:', error);
         }
-        
-        if(data[0].manual_input == "0"){
-          row.find('input[name="valben[]"]').prop("readonly", true);
-        }
-        updateDisabledField(element);
-      }
-    });
+      });
   }
 
   function fillTheValue(id) {
@@ -993,12 +1265,28 @@
         selectedTemplate: selectedTemplate
       },
       success: async function(data) {
-        const $select = $('#' + rowId).find('select');
+        const $select = $('#' + rowId).find('select[name="benefit_id[]"]');
+        const $selectSubject = $('#' + rowId).find('select[name="subject[]"]');
+        const $selectLevel = $('#' + rowId).find('select[name="level[]"]');
         $select.html(data).select2({
           placeholder: 'Select a benefit',
           templateResult: formatGroupItems,
           closeOnSelect: false,
         });
+        
+        let allSubjectOption = "<option value=''>Pilih Subject</option>";
+        let allLevelOption = "<option value=''>Pilih Level</option>";
+        allSubjectOption += allSubjects.map(subject => `<option value="${subject.id}">${subject.name}</option>`).join('');
+        allLevelOption += allLevels.map(level => `<option value="${level.id}">${level.name}</option>`).join('');
+
+        $selectSubject.html(allSubjectOption).select2({
+          placeholder: 'Select a subject',
+          closeOnSelect: false,
+        })
+        $selectLevel.html(allLevelOption).select2({
+          placeholder: 'Select a level',
+          closeOnSelect: false,
+        })
         $(document).on('mouseenter', '.select2-results__option', function () {
           const title = $(this).attr('title');
           if (title) {
@@ -1063,12 +1351,21 @@
 
 <script>
   $(document).ready(function(){
-    $('.select2').select2();
+    $('.select2').select2({
+      width: '100%'
+    });
+
+    $('.select2-benefit').select2({
+      placeholder: 'Select a benefit',
+      width: '100%',
+      dropdownAutoWidth: true
+    });
     
     // Atau kalau mau dengan delay biar lebih smooth
     setTimeout(function() {
         $('.sidebar-toggler').click();
     }, 100);
+    
     $('#add_row').on('click', function () {
       if (x >= maxRows) return;
       x++;

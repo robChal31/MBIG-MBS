@@ -149,10 +149,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #fff;
+  background: #e9f7ff;
   border-radius: 50%;
   box-shadow: 0 4px 10px rgba(0,0,0,.08);
   transition: all .25s ease;
+  color: var(--primary);
 }
 
 .sidebar .navbar .navbar-nav .nav-link.active i {

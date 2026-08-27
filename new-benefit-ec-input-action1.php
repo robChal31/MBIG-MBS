@@ -72,6 +72,10 @@
                 ($school_id_new, '$school_name_new', '$school_address_new', '$school_phone_new', '$school_segment_new', '$school_ec_id_new', '$school_created_date_new')";
                 mysqli_query($conn,$sql);
                 $id_school = mysqli_insert_id($conn);     
+            }else {
+                $update_school_query = "UPDATE schools SET name = '$school_name_new', address = '$school_address_new', phone = '$school_phone_new', segment = '$school_segment_new', ec_id = '$school_ec_id_new' WHERE id = $school_id_new";
+                mysqli_query($conn, $update_school_query);
+                $id_school = $school_id_new;
             }
         }
 

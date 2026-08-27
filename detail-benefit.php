@@ -25,7 +25,8 @@ $role = $_SESSION['role'];
 $id_draft = $_GET['id'];                                                                      
 $sql = "SELECT 
             b.*, c.*, pk.*, prog.is_pk,
-            IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name, IFNULL(seg.segment, b.segment) as segment
+            IFNULL(sc.name, b.school_name) as school_name2, dbl.total_qty, pk.id as id_pk, dash_sa.sa_name, 
+            IFNULL(seg.segment, b.segment) as segment, prog.name as program_name
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
         LEFT JOIN segments as seg on seg.id = b.segment
@@ -47,7 +48,7 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         $ec_name = $row['generalname'];
         $school = $row['school_name2'];
-        $program = $row['program'];
+        $program = $row['program_name'];
         $segment = $row['segment'];
         $total_qty = $row['total_qty'];
         $id_pk = $row['id_pk'];
@@ -281,7 +282,7 @@ if ($result->num_rows > 0) {
                 </div>
             </div>
 
-            <div class="card rounded h-100 p-4">
+            <div class="card rounded h-100 p-4 mt-4">
                 <div class="p-2 mb-2">
                     <div class="d-flex justify-content-between">
                         <h6>Benefit Implementation Report </h6>                        

@@ -138,6 +138,10 @@ if (!empty($template['benefit'])) {
                     <input type="text" name="value" class="form-control form-control-sm only_number" value="<?= $template['valueMoney'] ?? '' ?>" placeholder="value...">
                 </div>
                 <div class="col-4 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Satuan</label>
+                    <input type="text" name="satuan" class="form-control form-control-sm" value="<?= $template['satuan'] ?? '' ?>" placeholder="satuan..." required>
+                </div>
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Business Unit</label>
                     <select name="unit_bisnis" id="unit_bisnis" class="form-control form-control-sm select2" required>
                         <option value="" disabled selected>--Select--</option>
@@ -153,21 +157,23 @@ if (!empty($template['benefit'])) {
                        <option value="0" <?= ($template['optional'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
                        <option value="1" <?= ($template['optional'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
                     </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk program MPP, jika pilih Yes, EC dapat menghapus benefit tersebut dari daftar benefit yang bisa diberikan</small>
                 </div>
-                <div class="col-6 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Subject</label>
                     <select name="subject" id="subject" class="form-control form-control-sm select2">
-                        <option value="" disabled selected>--Select Subject--</option>
+                        <option value="" selected>--Select Subject--</option>
                         <?php 
-                            $sql_subject = "SELECT * FROM subjects";
+                            $sql_subject = "SELECT * FROM subjects where name not like '%other%'";
                             $result_subject = $conn->query($sql_subject);
                             while($subject = $result_subject->fetch_assoc()) { ?>
                                 <option value="<?= $subject['name'] ?>" <?= ($template['subject'] ?? '') == $subject['name'] ? 'selected' : '' ?>><?= $subject['name'] ?></option>
                             <?php } ; ?>
                     </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk program MPP, jika benefit memeiliki subject, benefit tersebut hanya akan muncul jika EC mengisi cakupan subject yang sesuai dengan subject benefit</small>
                 </div>
 
-                <div class="col-6 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Highlight Color</label>
                     <select name="highlight_color" id="highlight_color" class="form-control form-control-sm">
                         <option value="" disabled selected>--Select Highlight Color --</option>
@@ -176,6 +182,7 @@ if (!empty($template['benefit'])) {
                         <option value="fb5607" <?= ($template['highlight_color'] ?? '') == 'fb5607' ? 'selected' : '' ?> style="color: #fb5607">Orange</option>
                         <option value="3a86ff" <?= ($template['highlight_color'] ?? '') == '3a86ff' ? 'selected' : '' ?> style="color: #3a86ff">Blue</option>
                     </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Pilih warna highlight yang akan muncul untuk benefit ini</small>
                 </div>
 
                 <div class="col-4 mb-3">
@@ -185,6 +192,7 @@ if (!empty($template['benefit'])) {
                         <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
                         <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
                     </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka benefit ini dapat digunakan untuk daftar event/acara yang sesuai dari Hadiryuk dan AstaEduhub</small>
                 </div>
 
                 <div class="col-4 mb-3">
@@ -194,6 +202,7 @@ if (!empty($template['benefit'])) {
                         <option value="1" <?= ($template['manual_input'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
                         <option value="0" <?= ($template['manual_input'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
                     </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka nilai benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
                 <div class="col-4 mb-3">
@@ -203,18 +212,57 @@ if (!empty($template['benefit'])) {
                         <option value="1" <?= ($template['editable_qty'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
                         <option value="0" <?= ($template['editable_qty'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
                     </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka quantity benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
-                <div class="col-6 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Order</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="number" name="benefit_order" class="form-control form-control-sm" value="<?= $template['benefit_order'] ?? '' ?>" placeholder="benefit order..." required>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit dengan angka order yang lebih besar akan muncul di atas</small>
                 </div>
 
-                <div class="col-6 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Info</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info...">
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Info benefit yang akan tampil ketika EC pilih benefit</small>
+                </div>
+
+                <div class="col-4 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Enable EC Select Subject</label>
+                    <select name="multiple_subject" id="multiple_subject" class="form-control form-control-sm select2">
+                       <option value="" disabled selected>--Select--</option>
+                       <option value="0" <?= ($template['multiple_subject'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
+                       <option value="1" <?= ($template['multiple_subject'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
+                    </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka subject dari benefit ini dapat disesuaikan oleh EC</small>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Enable EC Select Level</label>
+                    <select name="multiple_level" id="multiple_level" class="form-control form-control-sm select2">
+                       <option value="" disabled selected>--Select--</option>
+                       <option value="0" <?= ($template['multiple_level'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
+                       <option value="1" <?= ($template['multiple_level'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
+                    </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka level dari benefit ini dapat disesuaikan oleh EC</small>
+                </div>
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Is Benefit Countable?</label>
+
+                    <select name="countable" id="countable" class="form-control form-control-sm select2">
+                        <option value="" disabled selected>--Select--</option>
+                        <option value="0" <?= ($template['countable'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
+                        <option value="1" <?= ($template['countable'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
+                    </select>
+
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                        Pilih <strong>Yes</strong> jika benefit memiliki jumlah/kuota yang dapat dihitung dan berkurang setiap kali digunakan.
+                        Contoh: <strong>Training Kolektif</strong> diberikan sebanyak 3, 5, atau 6 kali. Setiap kali digunakan, jumlah benefit akan berkurang.<br><br>
+                        Pilih <strong>No</strong> jika benefit tidak memiliki jumlah pemakaian dan hanya menunjukkan apakah benefit tersebut <strong>aktif atau tidak aktif</strong>.
+                        Contoh: <strong>Pemberian CCHD</strong>
+                    </small>
                 </div>
 
                 <input type="hidden" name="id_template" value="<?= $id_template == 0 ? '' : $id_template ?>">

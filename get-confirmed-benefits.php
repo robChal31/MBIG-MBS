@@ -70,24 +70,16 @@ $query_benefits = "
         ec.generalname,
         IFNULL(sc.name, db.school_name) AS school_name2,
         prog.name as program_name,
-        COALESCE(bu.tot_usage1, 0) as tot_usage1,
-        COALESCE(bu.tot_usage2, 0) as tot_usage2,
-        COALESCE(bu.tot_usage3, 0) as tot_usage3,
+        bu.tot_usage1,
+        bu.tot_usage2,
+        bu.tot_usage3,
         CASE 
             WHEN ref_count.ref_count > 0 THEN 1 
             ELSE 0 
         END AS has_ref_usage
     FROM draft_benefit db
     LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
-    LEFT JOIN (
-        SELECT 
-            id_benefit_list,
-            SUM(COALESCE(qty1, 0)) AS tot_usage1,
-            SUM(COALESCE(qty2, 0)) AS tot_usage2,
-            SUM(COALESCE(qty3, 0)) AS tot_usage3
-        FROM benefit_usages 
-        GROUP BY id_benefit_list
-    ) bu ON bu.id_benefit_list = dbl.id_benefit_list
+    LEFT JOIN v_benefit_usage_sum bu ON bu.id_benefit_list = dbl.id_benefit_list
     LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
     LEFT JOIN pk p ON p.benefit_id = db.id_draft
     LEFT JOIN schools sc ON sc.id = db.school_name
@@ -118,16 +110,16 @@ $query_benefits .= " AND NOT EXISTS (SELECT 1 FROM draft_benefit ref WHERE ref.r
 $query_benefits .= " GROUP BY dbl.id_benefit_list";
 
 // Apply usage year filter di HAVING clause
-// if (!empty($usage_year)) {
-//     $usage_conditions = [];
-//     foreach ($usage_year as $value) {
-//         $usage_conditions[] = "COALESCE(bu.tot_usage$value, 0) > 0";
-//     }
-//     $query_benefits .= " HAVING " . implode(" OR ", $usage_conditions);
-// }
+if (!empty($usage_year)) {
+    $usage_conditions = [];
+    foreach ($usage_year as $value) {
+        $usage_conditions[] = "COALESCE(tot_usage$value, 0) > 0";
+    }
+    $query_benefits .= " HAVING " . implode(" OR ", $usage_conditions);
+}
 
 // Urutkan berdasarkan no_pk terbaru
-$query_benefits .= " ORDER BY p.no_pk DESC";
+$query_benefits .= " ORDER BY db.id_draft DESC";
 // var_dump($query_benefits);
 // Eksekusi query
 $exec_benefits = mysqli_query($conn, $query_benefits);
@@ -291,6 +283,9 @@ if (isset($temp_table)) {
 $(document).ready(function() {
     $('#table_id').DataTable({
         dom: 'Bfrtilp',
+        deferRender: true,
+        scroller: true,
+        scrollY: 500,
         pageLength: 20,
         lengthMenu: [10, 20, 50, 100],
         order: [[8, 'desc']],

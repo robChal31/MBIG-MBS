@@ -48,7 +48,8 @@
                                     $order_by = ' ORDER BY a.date ASC';
                                     $id_user = $_SESSION['id_user'];
 
-                                    $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, a.deleted_at, IFNULL(seg.segment, a.segment) as new_segment
+                                    $sql = "SELECT a.*, b.*, IFNULL(sc.name, a.school_name) as school_name2, a.verified, 
+                                            prog.name as program_name, a.deleted_at, IFNULL(seg.segment, a.segment) as new_segment
                                             FROM draft_benefit a
                                             LEFT JOIN schools as sc on sc.id = a.school_name
                                             LEFT JOIN segments as seg on seg.id = a.segment
@@ -93,7 +94,7 @@
                                         <td class="fw-semibold"><?= $row['generalname'] ?></td>
                                         <td><?= $row['school_name2'] ?></td>
                                         <td><?= ucfirst($row['new_segment']) ?></td>
-                                        <td><?= strtoupper($row['program']) ?></td>
+                                        <td><?= strtoupper($row['program_name']) ?></td>
                                         <td><?= $row['date'] ?></td>
                                         <td><?= $row['updated_at'] ?></td>
 

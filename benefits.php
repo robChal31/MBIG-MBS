@@ -80,6 +80,55 @@
         font-size: .7rem;
     }
 
+    /* ========== DATATABLE PROCESSING ========== */
+    .dataTables_processing {
+        position: absolute !important;
+        top: 50% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+        z-index: 1000 !important;
+        background: rgba(255, 255, 255, 0.95) !important;
+        padding: 25px 50px !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
+        border: 1px solid #e8e8e8 !important;
+        width: auto !important;
+        height: auto !important;
+    }
+
+    .dataTables_processing .spinner-border {
+        width: 2rem;
+        height: 2rem;
+    }
+
+    /* ========== TABLE CONTAINER ========== */
+    .dataTables_wrapper {
+        position: relative !important;
+        min-height: 200px !important;
+    }
+
+    /* ========== FIX BLANK TABLE ========== */
+    #table_id {
+        width: 100% !important;
+    }
+
+    #table_id tbody {
+        min-height: 100px;
+    }
+
+    /* ========== RESPONSIVE FIX ========== */
+    @media (max-width: 768px) {
+        .dataTables_processing {
+            padding: 15px 25px !important;
+            font-size: 0.85rem !important;
+        }
+        
+        .dataTables_processing .spinner-border {
+            width: 1.5rem !important;
+            height: 1.5rem !important;
+        }
+    }
+
 </style>
 
 
@@ -125,7 +174,7 @@
                 </div>
 
                 <!-- BODY -->
-                <div class="collapse show" id="filterBenefitBody">
+                <div class="collapse" id="filterBenefitBody">
                     <div class="row g-3 align-items-end">
 
                         <!-- BENEFIT TYPE -->
@@ -154,7 +203,7 @@
                         <!-- USAGE YEAR (NO SELECT ALL) -->
                         <div class="col-md-6 col-12">
                             <label class="form-label small fw-semibold">Usage Year</label>
-                            <select class="form-select form-select-sm select2" id="usageYear" name="usage_year[]" multiple>
+                            <select class="form-select form-select-sm select2 w-100" id="usageYear" name="usage_year[]" multiple>
                                 <option value="1">Year 1</option>
                                 <option value="2">Year 2</option>
                                 <option value="3">Year 3</option>
@@ -179,7 +228,7 @@
                         <small class="text-muted">Manage benefit usage, history, and details</small>
                     </div>
                 </div>                     
-                <div class="" id="benefits-container"></div>
+                <div class="" id="benefits-container" style="min-height: 150px"></div>
             </div>
         </div>
     </div>
@@ -351,7 +400,9 @@
     });
 
     $(document).ready(function() {
-        $('.select2').select2({});
+        $('.select2').select2({
+            width: '100%'
+        });
         getBenefit();
 
         $('#filter-btn').click(function() {
@@ -359,29 +410,201 @@
         })
     });
 
+    // function getBenefit() {
+    //     let selectedType = $('select[name="type[]"]').val();
+    //     let usage_year = $('select[name="usage_year[]"]').val();
+
+    //     $.ajax({
+    //         url: './get-confirmed-benefits.php',
+    //         type: 'POST',
+    //         data: {
+    //             types: selectedType,
+    //             usage_year : usage_year
+    //         },
+    //         beforeSend: function() {
+    //             $('#benefits-container').html('<div class="text-center" style="height: 200px; display: flex; align-items: center; justify-content: center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>')
+    //         },
+    //         success: function(response) {
+    //             $('#benefits-container').html(response)
+    //         },
+    //         error: function(xhr, status, error) {
+    //             console.error('Error:', error);
+    //             $('#benefits-container').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+    //         }
+    //     });
+    // }
+
     function getBenefit() {
         let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
 
-        $.ajax({
-            url: './get-confirmed-benefits.php',
-            type: 'POST',
-            data: {
-                types: selectedType,
-                usage_year : usage_year
+        // 🔥 Destroy existing DataTable
+        if ($.fn.DataTable.isDataTable('#table_id')) {
+            $('#table_id').DataTable().destroy();
+            $('#table_id').empty();
+        }
+
+        // 🔥 Show loading state di container
+        $('#benefits-container').html(`
+            <div class="text-center py-5" id="loadingIndicator">
+                <p class="mt-2 text-muted">Memuat data benefit...</p>
+            </div>
+            <table class="table align-middle w-100 d-none" id="table_id">
+                <thead>
+                    <tr>
+                        <th>No PK</th>
+                        <th>Jenis Program</th>
+                        <th>School</th>
+                        <th>EC Name</th>
+                        <th>Benefit</th>
+                        <th>Sub Benefit</th>
+                        <th>Subject</th>
+                        <th>Active From</th>
+                        <th>Expired At</th>
+                        <th class="text-center">Year 1</th>
+                        <th class="text-center">Total Usage Y1</th>
+                        <th class="text-center">Year 2</th>
+                        <th class="text-center">Total Usage Y2</th>
+                        <th class="text-center">Year 3</th>
+                        <th class="text-center">Total Usage Y3</th>
+                        <th class="text-center">Action</th>
+                    </tr>
+                </thead>
+            </table>
+        `);
+
+        // 🔥 Init DataTable
+        let table = $('#table_id').DataTable({
+            processing: true,
+            serverSide: true,
+            dom: 'Bfrtilp',
+            pageLength: 10,
+            lengthMenu: [10, 20, 50, 100],
+            order: [[8, 'desc']],
+            buttons: [
+                { 
+                    extend: 'copyHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: blue; color: white;'
+                    }
+                },
+                { 
+                    extend: 'excelHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: green; color: white;' 
+                    }
+                },
+                { 
+                    extend: 'csvHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: orange; color: white;'
+                    }
+                },
+                { 
+                    extend: 'pdfHtml5',
+                    className: 'btn-custom',
+                    attr: {
+                        style: 'font-size: .6rem; border: none; font-weight: bold; border-radius: 5px; background-color: red; color: white;'
+                    }
+                }
+            ],
+            // 🔥 Language dengan processing indicator
+            language: {
+                processing: `
+                    <div class="d-flex align-items-center justify-content-center py-4">
+                        <span class="text-muted">Memuat data...</span>
+                    </div>
+                `,
+                emptyTable: "Tidak ada data",
+                info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
+                infoEmpty: "Tidak ada data",
+                infoFiltered: "(difilter dari _MAX_ total data)",
+                lengthMenu: "Tampilkan _MENU_ data",
+                search: "Cari:",
+                zeroRecords: "Data tidak ditemukan",
+                paginate: {
+                    first: "Pertama",
+                    last: "Terakhir",
+                    next: "Selanjutnya",
+                    previous: "Sebelumnya"
+                }
             },
-            beforeSend: function() {
-                $('#benefits-container').html('<div class="text-center" style="height: 200px; display: flex; align-items: center; justify-content: center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>')
+            ajax: {
+                url: './get-confirmed-benefits-ajax.php',
+                type: 'POST',
+                data: {
+                    types: selectedType,
+                    usage_year: usage_year
+                },
+                // 🔥 Before send: show loading
+                beforeSend: function() {
+                    $('#benefits-container .dataTables_processing').show();
+                },
+                // 🔥 Complete: hide loading
+                complete: function() {
+                    $('#benefits-container .dataTables_processing').hide();
+                }
             },
-            success: function(response) {
-                $('#benefits-container').html(response)
+            columns: [
+                { data: 'no_pk' },
+                { data: 'program_name' },
+                { data: 'school_name' },
+                { data: 'ec_name' },
+                { data: 'benefit' },
+                { data: 'subbenefit' },
+                { data: 'subject' },
+                { data: 'start_at' },
+                { data: 'expired_at' },
+                { data: 'qty', className: 'text-center' },
+                { data: 'tot_usage1', className: 'text-center' },
+                { data: 'qty2', className: 'text-center' },
+                { data: 'tot_usage2', className: 'text-center' },
+                { data: 'qty3', className: 'text-center' },
+                { data: 'tot_usage3', className: 'text-center' },
+                { data: 'action', className: 'text-center', orderable: false }
+            ],
+            // 🔥 Draw callback: hide loading after draw
+            drawCallback: function() {
+                $('#benefits-container .dataTables_processing').hide();
+                // Show table
+                $('#table_id').removeClass('d-none');
+                $('#loadingIndicator').addClass('d-none');
             },
-            error: function(xhr, status, error) {
-                console.error('Error:', error);
-                $('#benefits-container').html("<div class='alert alert-danger'>Error: " + error + "</div>");
+            // 🔥 Init complete
+            initComplete: function() {
+                // Styling
+                $('#table_id_length label').css({
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'gap': '8px',
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'margin-left': '20px',
+                    'margin-top': '8px'
+                });
+
+                $('#table_id_length select').css({
+                    'font-size': '.7rem',
+                    'font-weight': 'bold',
+                    'border-radius': '5px',
+                    'padding': '2px 6px',
+                    'border': '1px solid #ccc'
+                });
+
+                // Hide loading indicator after init
+                $('#loadingIndicator').addClass('d-none');
+                $('#table_id').removeClass('d-none');
             }
         });
+
+        // 🔥 Force table to show
+        $('#table_id').removeClass('d-none');
+        $('#loadingIndicator').addClass('d-none');
     }
+
 
     $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');

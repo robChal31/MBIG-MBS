@@ -100,11 +100,11 @@
 
     $program = strtolower($program);
     $program_name   = $program;
-    $id_draft       = $_SESSION["id_draft"];
-    $school_name    = $_SESSION["school_name"];
+    $id_draft       = ISSET($_SESSION["id_draft"]) ? $_SESSION["id_draft"] : NULL;
+    $school_name    = ISSET($_SESSION["school_name"]) ? $_SESSION["school_name"] : '';
     $school_name    = str_replace("'", "", $school_name);
 
-    $segment        = $_SESSION["segment"];
+    $segment        = ISSET($_SESSION["segment"]) ? $_SESSION["segment"] : '';
     $segment        = trim($segment ?? '');
     $segment_name   = $segment;
 
@@ -144,7 +144,7 @@
     $calcValues     = ISSET($_POST["calcValue"]) ? $_POST["calcValue"] : NULL;
     $manvals        = ISSET($_POST["manval"]) ? $_POST["manval"] : NULL;
     $valbens        = ISSET($_POST["valben"]) ? $_POST["valben"] : NULL;
-    $id_templates   = ISSET($_POST["id_templates"]) ? $_POST["valben"] : NULL;
+    $id_templates   = ISSET($_POST["id_templates"]) ? $_POST["id_templates"] : [];
 
 
     if($selisih_benefit < 0){
@@ -187,8 +187,23 @@
         $sql = "UPDATE draft_benefit set alokasi = $sumalok, total_benefit = $total_benefit, selisih_benefit = $selisih_benefit, status = $temp_status, fileUrl = NULL, updated_at = current_timestamp() where id_draft = $id_draft";
         mysqli_query($conn,$sql);
         
+        $query = "SELECT id_benefit_list FROM draft_benefit_list WHERE id_draft = '$id_draft'";
+        $result = mysqli_query($conn, $query);
+        $id_benefit_lists = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $id_benefit_lists[] = $row['id_benefit_list'];
+        }
+
+        // ========== 2. DELETE PIVOT TABLES ==========
+        if (!empty($id_benefit_lists)) {
+            $ids_string = implode(',', $id_benefit_lists);
+            mysqli_query($conn, "DELETE FROM benefit_subjects WHERE draft_benefit_list_id IN ($ids_string)");
+            mysqli_query($conn, "DELETE FROM benefit_org_levels WHERE draft_benefit_list_id IN ($ids_string)");
+        }
+        
         mysqli_query($conn, "DELETE FROM `draft_benefit_list` where id_draft = '$id_draft';");
         mysqli_query($conn, "DELETE FROM draft_approval where id_draft = '$id_draft';");
+
 
         for($i = 0; $i < $leng; $i++){
             $manual_val = preg_replace("/[^0-9-]/", "", $valbens[$i]);
@@ -196,6 +211,50 @@
             if($members[$i] > 0 || $members2[$i] > 0 || $members3[$i] > 0 ){
                 $sql = "INSERT INTO `draft_benefit_list` (`id_benefit_list`, `id_draft`, `status`, `isDeleted`, `benefit_name`, `subbenefit`, `description`, `keterangan`, `qty`, `qty2`, `qty3`, `pelaksanaan`, `type`,`manualValue`,`calcValue`, `id_template`) VALUES (NULL, '$id_draft', '0', '0', '".$benefitNames[$i]."', '".$subbenefits[$i]."', '".$descriptions[$i]."', '".$keterangans[$i]."', '".$members[$i]."', '".$members2[$i]."', '".$members3[$i]."', '".$pelaksanaans[$i]."', '".$benefits[$i]."','".$manual_val."','".$calc_val."', '".$id_templates[$i]."');";
                 mysqli_query($conn,$sql);
+                
+                // 🔥 Ambil id_benefit_list yang baru saja di-insert
+                $id_benefit_list = mysqli_insert_id($conn);
+                
+                // ========== 🔥 SAVE SUBJECT & LEVEL ==========
+                // SUBJECT
+                if (isset($_POST["subject_" . $id_templates[$i]]) && !empty($_POST["subject_" . $id_templates[$i]])) {
+                    // Hapus data subject lama (jika ada)
+                    $subjects = $_POST["subject_" . $id_templates[$i]];
+                    
+                    if (is_array($subjects)) {
+                        foreach ($subjects as $subject_id) {
+                            if (!empty($subject_id)) {
+                                $subject_id = intval($subject_id);
+                                mysqli_query($conn, "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)");
+                            }
+                        }
+                    } else {
+                        $subject_id = intval($subjects);
+                        if ($subject_id > 0) {
+                            mysqli_query($conn, "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)");
+                        }
+                    }
+                }
+                
+                // LEVEL
+                if (isset($_POST["level_" . $id_templates[$i]]) && !empty($_POST["level_" . $id_templates[$i]])) {
+                    // Hapus data level lama (jika ada)
+                    $levels = $_POST["level_" . $id_templates[$i]];
+                    
+                    if (is_array($levels)) {
+                        foreach ($levels as $level_id) {
+                            if (!empty($level_id)) {
+                                $level_id = intval($level_id);
+                                mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
+                            }
+                        }
+                    } else {
+                        $level_id = intval($levels);
+                        if ($level_id > 0) {
+                            mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
+                        }
+                    }
+                }
             }
         }
 
@@ -619,7 +678,7 @@
             // ];
 
             $cc[] = [
-                'email' => "yully.mentarigroups@gmail.com",
+                'email' => "yully@mentaribooks.com",
                 'name' => "Yully"
             ];
 

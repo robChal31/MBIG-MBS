@@ -72,15 +72,15 @@
 
     $id_draft       = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : null;
 
-    $id_user        = $_POST['id_user'];
+    $id_user        = $_POST['id_user'] ?? null;
     $myplan_id      = ISSET($_POST['myplan_id']) ? $_POST['myplan_id'] : null;
-    $school_name    = $_POST['nama_sekolah'];
-    $id_master      = $_POST['nama_sekolah'];
-    $segment        = $_POST['segment'];
-    $program        = $_POST['program'];
-    $inputEC        = $_POST['inputEC'];
+    $school_name    = $_POST['nama_sekolah'] ?? '';
+    $id_master      = $_POST['nama_sekolah'] ?? '';
+    $segment        = $_POST['segment'] ?? '';
+    $program        = $_POST['program'] ?? '';
+    $inputEC        = $_POST['inputEC'] ?? null;
     $wilayah        = ISSET($_POST['wilayah']) ? $_POST['wilayah'] : null;
-    $jenis_pk       = $_POST['jenis_pk'];
+    $jenis_pk       = $_POST['jenis_pk'] ?? null;
     $level          = ISSET($_POST['level']) ? $_POST['level'] : '';
     $id_school      = $school_name;
     $uc_program     = strtoupper($program);
@@ -90,12 +90,12 @@
     $program_adoption_subjects = $_POST['program_adoption_subjects'] ?? [];
 
     //benefit lists
-    $benefits       = $_POST['benefit'];
-    $id_templates   = $_POST['id_templates'];
-    $subbenefits    = $_POST['subbenefit'];
-    $benefit_names  = $_POST['benefit_name'];
-    $descriptions   = $_POST['description'];
-    $pelaksanaans   = $_POST['pelaksanaan'];
+    $benefits       = $_POST['benefit'] ?? [];
+    $id_templates   = $_POST['id_templates'] ?? [];
+    $subbenefits    = $_POST['subbenefit'] ?? [];
+    $benefit_names  = $_POST['benefit_name'] ?? [];
+    $descriptions   = $_POST['description'] ?? [];
+    $pelaksanaans   = $_POST['pelaksanaan'] ?? [];
 
     $qty1s = $_POST['qty1'];
     $qty2s = $_POST['qty2'];
@@ -107,7 +107,7 @@
     $no_tlp         = $_POST['no_tlp'];
     $email_pic      = $_POST['email_pic'];
     $myplan_value   = isset($myplan_id) && $myplan_id !== '' ? "'$myplan_id'" : "NULL";
-
+    
     try {
         mysqli_begin_transaction($conn);
         $program_q = "SELECT * FROM `programs` WHERE `name` = '$program' or `code` = '$program' LIMIT 1";
@@ -155,8 +155,9 @@
             $result = mysqli_query($conn, $sql);
 
             if (mysqli_num_rows($result) > 0) {
-                $row            = mysqli_fetch_assoc($result);
-                $school_name2   = $row['name'];
+                $update_school_query = "UPDATE schools SET name = '$school_name_new', address = '$school_address_new', phone = '$school_phone_new', segment = '$school_segment_new', ec_id = '$school_ec_id_new' WHERE id = $school_id_new";
+                mysqli_query($conn, $update_school_query);
+                $school_name2   = $school_name_new;
             } else {
                 $sql = "INSERT INTO `schools` (`id`, `name`, `address`, `phone`, `segment`, `ec_id`, `created_date`) VALUES
                         ($school_id_new, '$school_name_new', '$school_address_new', '$school_phone_new', '$school_segment_new', '$school_ec_id_new', '$school_created_date_new')";
@@ -216,13 +217,70 @@
             }
         }
 
+        $query = "SELECT id_benefit_list FROM draft_benefit_list WHERE id_draft = '$id_draft'";
+        $result = mysqli_query($conn, $query);
+        $id_benefit_lists = [];
+        while ($row = mysqli_fetch_assoc($result)) {
+            $id_benefit_lists[] = $row['id_benefit_list'];
+        }
+
+        // ========== 2. DELETE PIVOT TABLES ==========
+        if (!empty($id_benefit_lists)) {
+            $ids_string = implode(',', $id_benefit_lists);
+            mysqli_query($conn, "DELETE FROM benefit_subjects WHERE draft_benefit_list_id IN ($ids_string)");
+            mysqli_query($conn, "DELETE FROM benefit_org_levels WHERE draft_benefit_list_id IN ($ids_string)");
+        }
+
         mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
         mysqli_query($conn, "DELETE FROM draft_approval WHERE id_draft = '$id_draft';");
 
         foreach($benefits as $key => $benefit) {
+            // INSERT ke draft_benefit_list
             $sql = "INSERT INTO `draft_benefit_list` (`id_benefit_list`, `id_draft`, `status`, `isDeleted`, `benefit_name`, `subbenefit`, `description`, `keterangan`, `qty`, `qty2`, `qty3`, `pelaksanaan`, `type`,`manualValue`,`calcValue`, `id_template`) VALUES (NULL, '$id_draft', '0', '0', '".$benefit_names[$key]."', '".$subbenefits[$key]."', '".$descriptions[$key]."', '', '".$qty1s[$key]."', '".$qty2s[$key]."', '".$qty3s[$key]."', '".$pelaksanaans[$key]."', '".$benefits[$key]."','0','0', '".$id_templates[$key]."');";
             if (!mysqli_query($conn, $sql)) {
                 throw new Exception("❌ Gagal insert benefit: " . mysqli_error($conn));
+            }
+
+            // 🔥🔥🔥 TAMBAHKAN INI 🔥🔥🔥
+            $id_benefit_list = mysqli_insert_id($conn);
+
+            // ========== 🔥 SAVE SUBJECT & LEVEL ==========
+            // SUBJECT
+            if (isset($_POST["subject_" . $id_templates[$key]]) && !empty($_POST["subject_" . $id_templates[$key]])) {
+                $subjects = $_POST["subject_" . $id_templates[$key]];
+                
+                if (is_array($subjects)) {
+                    foreach ($subjects as $subject_id) {
+                        if (!empty($subject_id)) {
+                            $subject_id = intval($subject_id);
+                            mysqli_query($conn, "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)");
+                        }
+                    }
+                } else {
+                    $subject_id = intval($subjects);
+                    if ($subject_id > 0) {
+                        mysqli_query($conn, "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)");
+                    }
+                }
+            }
+            
+            // LEVEL
+            if (isset($_POST["level_" . $id_templates[$key]]) && !empty($_POST["level_" . $id_templates[$key]])) {
+                $levels = $_POST["level_" . $id_templates[$key]];
+                
+                if (is_array($levels)) {
+                    foreach ($levels as $level_id) {
+                        if (!empty($level_id)) {
+                            $level_id = intval($level_id);
+                            mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
+                        }
+                    }
+                } else {
+                    $level_id = intval($levels);
+                    if ($level_id > 0) {
+                        mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
+                    }
+                }
             }
         }
 

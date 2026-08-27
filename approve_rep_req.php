@@ -167,7 +167,7 @@
 
                 $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
                 $mail->addAddress('secretary@mentaribooks.com', 'Putri');
-                $mail->addCC('yully.mentarigroups@gmail.com', 'Yully');
+                $mail->addCC('yully@mentaribooks.com', 'Yully');
 
                 $mail->addAttachment($file, $filename);
 
