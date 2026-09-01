@@ -19,6 +19,13 @@ if (mysqli_num_rows($draft_exec) > 0) {
 }
 $template = $template[0] ?? [];
 
+$banned_level_benefits = [];
+$allowed_level_benefit_q = "SELECT * FROM banned_level_benefits WHERE id_template_benefit = '$id_template'";
+$allowed_level_benefit_exec = mysqli_query($conn, $allowed_level_benefit_q);
+if (mysqli_num_rows($allowed_level_benefit_exec) > 0) {
+  $banned_level_benefits = mysqli_fetch_all($allowed_level_benefit_exec, MYSQLI_ASSOC);    
+}
+
 $business_units = [];
 $business_unit_q = "SELECT * FROM business_units WHERE is_active = 1";
 $bu_unit_exec = mysqli_query($conn, $business_unit_q);
@@ -76,7 +83,14 @@ if (!empty($template['benefit'])) {
     }
 }
 
+$levels = [];
+$levels_q = "SELECT * FROM levels";
+$levels_exec = mysqli_query($conn, $levels_q);
+if (mysqli_num_rows($levels_exec) > 0) {
+  $levels = mysqli_fetch_all($levels_exec, MYSQLI_ASSOC);    
+}
 
+$allowedLevelIds = array_column($banned_level_benefits, 'level_id');
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
@@ -121,27 +135,27 @@ if (!empty($template['benefit'])) {
                     <label class="form-label" style="font-size: .85rem;">Implementation</label>
                     <textarea name="pelaksanaan" class="form-control" id="" style="height: 100px;"><?= $template['pelaksanaan'] ?? ''  ?></textarea>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-1 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 1</label>
                     <input type="text" name="qty1" class="form-control form-control-sm" value="<?= $template['qty1'] ?? '' ?>" placeholder="quantity...">
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-1 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 2</label>
                     <input type="text" name="qty2" class="form-control form-control-sm" value="<?= $template['qty2'] ?? '' ?>" placeholder="quantity...">
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-1 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Qty Year 3</label>
                     <input type="text" name="qty3" class="form-control form-control-sm" value="<?= $template['qty3'] ?? '' ?>" placeholder="quantity...">
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-2 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Value</label>
                     <input type="text" name="value" class="form-control form-control-sm only_number" value="<?= $template['valueMoney'] ?? '' ?>" placeholder="value...">
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-2 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Satuan</label>
                     <input type="text" name="satuan" class="form-control form-control-sm" value="<?= $template['satuan'] ?? '' ?>" placeholder="satuan..." required>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-5 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Business Unit</label>
                     <select name="unit_bisnis" id="unit_bisnis" class="form-control form-control-sm select2" required>
                         <option value="" disabled selected>--Select--</option>
@@ -150,7 +164,7 @@ if (!empty($template['benefit'])) {
                         <?php } ; ?>
                     </select>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Optional</label>
                     <select name="optional" id="optional" class="form-control form-control-sm select2" required>
                        <option value="" disabled selected>--Select--</option>
@@ -159,7 +173,7 @@ if (!empty($template['benefit'])) {
                     </select>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk program MPP, jika pilih Yes, EC dapat menghapus benefit tersebut dari daftar benefit yang bisa diberikan</small>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Subject</label>
                     <select name="subject" id="subject" class="form-control form-control-sm select2">
                         <option value="" selected>--Select Subject--</option>
@@ -173,9 +187,9 @@ if (!empty($template['benefit'])) {
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk program MPP, jika benefit memeiliki subject, benefit tersebut hanya akan muncul jika EC mengisi cakupan subject yang sesuai dengan subject benefit</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Highlight Color</label>
-                    <select name="highlight_color" id="highlight_color" class="form-control form-control-sm">
+                    <select name="highlight_color" id="highlight_color" class="form-control form-control-sm select2">
                         <option value="" disabled selected>--Select Highlight Color --</option>
                         <option value="8338ec" <?= ($template['highlight_color'] ?? '') == '8338ec' ? 'selected' : '' ?> style="color: #8338ec">Purple</option>
                         <option value="ff006e" <?= ($template['highlight_color'] ?? '') == 'ff006e' ? 'selected' : '' ?> style="color: #ff006e">Red</option>
@@ -185,7 +199,7 @@ if (!empty($template['benefit'])) {
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Pilih warna highlight yang akan muncul untuk benefit ini</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Redeemable</label>
                     <select name="redeemable" id="redeemable" class="form-control form-control-sm select2" required>
                         <option value="" disabled selected>--Select--</option>
@@ -195,7 +209,7 @@ if (!empty($template['benefit'])) {
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka benefit ini dapat digunakan untuk daftar event/acara yang sesuai dari Hadiryuk dan AstaEduhub</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-2 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Manual Input Value</label>
                     <select name="manual_input" id="manual_input" class="form-control form-control-sm select2" required>
                         <option value="" disabled selected>--Select --</option>
@@ -205,7 +219,7 @@ if (!empty($template['benefit'])) {
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka nilai benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-2 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Editable Quantity</label>
                     <select name="editable_qty" id="editable_qty" class="form-control form-control-sm select2" required>
                         <option value="" disabled selected>--Select --</option>
@@ -215,21 +229,31 @@ if (!empty($template['benefit'])) {
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka quantity benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-2 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Order</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="number" name="benefit_order" class="form-control form-control-sm" value="<?= $template['benefit_order'] ?? '' ?>" placeholder="benefit order..." required>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit dengan angka order yang lebih besar akan muncul di atas</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Info</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info...">
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Info benefit yang akan tampil ketika EC pilih benefit</small>
                 </div>
 
-                <div class="col-4 mb-3">
+                <div class="col-3 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Enable Book Selection</label>
+                    <select name="book_selection" id="book_selection" class="form-control form-control-sm select2">
+                       <option value="" disabled selected>--Select--</option>
+                       <option value="0" <?= ($template['book_selection'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
+                       <option value="1" <?= ($template['book_selection'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
+                    </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka benefit ini dapat disesuaikan oleh EC untuk menentukan buku yang akan digunakan</small>
+                </div>
+
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Enable EC Select Subject</label>
                     <select name="multiple_subject" id="multiple_subject" class="form-control form-control-sm select2">
                        <option value="" disabled selected>--Select--</option>
@@ -239,7 +263,7 @@ if (!empty($template['benefit'])) {
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka subject dari benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
-                <div class="col-6 mb-3">
+                <div class="col-3 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Enable EC Select Level</label>
                     <select name="multiple_level" id="multiple_level" class="form-control form-control-sm select2">
                        <option value="" disabled selected>--Select--</option>
@@ -247,6 +271,22 @@ if (!empty($template['benefit'])) {
                        <option value="1" <?= ($template['multiple_level'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
                     </select>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka level dari benefit ini dapat disesuaikan oleh EC</small>
+                </div>
+
+                <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Exclude School Level</label>
+
+                    <select name="levels[]" id="levels" class="form-control form-control-sm select2" multiple>
+                        <?php foreach($levels as $level): ?>
+                            <option value="<?= $level['id'] ?>" <?= in_array($level['id'], $allowedLevelIds) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($level['name']) ?>
+                            </option>  
+                        <?php endforeach; ?>
+                    </select>
+
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                        Jenjang sekolah yang dipilih akan dibatasi untuk bisa mendapat benefit ini
+                    </small>
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Is Benefit Countable?</label>

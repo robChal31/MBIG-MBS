@@ -229,6 +229,7 @@
             $ids_string = implode(',', $id_benefit_lists);
             mysqli_query($conn, "DELETE FROM benefit_subjects WHERE draft_benefit_list_id IN ($ids_string)");
             mysqli_query($conn, "DELETE FROM benefit_org_levels WHERE draft_benefit_list_id IN ($ids_string)");
+            mysqli_query($conn, "DELETE FROM benefit_book_series WHERE draft_benefit_list_id IN ($ids_string)");
         }
 
         mysqli_query($conn, "DELETE FROM `draft_benefit_list` WHERE id_draft = '$id_draft';");
@@ -241,7 +242,6 @@
                 throw new Exception("❌ Gagal insert benefit: " . mysqli_error($conn));
             }
 
-            // 🔥🔥🔥 TAMBAHKAN INI 🔥🔥🔥
             $id_benefit_list = mysqli_insert_id($conn);
 
             // ========== 🔥 SAVE SUBJECT & LEVEL ==========
@@ -279,6 +279,25 @@
                     $level_id = intval($levels);
                     if ($level_id > 0) {
                         mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
+                    }
+                }
+            }
+
+            // BOOK SERIES
+            if (isset($_POST["book_" . $id_templates[$key]]) && !empty($_POST["book_" . $id_templates[$key]])) {
+                $book_series = $_POST["book_" . $id_templates[$key]];
+                
+                if (is_array($book_series)) {
+                    foreach ($book_series as $book_series_id) {
+                        if (!empty($book_series_id)) {
+                            $book_series_id = intval($book_series_id);
+                            mysqli_query($conn, "INSERT INTO benefit_book_series (draft_benefit_list_id, book_series_id) VALUES ($id_benefit_list, $book_series_id)");
+                        }
+                    }
+                } else {
+                    $book_series_id = intval($book_series);
+                    if ($book_series_id > 0) {
+                        mysqli_query($conn, "INSERT INTO benefit_book_series (draft_benefit_list_id, book_series_id) VALUES ($id_benefit_list, $book_series_id)");
                     }
                 }
             }
@@ -465,7 +484,7 @@
     
             $cc = [];
     
-            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+            // sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
     
             //for leader mail
             $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
@@ -497,7 +516,7 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>";
-            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            // sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
         }
         
         mysqli_commit($conn);

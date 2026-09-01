@@ -26,7 +26,9 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
     $startDate = new DateTime($startAt);
     $currentDate = new DateTime();
     $expiredDate = new DateTime($expiredAt);
-    
+    $currentDate->setTime(0, 0, 0);
+    $expiredDate->setTime(0, 0, 0);
+    $startDate->setTime(0, 0, 0);
     // Jika sudah expired
     if ($currentDate > $expiredDate) {
         return [
@@ -72,7 +74,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'available' => $availableQuota > 0 ? $availableQuota : 0,
             'is_expired' => false
         ];
-    } elseif ($totalMonths < 36) {
+    } elseif ($totalMonths <= 36) {
         // Tahun ke-3
         $totalQuota = (int)$qty3;
         $usedQuota = (int)$usedQty3;
@@ -173,8 +175,7 @@ if (empty($pkIds)) {
 $pkIdsString = implode(',', $pkIds);
 $sql = "SELECT 
             p.id as pk_id, p.benefit_id, p.no_pk, p.start_at, p.expired_at, d.id_draft, d.id_benefit_list, d.id_template, d.benefit_name, d.subbenefit, d.description, d.keterangan, d.qty, d.qty2, d.qty3, d.manualValue, dt.subject,
-            d.calcValue, d.pelaksanaan, d.type, d.status, d.isDeleted, d.note, d.updated_at, dt.redeemable, sb.group as subbenefit_group,
-            prog.name as program
+            d.calcValue, d.pelaksanaan, d.type, d.status, d.isDeleted, d.note, d.updated_at, dt.redeemable, sb.group as subbenefit_group, dt.countable, prog.name as program
         FROM mp_user_pks up
         INNER JOIN pk p ON up.pk_id = p.id
         INNER JOIN draft_benefit_list d ON p.benefit_id = d.id_draft
@@ -276,7 +277,7 @@ while ($row = mysqli_fetch_assoc($result)) {
         'redeemable' => $row['redeemable'],
         'subbenefit_group' => $row['subbenefit_group'],
         'subject_benefit' => $row['subject'],
-        // 🔥 ACTIVE_QUOTA DI SINI (per benefit)
+        'countable' => $row['countable'],
         'active_quota' => $activeQuota
     ];
     

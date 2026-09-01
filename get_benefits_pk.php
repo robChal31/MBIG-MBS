@@ -18,7 +18,8 @@
   if($id_draft && $count_changes == 0) {
 
     $query_template_q = "SELECT dbl.id_benefit_list, dbl.id_draft, dbl.id_template, b.id_template_benefit, 
-                        b.benefit, b.subbenefit, b.benefit_name, b.description, b.pelaksanaan, b.qty1, b.qty2, b.qty3, b.multiple_subject, b.multiple_level, b.optional,
+                        b.benefit, b.subbenefit, b.benefit_name, b.description, b.pelaksanaan, b.qty1, b.qty2, b.qty3, b.multiple_subject, 
+                        b.multiple_level, b.optional, b.book_selection,
                         COALESCE(
                             (SELECT GROUP_CONCAT(DISTINCT bs.subject_id SEPARATOR ',')
                              FROM benefit_subjects bs
@@ -30,11 +31,30 @@
                              FROM benefit_org_levels bol
                              WHERE bol.draft_benefit_list_id = dbl.id_benefit_list
                             ), ''
-                        ) AS level_ids
+                        ) AS level_ids,
+                        COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT bbs.book_series_id SEPARATOR ',')
+                             FROM benefit_book_series bbs
+                             WHERE bbs.draft_benefit_list_id = dbl.id_benefit_list
+                            ), ''
+                        ) AS book_series_ids,
+                        COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT alb.level_id SEPARATOR ',')
+                             FROM banned_level_benefits as alb
+                             WHERE alb.id_template_benefit = b.id_template_benefit
+                            ), ''
+                        ) AS banned_level_ids,
+                        COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT abb.book_series_id SEPARATOR ',')
+                             FROM allowed_book_benefits as abb
+                             WHERE abb.id_template_benefit = b.id_template_benefit
+                            ), ''
+                        ) AS allowed_book_ids
                     FROM draft_benefit_list dbl
                     LEFT JOIN draft_template_benefit b ON dbl.id_template = b.id_template_benefit   
                     WHERE dbl.id_draft = '$id_draft'
                     ORDER BY dbl.id_benefit_list DESC";
+
     $result           = mysqli_query($conn, $query_template_q);
     $current_row      = mysqli_num_rows($result);
 
@@ -53,15 +73,28 @@
       $program_code = $prog['code'];
     }
 
-    $filter_program_q = $program_code ? "AND avail like '%$program_code%' " : '';
-    $query_template_q = "SELECT * FROM `draft_template_benefit` 
-                        WHERE is_active = 1 $filter_program_q 
+    $filter_program_q = $program_code ? "AND b.avail like '%$program_code%' " : '';
+    $query_template_q = "SELECT b.*, 
+                        COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT alb.level_id SEPARATOR ',')
+                             FROM banned_level_benefits as alb
+                             WHERE alb.id_template_benefit = b.id_template_benefit
+                            ), ''
+                        ) AS banned_level_ids,
+                        COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT abb.book_series_id SEPARATOR ',')
+                             FROM allowed_book_benefits as abb
+                             WHERE abb.id_template_benefit = b.id_template_benefit
+                            ), ''
+                        ) AS allowed_book_ids
+                        FROM `draft_template_benefit` as b
+                        WHERE b.is_active = 1 $filter_program_q 
                         AND (
-                            subject IS NULL 
-                            OR subject = ''
-                            OR subject IN ('" . implode("','", $subjects) . "')
+                            b.subject IS NULL 
+                            OR b.subject = ''
+                            OR b.subject IN ('" . implode("','", $subjects) . "')
                         )
-                        ORDER BY id_template_benefit ASC";
+                        ORDER BY b.id_template_benefit ASC";
 
     $result_template = mysqli_query($conn, $query_template_q);
 
@@ -75,6 +108,7 @@
   $subject_ids = [];
   $all_levels = [];
   $all_subjects = [];
+  $book_series = [];
   if(count($levels) > 0){
     $level_ids_query = implode(',', $levels);
     $query_level = "SELECT * FROM levels WHERE id IN ($level_ids_query)";
@@ -95,6 +129,12 @@
     }
   }
 
+  $query_book_series = "SELECT * FROM book_series WHERE is_active = 1 ORDER BY name ASC";
+  $exec_book_series = mysqli_query($conn, $query_book_series);
+
+  if ($exec_book_series && mysqli_num_rows($exec_book_series) > 0) {
+    $book_series = mysqli_fetch_all($exec_book_series, MYSQLI_ASSOC);
+  }
 ?>
 
 <style>
@@ -206,9 +246,10 @@
               <td>Sub</td> -->
               <td style="width:15%">Benefit Nama</td>
               <td style="width:25%">Deskripsi</td>
-              <td>Pelaksanaan</td>
+              <td class="d-none">Pelaksanaan</td>
               <td style="width: 15%">Subjek</td>
               <td style="width: 15%">Level</td>
+              <td style="width: 15%">Book</td>
               <td>Th 1</td>
               <td>Th 2</td>
               <td>Th 3</td>
@@ -229,15 +270,15 @@
                   <input type="hidden" name="description[]" value="<?= $data_template['description'] ?>">
                   <span><?= $data_template['description'] ?></span>
                 </td>
-                <td class="benefit-desc">
+                <td class="benefit-desc d-none">
                   <input type="hidden" name="pelaksanaan[]" value="<?= $data_template['pelaksanaan'] ?>">
                   <span><?= $data_template['pelaksanaan'] ?></span>
                 </td>
                 <td>
-                  <?php if($data_template['multiple_subject']) { 
+                  <?php if($data_template['multiple_subject'] == 1) { 
                           $selected_subjects = !empty($data_template['subject_ids']) ? explode(',', $data_template['subject_ids']) : [];
                   ?>
-                    <select name="subject_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple>
+                    <select name="subject_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple required>
                       <?php foreach($all_subjects as $subject): ?>
                         <option value="<?= $subject['id'] ?>" <?= in_array($subject['id'], $selected_subjects) ? 'selected' : '' ?>><?= htmlspecialchars($subject['name']) ?></option>
                       <?php endforeach; ?>
@@ -247,11 +288,15 @@
                   <?php } ?>
                 </td>
                 <td>
-                  <?php if($data_template['multiple_level']) { 
+                  <?php if($data_template['multiple_level'] == 1) { 
                           $selected_levels = !empty($data_template['level_ids']) ? explode(',', $data_template['level_ids']) : [];
+                          $banned_levels = $data_template['banned_level_ids'] ? explode(',', $data_template['banned_level_ids']) : [];
+                          $allowed_levels = array_filter($all_levels, function($level) use ($banned_levels) {
+                            return !in_array($level['id'], $banned_levels);
+                          });
                   ?>
-                    <select name="level_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple>
-                      <?php foreach($all_levels as $level_row): ?>
+                    <select name="level_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple required>
+                      <?php foreach($allowed_levels as $level_row): ?>
                         <option value="<?= $level_row['id'] ?>" <?= in_array($level_row['id'], $selected_levels) ? 'selected' : '' ?>><?= htmlspecialchars($level_row['name']) ?></option>
                       <?php endforeach; ?>
                     </select>
@@ -260,16 +305,37 @@
                   <?php } ?>
                 </td>
                 <td>
-                  <input type="hidden" name="qty1[]" value="<?= $data_template['qty1'] ?>">
-                  <span><?= $data_template['qty1'] ?></span>
+                  <?php if($data_template['book_selection'] == 1) { 
+                          $selected_book_series_id = !empty($data_template['book_series_ids']) ? explode(',', $data_template['book_series_ids']) : [];
+                          $allowed_book_ids = !empty($data_template['allowed_book_ids']) ? explode(',', $data_template['allowed_book_ids']) : [];
+                          
+                          $allowed_book_series = array_filter($book_series, function($book) use ($allowed_book_ids) {
+                              return in_array($book['id'], $allowed_book_ids);
+                          });
+                  ?>
+                    <select name="book_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple required>
+                      <?php foreach($allowed_book_series as $book_row): ?>
+                        <option value="<?= $book_row['id'] ?>" <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>><?= htmlspecialchars($book_row['name']) ?></option>
+                      <?php endforeach; ?>
+                    </select>
+                  <?php } else { ?>
+                    -
+                  <?php } ?>
                 </td>
                 <td>
-                  <input type="hidden" name="qty2[]" value="<?= $data_template['qty2'] ?>">
-                  <span><?= $data_template['qty2'] ?></span>
+                    <input type="hidden" name="qty1_default[]" value="<?= $data_template['qty1'] ?>">
+                    <input type="hidden" name="qty1[]" value="<?= $data_template['qty1'] ?>">
+                    <span class="qty1-display"><?= $data_template['qty1'] ?></span>
                 </td>
                 <td>
-                  <input type="hidden" name="qty3[]" value="<?= $data_template['qty3'] ?>">
-                  <span><?= $data_template['qty3'] ?></span>
+                    <input type="hidden" name="qty2_default[]" value="<?= $data_template['qty2'] ?>">
+                    <input type="hidden" name="qty2[]" value="<?= $data_template['qty2'] ?>">
+                    <span class="qty2-display"><?= $data_template['qty2'] ?></span>
+                </td>
+                <td>
+                    <input type="hidden" name="qty3_default[]" value="<?= $data_template['qty3'] ?>">
+                    <input type="hidden" name="qty3[]" value="<?= $data_template['qty3'] ?>">
+                    <span class="qty3-display"><?= $data_template['qty3'] ?></span>
                 </td>
                 <td>
                   <?php if($data_template['optional'] == 1) { ?>
@@ -329,9 +395,37 @@
       }
     }
 
+    function updateQtyBySelection(row) {
+
+      let subjectCount = row.find('select[name^="subject_"]').val()?.length || 1;
+      let levelCount = row.find('select[name^="level_"]').val()?.length || 1;
+
+      let multiplier = subjectCount * levelCount;
+      // Ambil default dari hidden
+      let defaultQty1 = parseInt(row.find('input[name="qty1_default[]"]').val()) || 0;
+      let defaultQty2 = parseInt(row.find('input[name="qty2_default[]"]').val()) || 0;
+      let defaultQty3 = parseInt(row.find('input[name="qty3_default[]"]').val()) || 0;
+      
+      // Update span tampilan
+      row.find('.qty1-display').text(defaultQty1 * multiplier);
+      row.find('.qty2-display').text(defaultQty2 * multiplier);
+      row.find('.qty3-display').text(defaultQty3 * multiplier);
+      
+      // Update hidden input buat submit
+      row.find('input[name="qty1[]"]').val(defaultQty1 * multiplier);
+      row.find('input[name="qty2[]"]').val(defaultQty2 * multiplier);
+      row.find('input[name="qty3[]"]').val(defaultQty3 * multiplier);
+    }
+
 </script>
 
 <script>
+
+  $(document).on('change', 'select[name^="subject_"], select[name^="level_"]', function() {
+    let row = $(this).closest('tr');
+    updateQtyBySelection(row);
+  });
+
   $(document).ready(function(){
     var x = <?= $current_row; ?>;
     $('.select2').select2({
@@ -342,6 +436,11 @@
       var rowId = $(this).data('row');
       $('#' + rowId).remove();
       x--;
+    });
+
+    $('select[name^="subject_"]').each(function() {
+      let row = $(this).closest('tr');
+      updateQtyBySelection(row);
     });
 
   });

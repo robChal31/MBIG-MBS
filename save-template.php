@@ -51,9 +51,11 @@ $info           = $_POST['info'] ?? NULL;
 $manual_input   = $_POST['manual_input'] ?? 0;
 $editable_qty   = $_POST['editable_qty'] ?? 0;
 $satuan         = $_POST['satuan'] ?? NULL;
-
+$countable      = $_POST['countable'] ?? NULL;
+$book_selection = $_POST['book_selection'] ?? 0;
 $multiple_subject   = $_POST['multiple_subject'] ?? 0;
 $multiple_level     = $_POST['multiple_level'] ?? 0;
+$levels             = $_POST['levels'] ?? [];
 
 if ($avail == '' || !is_array($avail) || count($avail) == 0) {
     error_json("Please select at least one availability");
@@ -88,7 +90,7 @@ try {
 
     if ($is_template_exist) {
         $sql = "UPDATE draft_template_benefit 
-                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable', benefit_order = '$order', highlight_color = '$color', info = '$info', manual_input = '$manual_input', editable_qty = '$editable_qty', multiple_subject = '$multiple_subject', multiple_level = '$multiple_level', satuan = '$satuan'
+                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable', benefit_order = '$order', highlight_color = '$color', info = '$info', manual_input = '$manual_input', editable_qty = '$editable_qty', multiple_subject = '$multiple_subject', multiple_level = '$multiple_level', satuan = '$satuan', countable = '$countable', book_selection = '$book_selection'
                 WHERE id_template_benefit = '$id_template'";
 
         if (!$conn->query($sql)) {
@@ -104,9 +106,21 @@ try {
         if (!$conn->query($query_draft_benefit_list)) {
             throw new Exception('Query failed: ' . $conn->error);
         }
+
+        $sql = "DELETE FROM banned_level_benefits WHERE id_template_benefit = '$id_template'";
+        if (!$conn->query($sql)) {
+            throw new Exception('Query failed: ' . $conn->error);
+        }
+        foreach($levels as $level){
+            $sql = "INSERT INTO banned_level_benefits (id_template_benefit, level_id) VALUES ('$id_template', '$level')";
+            if (!$conn->query($sql)) {
+                throw new Exception('Query failed: ' . $conn->error);
+            }
+        }
+        
     } else {
-        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable, benefit_order, highlight_color, info, manual_input, editable_qty, multiple_subject, multiple_level, satuan) VALUES (
-            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable', '$order', '$color', '$info', '$manual_input', '$editable_qty', '$multiple_subject', '$multiple_level', '$satuan')";
+        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable, benefit_order, highlight_color, info, manual_input, editable_qty, multiple_subject, multiple_level, satuan, countable, book_selection) VALUES (
+            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable', '$order', '$color', '$info', '$manual_input', '$editable_qty', '$multiple_subject', '$multiple_level', '$satuan', '$countable', '$book_selection')";
 
         if (!$conn->query($sql)) {
             throw new Exception('Query failed: ' . $conn->error);
@@ -116,6 +130,13 @@ try {
         $query_benefit_role = "INSERT INTO benefit_role (id_template, benefit, sub_benefit, benefit_name, unit_bisnis, code) VALUES ('$id_template', '$benefit', '$subbenefit', '$benefit_name', '$unit_name', '$unit_code')";
         if (!$conn->query($query_benefit_role)) {
             throw new Exception('Query failed: ' . $conn->error);
+        }
+
+        foreach($levels as $level){
+            $sql = "INSERT INTO banned_level_benefits (id_template_benefit, level_id) VALUES ('$id_template', '$level')";
+            if (!$conn->query($sql)) {
+                throw new Exception('Query failed: ' . $conn->error);
+            }
         }
     }
 

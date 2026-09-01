@@ -697,6 +697,13 @@ ini_set('display_errors', 1);
       getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
     });
 
+    $('#adoption_levels').change(function () {
+      let selectedLevels = $(this).val();
+      let selectedProgram = $('#program').val();
+      let selectedSubjects = $('#adoption_subjects').val();
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    });
+
     $(document).on('change', '#myplan_id', function () {
       const selectedId = $(this).val();
       clearMyplan()

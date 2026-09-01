@@ -25,7 +25,10 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
     $startDate = new DateTime($startAt);
     $currentDate = new DateTime();
     $expiredDate = new DateTime($expiredAt);
-    
+    $currentDate->setTime(0, 0, 0);
+    $expiredDate->setTime(0, 0, 0);
+    $startDate->setTime(0, 0, 0);
+
     // Jika sudah expired
     if ($currentDate > $expiredDate) {
         return [
@@ -76,7 +79,7 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
             'available_quota' => $availableQuota > 0 ? $availableQuota : 0,
             'is_expired' => false
         ];
-    } elseif ($totalMonths < 36) {
+    } elseif ($totalMonths <= 36) {
         // Tahun ke-3
         $totalQuota = (int)$qty3;
         $usedQuota = (int)$usedQty3;
@@ -199,7 +202,8 @@ $benefitSql = "SELECT
                     dt.subject as subject_benefit,
                     sb.group as subbenefit_group,
                     peg.code as event_group_code,
-                    prog.name as program_name
+                    prog.name as program_name,
+                    dt.countable
                 FROM draft_benefit_list d
                 LEFT JOIN draft_template_benefit dt ON d.id_template = dt.id_template_benefit
                 LEFT JOIN benefits b ON dt.benefit = b.name
@@ -306,6 +310,7 @@ $responseData = [
         'redeemable' => (bool)$benefitDetail['redeemable'],
         'subbenefit_group' => $benefitDetail['subbenefit_group'],
         'subject_benefit' => $benefitDetail['subject_benefit'],
+        'countable' => $benefitDetail['countable'],
         'quota' => [
             'year1' => [
                 'total' => (int)$benefitDetail['qty'],

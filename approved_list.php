@@ -142,21 +142,36 @@
                                         <a class="dropdown-item text-warning"
                                            data-id="<?= $row['id_draft'] ?>"
                                            data-bs-toggle="modal"
-                                           data-bs-target="#pkModal">
+                                           data-bs-target="#pkModal"
+                                           data-action="create">
                                             <i class="fa fa-plus me-2"></i> Add PK
                                         </a>
                                     </li>
                                 <?php endif; ?>
 
                                 <?php if($row['pk_id']) : ?>
-                                    <li>
-                                        <a class="dropdown-item text-success"
-                                           data-id="<?= $row['id_draft'] ?>"
-                                           data-bs-toggle="modal"
-                                           data-bs-target="#pkModal">
-                                            <i class="fa fa-eye me-2"></i> Detail PK
-                                        </a>
-                                    </li>
+                                   
+                                    <?php if($role == 'sa') : ?>
+                                        <li>
+                                            <a class="dropdown-item text-warning"
+                                            data-id="<?= $row['id_draft'] ?>"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#pkModal"
+                                            data-action="update">
+                                                <i class="fa fa-pen me-2"></i> Update PK
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
+                                    <?php if($role != 'sa') : ?>
+                                         <li>
+                                            <a class="dropdown-item text-success"
+                                            data-id="<?= $row['id_draft'] ?>"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#pkModal" data-action="detail">
+                                                <i class="fa fa-eye me-2"></i> Detail PK
+                                            </a>
+                                        </li>
+                                    <?php endif; ?>
                                 <?php endif; ?>
 
                                 <?php if($role == 'admin' && !$row['verified'] && $row['file_pk']) : ?>
@@ -188,16 +203,7 @@
                                     </li>
                                 <?php endif; ?>
 
-                                <?php if($role != 'ec' && $row['confirmed'] == 1) : ?>
-                                    <li>
-                                        <a class="dropdown-item text-warning"
-                                           data-id="<?= $row['id_draft'] ?>"
-                                           data-bs-toggle="modal"
-                                           data-bs-target="#pkModal">
-                                            <i class="fa fa-pen me-2"></i> Update PK
-                                        </a>
-                                    </li>
-                                <?php endif; ?>
+
 
                             </ul>
                         </div>
@@ -291,10 +297,12 @@
         let action = event.relatedTarget.getAttribute('data-action');
 
         var modalTitle = pkModal.querySelector('.modal-title')
-        modalTitle.textContent = action == 'create' ?  "Input PK" : "Edit PK";
+        modalTitle.textContent = action == 'create' ?  "Input PK" : (action == 'update' ? "Update PK" : "Detail PK");
         if(role != 'sa') {
             modalTitle.textContent = "Detail PK";
         }
+        console.log('action', action);
+        console.log('role', role);
         $.ajax({
             url: 'input-pk.php',
             type: 'POST',

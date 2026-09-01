@@ -42,11 +42,13 @@ if ($result->num_rows > 0) {
         $file_benefit = $row['file_benefit'];
         $fileUrl = $row['fileUrl'];
         $perubahan_tahun = $row['perubahan_tahun'];
+        $confirmed = $row['confirmed'];
     }
 
     $sq_query = "SELECT * FROM dash_sa WHERE is_active = 1";
                 
     $sa_exec_query = $conn->query($sq_query);
+    $readonly = $role != 'sa' ? 'readonly' : '';
 ?>
     <div class="p-2">
         <h6>Detail Benefit</h6>
@@ -81,6 +83,11 @@ if ($result->num_rows > 0) {
                 <td>:</td>
                 <td><a href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="fa fa-paperclip"></i> Document</a></td>
             </tr>
+            <tr>
+                <td><strong>File Lampiran Benefit</strong></td>
+                <td>:</td>
+                <td><a target="_blank" href='generate-pk-file.php?id_draft=<?= $id_draft ?>' data-toggle='tooltip' title='View Doc'><i class="fa fa-paperclip"></i> Document</a></td>
+            </tr>
         </table>
 
         <?php
@@ -91,19 +98,19 @@ if ($result->num_rows > 0) {
             <div class="row">
                 <div class="col-12 mb-3">
                     <label class="form-label">Nomor PK</label>
-                    <input type="text" name="no_pk" class="form-control form-control-sm" value="<?= $no_pk ?>" placeholder="Nomor PK" required>
+                    <input type="text" name="no_pk" class="form-control form-control-sm" value="<?= $no_pk ?>" placeholder="Nomor PK" required <?= $readonly ? 'readonly' : '' ?>>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Active From</label>
-                    <input type="date" name="start_date" class="form-control form-control-sm" value="<?= $start_date ?>" required>
+                    <input type="date" name="start_date" class="form-control form-control-sm" value="<?= $start_date ?>" required <?= $readonly ? 'readonly' : '' ?>>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Expired At</label>
-                    <input type="date" name="end_date" class="form-control form-control-sm" value="<?= $end_date ?>" required>
+                    <input type="date" name="end_date" class="form-control form-control-sm" value="<?= $end_date ?>" required <?= $readonly ? 'readonly' : '' ?>>
                 </div>
                 <div class="col-12 mb-3">
                     <label class="form-label">Sales Admin</label>
-                    <select name="id_sa" id="id_sa" class="form-control form-control-sm select2" required>
+                    <select name="id_sa" id="id_sa" class="form-control form-control-sm select2" required <?= $readonly ? 'disabled' : '' ?>>
                         <?php while ($sa_list = $sa_exec_query->fetch_assoc()) { ?>
                             <option value="<?= $sa_list['id_sa'] ?>" <?= $id_sa == $sa_list['id_sa'] ? 'selected' : ''  ?>><?= $sa_list['sa_name'] ?></option>
                         <?php } ?>
@@ -114,14 +121,14 @@ if ($result->num_rows > 0) {
                     <?php if($file_pk) { ?>
                         <a href="<?= $file_pk ?>" class="d-block m-0 p-0" target="_blank"><i class="fa fa-paperclip"></i> <span style="font-size: .85rem;">File PK</span></a>
                     <?php } ?>
-                    <input type="file" name="file_pk" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?>>
+                    <input type="file" name="file_pk" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?> <?= $readonly ? 'disabled' : '' ?>>
                 </div>
                 <div class="col-md-6 col-12 mb-3">
                     <label class="form-label">Benefit <span style="font-size: .7rem; color: #333"><?= $role == 'sa' ? '(must be pdf file)*' : '' ?></span></label>
                     <?php if($file_benefit) { ?>
                         <a href="<?= $file_benefit ?>" class="d-block m-0 p-0" target="_blank"><i class="fa fa-paperclip"></i> <span style="font-size: .85rem;">File Benefit</span></a>
                     <?php } ?>
-                    <input type="file" name="file_benefit" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?>>
+                    <input type="file" name="file_benefit" class="form-control form-control-sm" <?= $id_pk ? '' : 'required' ?> <?= $readonly ? 'disabled' : '' ?>>
                 </div>
                <?php if($action == 'updatePK') { ?>
                     <div class="col-12 mb-3">
@@ -136,7 +143,7 @@ if ($result->num_rows > 0) {
                 <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
             </div>
             <?php
-                if($role !== 'ec') {?>
+                if($role == 'sa') {?>
                     <div class="d-flex justify-content-end">
                         <button type="button" class="me-2 btn btn-secondary btn-sm close">Cancel</button>
                         <button class="btn btn-primary btn-sm" id="submit_pk">Save</button>
