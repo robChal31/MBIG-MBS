@@ -215,7 +215,7 @@ if (!empty($subjects)) {
 $eventGroupCondition = "";
 if (!empty($event_group_code)) {
     $event_group_code = mysqli_real_escape_string($conn, $event_group_code);
-    $eventGroupCondition = " AND peg.code = '$event_group_code'";
+    $eventGroupCondition = " AND (peg.code = '$event_group_code' or peg.code = 'MENTARI-MPP') ";
 }
 
 // 3. Query utama
