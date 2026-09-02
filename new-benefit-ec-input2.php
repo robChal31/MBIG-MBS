@@ -1054,11 +1054,12 @@
 <script type="text/javascript">
   let isDirty = false;
   let isSubmitting = false;
-            
+    
   const tpl_data = <?= json_encode($tpl_data) ?>;
   const allSubjects = <?= json_encode($all_subjects) ?>;
   const allLevels = <?= json_encode($all_levels) ?>;
   const allBookSeries = <?= json_encode($book_series) ?: '[]' ?>;
+  let programYear = <?= $year ?? 1 ?>;
   var maxRows = 100; 
   let x = <?=  $current_row ?>;
   x = x ? parseInt(x) : 0;
@@ -1118,8 +1119,8 @@
             row.find('input[name="member2[]"]').val(formatNumber(data.qty2));
             row.find('input[name="member3[]"]').val(formatNumber(data.qty3));
 
-            row.find('input[name="member[]"]').prop("readonly", data.editable_qty == 0);
-            row.find('input[name="member2[]"]').prop("readonly", data.editable_qty == 0);
+            row.find('input[name="member[]"]').prop("readonly", data.editable_qty == 0 || (programYear == 2 || programYear == 3));
+            row.find('input[name="member2[]"]').prop("readonly", data.editable_qty == 0 || programYear == 3);
             row.find('input[name="member3[]"]').prop("readonly", data.editable_qty == 0);
 
             var templateId = data.id_template_benefit;
@@ -1312,10 +1313,10 @@
   function accumulateValues() {
     let total_alokasi = $('input[name="sumalok"]').val();
     let program = $('input[name="program"]').val();
-
+    console.log('programYear: ', programYear);
     let year1 = fillTheValue(1)
 
-    let checkIfStillMinus = $('#selisih_benefit1').val();
+    let checkIfStillMinus = (programYear == 2 || programYear == 3) ? 0 : $('#selisih_benefit1').val();
     checkIfStillMinus = checkIfStillMinus < 0 ? true : false;
 
     if(program == 'prestasi' || refId) {

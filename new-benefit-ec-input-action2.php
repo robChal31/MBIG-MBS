@@ -107,7 +107,7 @@
     $segment        = ISSET($_SESSION["segment"]) ? $_SESSION["segment"] : '';
     $segment        = trim($segment ?? '');
     $segment_name   = $segment;
-
+    $program_year   = ISSET($_POST['year']) ? $_POST['year'] : 1;
     unset($_SESSION["program"]);
     unset($_SESSION["sumalok"]);
     unset($_SESSION["id_draft"]);
@@ -117,7 +117,7 @@
     $total_benefit1 = ISSET($_POST["total_benefit1"]) ? $_POST["total_benefit1"] : 0;
     $total_benefit2 = ISSET($_POST["total_benefit2"]) ? $_POST["total_benefit2"] : 0;
     $total_benefit3 = ISSET($_POST["total_benefit3"]) ? $_POST["total_benefit3"] : 0;
-    $total_benefit  = $total_benefit1 + $total_benefit2 + $total_benefit3;
+    $total_benefit  = ($total_benefit1) + $total_benefit2 + $total_benefit3;
     
     $selisih_benefit1   = ISSET($_POST["selisih_benefit1"]) ? $_POST["selisih_benefit1"] : 0;
     $selisih_benefit2   = ISSET($_POST["selisih_benefit2"]) ? $_POST["selisih_benefit2"] : 0;
@@ -147,12 +147,12 @@
     $id_templates   = ISSET($_POST["id_templates"]) ? $_POST["id_templates"] : [];
 
 
-    if($selisih_benefit < 0){
-        $_SESSION['toast_status'] = 'Error';
-        $_SESSION['toast_msg'] = 'Total Benefit tidak boleh kurang dari 0';
-        header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
-        exit();
-    }
+    // if($selisih_benefit < 0){
+    //     $_SESSION['toast_status'] = 'Error';
+    //     $_SESSION['toast_msg'] = 'Total Benefit tidak boleh kurang dari 0';
+    //     header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
+    //     exit();
+    // }
     
     if($program == 'cbls3' || $program == 'bsp' || $program == 'pk3' || $program == 'cbls1'){
         if(($total_benefit1 > $sumalok) || ($total_benefit2 > $sumalok) || ($total_benefit3 > $sumalok)){
