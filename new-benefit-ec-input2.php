@@ -242,22 +242,38 @@
     box-shadow: var(--shadow-xl);
   }
 
-  /* ===== BUTTONS ===== */
+    /* ===== BUTTONS ===== */
   .btn-gradient-primary {
-    background: var(--primary-gradient);
-    border: none;
-    color: white;
-    font-weight: 600;
-    padding: 10px 28px;
-    border-radius: 50px;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      background: var(--primary-gradient);
+      border: none;
+      color: white;
+      font-weight: 600;
+      padding: 10px 28px;
+      border-radius: 50px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
   }
 
   .btn-gradient-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
-    color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(102, 126, 234, 0.5);
+      color: white;
+  }
+
+  /* 🔥 Tambahin ini buat disabled */
+  .btn-gradient-primary:disabled {
+      background: #ced4da !important;
+      color: #6c757d !important;
+      cursor: not-allowed !important;
+      transform: none !important;
+      box-shadow: none !important;
+      opacity: 0.65;
+  }
+
+  .btn-gradient-primary:disabled:hover {
+      transform: none !important;
+      box-shadow: none !important;
+      color: #6c757d !important;
   }
 
   .btn-gradient-success {
