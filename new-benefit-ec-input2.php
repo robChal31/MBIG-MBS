@@ -1058,7 +1058,7 @@
   const tpl_data = <?= json_encode($tpl_data) ?>;
   const allSubjects = <?= json_encode($all_subjects) ?>;
   const allLevels = <?= json_encode($all_levels) ?>;
-  const allBookSeries = <?= json_encode($book_series) ?>;
+  const allBookSeries = <?= json_encode($book_series) ?: '[]' ?>;
   var maxRows = 100; 
   let x = <?=  $current_row ?>;
   x = x ? parseInt(x) : 0;
