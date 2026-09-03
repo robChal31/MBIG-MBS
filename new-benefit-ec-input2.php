@@ -1177,6 +1177,7 @@
             } else {
               // 🔥 Bersihin isi select
               subjectSelect.empty();
+              subjectSelect.removeAttr('required');
               // Hide select
               subjectSelect.hide();
               // Tambah span dan hidden input
@@ -1229,6 +1230,7 @@
             } else {
               // 🔥 Bersihin isi select
               levelSelect.empty();
+              levelSelect.removeAttr('required');
               // Hide select
               levelSelect.hide();
               levelContainer.append('<span class="text-muted" style="font-size: 11px;">-</span>');
@@ -1273,6 +1275,7 @@
             } else {
               // 🔥 Bersihin isi select
               bookSeriesSelect.empty();
+              bookSeriesSelect.removeAttr('required');
               // Hide select
               bookSeriesSelect.hide();
               bookSeriesContainer.append('<span class="text-muted" style="font-size: 11px;">-</span>');
