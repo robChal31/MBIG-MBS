@@ -153,22 +153,24 @@
     //     header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
     //     exit();
     // }
-    
-    if($program == 'cbls3' || $program == 'bsp' || $program == 'pk3' || $program == 'cbls1'){
-        if(($total_benefit1 > $sumalok) || ($total_benefit2 > $sumalok) || ($total_benefit3 > $sumalok)){
-            $_SESSION['toast_status'] = 'Error';
-            $_SESSION['toast_msg'] = 'Total Benefit melebihi alokasi';
-            header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
-            exit();
-        }
-    }else{
-        if($total_benefit > ($sumalok*3)){
-            $_SESSION['toast_status'] = 'Error';
-            $_SESSION['toast_msg'] = 'Total Benefit melebihi alokasi';
-            header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
-            exit();
+    if(!$ref_id) {
+        if($program == 'cbls3' || $program == 'bsp' || $program == 'pk3' || $program == 'cbls1'){
+            if(($total_benefit1 > $sumalok) || ($total_benefit2 > $sumalok) || ($total_benefit3 > $sumalok)){
+                $_SESSION['toast_status'] = 'Error';
+                $_SESSION['toast_msg'] = 'Total Benefit melebihi alokasi';
+                header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
+                exit();
+            }
+        }else{
+            if($total_benefit > ($sumalok*3)){
+                $_SESSION['toast_status'] = 'Error';
+                $_SESSION['toast_msg'] = 'Total Benefit melebihi alokasi';
+                header('Location: ./new-benefit-ec-input2.php?edit=edit&id_draft='.$id_draft);
+                exit();
+            }
         }
     }
+    
     
     $leng = count($benefits);
     
