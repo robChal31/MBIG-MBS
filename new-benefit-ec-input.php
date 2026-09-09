@@ -654,6 +654,7 @@
 
   function fetchShool(email, schoolId = null) {
     schoolReady = false;
+    console.log(`https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`)
     return $.ajax({
       url: `https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`,
       type: 'GET',

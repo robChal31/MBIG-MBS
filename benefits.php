@@ -80,33 +80,6 @@
         font-size: .7rem;
     }
 
-    /* ========== DATATABLE PROCESSING ========== */
-    .dataTables_processing {
-        position: absolute !important;
-        top: 50% !important;
-        left: 50% !important;
-        transform: translate(-50%, -50%) !important;
-        z-index: 1000 !important;
-        background: rgba(255, 255, 255, 0.95) !important;
-        padding: 25px 50px !important;
-        border-radius: 12px !important;
-        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15) !important;
-        border: 1px solid #e8e8e8 !important;
-        width: auto !important;
-        height: auto !important;
-    }
-
-    .dataTables_processing .spinner-border {
-        width: 2rem;
-        height: 2rem;
-    }
-
-    /* ========== TABLE CONTAINER ========== */
-    .dataTables_wrapper {
-        position: relative !important;
-        min-height: 200px !important;
-    }
-
     /* ========== FIX BLANK TABLE ========== */
     #table_id {
         width: 100% !important;
@@ -116,8 +89,20 @@
         min-height: 100px;
     }
 
+    .table-danger {
+        --bs-table-bg: #f8d7da;
+        --bs-table-striped-bg: #f8d7da;
+        --bs-table-striped-color: #000;
+        --bs-table-active-bg: #f8d7da;
+        --bs-table-active-color: #000;
+        --bs-table-hover-bg: #f8d7da;
+        --bs-table-hover-color: #000;
+        color: #000;
+        border-color: #f8d7da;
+    }
+
     /* ========== RESPONSIVE FIX ========== */
-    @media (max-width: 768px) {
+    /* @media (max-width: 768px) {
         .dataTables_processing {
             padding: 15px 25px !important;
             font-size: 0.85rem !important;
@@ -127,8 +112,53 @@
             width: 1.5rem !important;
             height: 1.5rem !important;
         }
-    }
+    } */
 
+    /* ========== DATATABLE FOOTER ========== */
+
+#table_id_wrapper .dt-info,
+#table_id_wrapper .dt-length,
+#table_id_wrapper .dt-paging,
+#table_id_wrapper .dt-length label {
+    font-size: 0.6rem !important;
+}
+
+#table_id_wrapper .dt-length select {
+    font-size: 0.6rem !important;
+    padding: 2px 5px !important;
+    height: 26px !important;
+}
+
+#table_id_wrapper .dt-paging button {
+    font-size: 0.6rem !important;
+    padding: 3px 7px !important;
+    min-width: auto !important;
+}
+
+#table_id_wrapper .dt-paging {
+    font-size: 0.6rem !important;
+}
+
+/* ========== BENEFIT LOADING OVERLAY ========== */
+
+#benefits-loading {
+    position: absolute;
+    inset: 0;
+    z-index: 100;
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(1px);
+    
+    border-radius: inherit;
+}
+
+#benefits-loading.d-none {
+    display: none !important;
+}
 </style>
 
 
@@ -221,14 +251,25 @@
                 </div>
             </div>
             
-            <div class="card shadow rounded h-100 p-4">
+            <div class="card shadow rounded h-100 p-4 position-relative" id="benefits-card">
+
+                <!-- LOADING OVERLAY -->
+                <div id="benefits-loading">
+                    <div class="text-center">
+                        <div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div>
+                        <div class="text-muted small">Memuat data...</div>
+                    </div>
+                </div>
+
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 class="fw-bold mb-0">Benefits</h5>
                         <small class="text-muted">Manage benefit usage, history, and details</small>
                     </div>
-                </div>                     
-                <div class="" id="benefits-container" style="min-height: 150px"></div>
+                </div>
+
+                <div id="benefits-container" style="min-height: 150px"></div>
+
             </div>
         </div>
     </div>
@@ -307,6 +348,15 @@
         </div>
     </div>
 <?php include 'footer.php';?>
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/2.3.5/css/dataTables.dataTables.min.css">
+
+<link rel="stylesheet"
+      href="https://cdn.datatables.net/buttons/3.2.5/css/buttons.dataTables.min.css">
+
+<script src="https://cdn.datatables.net/2.3.5/js/dataTables.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.5/js/dataTables.buttons.min.js"></script>
+<script src="https://cdn.datatables.net/buttons/3.2.5/js/buttons.html5.min.js"></script>
 <script>
     let group = '';
     let subject = '';
@@ -435,6 +485,7 @@
     // }
 
     function getBenefit() {
+        console.log('get benefit called')
         let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
 
@@ -446,10 +497,7 @@
 
         // 🔥 Show loading state di container
         $('#benefits-container').html(`
-            <div class="text-center py-5" id="loadingIndicator">
-                <p class="mt-2 text-muted">Memuat data benefit...</p>
-            </div>
-            <table class="table align-middle w-100 d-none" id="table_id">
+            <table class="table align-middle w-100" id="table_id">
                 <thead>
                     <tr>
                         <th>No PK</th>
@@ -477,10 +525,16 @@
         let table = $('#table_id').DataTable({
             processing: true,
             serverSide: true,
-            dom: 'Bfrtilp',
+            dom: '<"d-flex justify-content-between align-items-center mb-2"<"dt-buttons"B><"dt-search"f>>rt<"d-flex justify-content-between align-items-center mt-2"<"dt-info"i><"dt-length"l><"dt-paging"p>>',
             pageLength: 10,
+            searchDelay: 1200,
             lengthMenu: [10, 20, 50, 100],
             order: [[8, 'desc']],
+            createdRow: function(row, data, dataIndex) {
+                if (data.row_class) {
+                    $(row).addClass(data.row_class);
+                }
+            },
             buttons: [
                 { 
                     extend: 'copyHtml5',
@@ -513,11 +567,11 @@
             ],
             // 🔥 Language dengan processing indicator
             language: {
-                processing: `
-                    <div class="d-flex align-items-center justify-content-center py-4">
-                        <span class="text-muted">Memuat data...</span>
-                    </div>
-                `,
+                // processing: `
+                //     <div class="d-flex align-items-top justify-content-center py-4">
+                //         <span class="text-muted">Memuat dataxxxx...</span>
+                //     </div>
+                // `,
                 emptyTable: "Tidak ada data",
                 info: "Menampilkan _START_ sampai _END_ dari _TOTAL_ data",
                 infoEmpty: "Tidak ada data",
@@ -526,10 +580,10 @@
                 search: "Cari:",
                 zeroRecords: "Data tidak ditemukan",
                 paginate: {
-                    first: "Pertama",
-                    last: "Terakhir",
-                    next: "Selanjutnya",
-                    previous: "Sebelumnya"
+                    first: "First",
+                    last: "Last",
+                    next: "Next",
+                    previous: "Previous"
                 }
             },
             ajax: {
@@ -541,11 +595,11 @@
                 },
                 // 🔥 Before send: show loading
                 beforeSend: function() {
-                    $('#benefits-container .dataTables_processing').show();
+                    $('#benefits-loading').removeClass('d-none');
                 },
                 // 🔥 Complete: hide loading
                 complete: function() {
-                    $('#benefits-container .dataTables_processing').hide();
+                     $('#benefits-loading').addClass('d-none');
                 }
             },
             columns: [
@@ -567,12 +621,12 @@
                 { data: 'action', className: 'text-center', orderable: false }
             ],
             // 🔥 Draw callback: hide loading after draw
-            drawCallback: function() {
-                $('#benefits-container .dataTables_processing').hide();
-                // Show table
-                $('#table_id').removeClass('d-none');
-                $('#loadingIndicator').addClass('d-none');
-            },
+            // drawCallback: function() {
+            //     $('#benefits-container .dataTables_processing').hide();
+            //     // Show table
+            //     $('#table_id').removeClass('d-none');
+            //     $('#loadingIndicator').addClass('d-none');
+            // },
             // 🔥 Init complete
             initComplete: function() {
                 // Styling
@@ -595,16 +649,15 @@
                 });
 
                 // Hide loading indicator after init
-                $('#loadingIndicator').addClass('d-none');
-                $('#table_id').removeClass('d-none');
+                // $('#loadingIndicator').addClass('d-none');
+                // $('#table_id').removeClass('d-none');
             }
         });
 
         // 🔥 Force table to show
-        $('#table_id').removeClass('d-none');
-        $('#loadingIndicator').addClass('d-none');
+        // $('#table_id').removeClass('d-none');
+        // $('#loadingIndicator').addClass('d-none');
     }
-
 
     $(document).on('click', '.close', function() {
         $('#approvalModal').modal('hide');
