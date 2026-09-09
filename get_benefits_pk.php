@@ -389,7 +389,7 @@
         <?php if($program == '') : ?>
           <div class="alert alert-info">Select a Program</div>
         <?php else: ?>
-          <div class="alert alert-danger">Program or Saved Template Invalid</div>
+          <div class="alert alert-danger">No Benefits for this Program or no benefits for this subject</div>
         <?php endif; ?>
       </div>
     <?php } ?>
