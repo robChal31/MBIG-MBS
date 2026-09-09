@@ -391,6 +391,7 @@ ini_set('display_errors', 1);
 
   function loadSchoolSelect(email) {
     email = email ?? '<?= $_SESSION['username'] ?>';
+    console.log(`https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`)
     $.ajax({
       url: `https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`,
       type: 'GET',

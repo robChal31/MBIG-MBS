@@ -485,7 +485,6 @@
     // }
 
     function getBenefit() {
-        console.log('get benefit called')
         let selectedType = $('select[name="type[]"]').val();
         let usage_year = $('select[name="usage_year[]"]').val();
 

@@ -360,15 +360,29 @@
         </div>
       </div>
 
-    <?php } else { ?>
-      <div style="height: 100px; display: flex; align-items: center; justify-content: center">
-        <?php if($program == '') : ?>
-          <div class="alert alert-info">Select a Program</div>
-        <?php else: ?>
-          <div class="alert alert-danger">Program or Saved Template Invalid</div>
-        <?php endif; ?>
+<?php } else { ?>
+  <div style="height: 100px; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+    <?php if($program == '') : ?>
+      <div class="alert alert-info">Select a Program</div>
+    <?php else: ?>
+      <div class="alert alert-danger">
+        <strong>Error:</strong> Program atau Template tidak valid.
+        <?php 
+        // Cek error query jika ada
+        if (isset($result_template) && !$result_template) {
+            echo " - " . mysqli_error($conn);
+        }
+        ?>
       </div>
-    <?php } ?>
+      <?php if (isset($query_template_q)): ?>
+      <div style="font-size: 11px; color: #6c757d; max-width: 600px; word-break: break-all; padding: 10px; background: #f8f9fa; border-radius: 5px; margin-top: 10px;">
+        <strong>Query yang dijalankan:</strong><br>
+        <code><?= htmlspecialchars($query_template_q) ?></code>
+      </div>
+      <?php endif; ?>
+    <?php endif; ?>
+  </div>
+<?php } ?>
   </div>
 </div>
 
