@@ -74,6 +74,33 @@
     }
 
     $filter_program_q = $program_code ? "AND b.avail like '%$program_code%' " : '';
+    
+    $subject_names = [];
+    if (!empty($subjects)) {
+        $subject_ids_query = implode(',', array_map('intval', $subjects));
+        $query_subject_names = "SELECT name FROM subjects WHERE id IN ($subject_ids_query)";
+        $exec_subject_names = mysqli_query($conn, $query_subject_names);
+        
+        if ($exec_subject_names && mysqli_num_rows($exec_subject_names) > 0) {
+            while ($subj = mysqli_fetch_assoc($exec_subject_names)) {
+                $subject_names[] = $subj['name'];
+            }
+        }
+    }
+    
+    // Buat filter subject dengan nama
+    $filter_subject_q = '';
+    if (!empty($subject_names)) {
+        $filter_subject_q = "AND (
+            b.subject IS NULL 
+            OR b.subject = ''
+            OR b.subject IN ('" . implode("','", array_map('mysqli_real_escape_string', array_fill(0, count($subject_names), $conn), $subject_names)) . "')
+        )";
+    } else {
+        // Jika tidak ada subject dipilih, tampilkan semua
+        $filter_subject_q = " AND (b.subject IS NULL OR b.subject = '')";
+    }
+
     $query_template_q = "SELECT b.*, 
                         COALESCE(
                             (SELECT GROUP_CONCAT(DISTINCT alb.level_id SEPARATOR ',')
@@ -89,11 +116,7 @@
                         ) AS allowed_book_ids
                         FROM `draft_template_benefit` as b
                         WHERE b.is_active = 1 $filter_program_q 
-                        AND (
-                            b.subject IS NULL 
-                            OR b.subject = ''
-                            OR b.subject IN ('" . implode("','", $subjects) . "')
-                        )
+                        $filter_subject_q
                         ORDER BY b.id_template_benefit ASC";
 
     $result_template = mysqli_query($conn, $query_template_q);
