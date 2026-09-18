@@ -88,7 +88,6 @@
     $discount_program          = isset($_POST['discount_program']) && $_POST['discount_program'] !== '' ? floatval(str_replace(',', '.', $_POST['discount_program'])) : "NULL";
     $program_adoption_levels   = $_POST['program_adoption_levels'] ?? [];
     $program_adoption_subjects = $_POST['program_adoption_subjects'] ?? [];
-    $draft_book_series         = $_POST['book_series'] ?? [];
 
     //benefit lists
     $benefits       = $_POST['benefit'] ?? [];
@@ -309,7 +308,7 @@
         // ===============================
         mysqli_query($conn, "DELETE FROM program_adoption_levels WHERE draft_id = '$id_draft'");
         mysqli_query($conn, "DELETE FROM program_adoption_subjects WHERE draft_id = '$id_draft'");
-        mysqli_query($conn, "DELETE FROM draft_benefit_book_series WHERE id_draft = '$id_draft'");
+
         // ===============================
         // INSERT LEVELS
         // ===============================
@@ -331,17 +330,6 @@
                     VALUES ('$id_draft', '$subj')";
             if (!mysqli_query($conn, $sql)) {
                 throw new Exception("❌ Gagal insert program_adoption_subjects: " . mysqli_error($conn));
-            }
-        }
-
-        foreach ($draft_book_series as $bs) {
-            $bs = intval($bs);
-            if ($bs > 0) {
-                $sql = "INSERT INTO draft_benefit_book_series (id_draft, book_series_id)
-                        VALUES ('$id_draft', '$bs')";
-                if (!mysqli_query($conn, $sql)) {
-                    throw new Exception("❌ Gagal insert draft_benefit_book_series: " . mysqli_error($conn));
-                }
             }
         }
 
@@ -496,7 +484,7 @@
     
             $cc = [];
     
-            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+            // sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
     
             //for leader mail
             $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
@@ -528,7 +516,7 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>";
-            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            // sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
         }
         
         mysqli_commit($conn);

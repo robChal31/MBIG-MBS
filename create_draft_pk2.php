@@ -1,0 +1,831 @@
+<?php include 'header.php'; ?>
+<style>
+    select {
+        max-width: 400px;
+        word-wrap: break-word;
+    }
+
+    textarea {
+        width: 100%;
+    }
+
+    .benefit-desc {
+      transition: width 0.5s ease;
+      text-align: start !important;
+    }
+
+    /* .benefit-desc:hover {
+      width: 40% !important;
+    } */
+    
+    .benefit-ket {
+        display: none;
+    }
+
+    table.dataTable tbody td {
+      padding : 5px !important;
+      vertical-align: middle !important;
+      text-align: center !important;
+      font-size: .9rem !important;
+    }
+
+    table.dataTable tbody td.benefit-desc{
+      text-align: start !important;
+    }
+
+    table.dataTable thead th {
+        font-size: .85rem !important;
+    }
+
+    table.dataTable tbody td {
+        font-size: .75rem !important;
+    }
+
+    * {
+      font-size: .9rem !important;
+    }
+
+    .is-invalid {
+      border-color: #dc3545 !important;
+    }
+
+    .is-invalid:focus {
+      box-shadow: 0 0 0 .25rem rgba(220,53,69,.25);
+    }
+
+    .select2-selection.is-invalid {
+      border-color: #dc3545 !important;
+      box-shadow: 0 0 0 .25rem rgba(220,53,69,.25);
+    }
+
+    .select2-results__option[aria-disabled="true"] {
+      display: none !important;
+    }
+</style>
+
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+  $id_user  = $_SESSION['id_user'];
+  $username = $_SESSION['username'];
+
+  $id_draft     = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : null;
+  $email        = '';
+  $ecname       = '';
+  $id_ec        = $id_user;
+  $school_name  = '';
+  $segment      = '';
+  $level        = '';
+  $wilayah      = '';
+  $program      = '';
+  $jenis_pk     = '';
+  $selected_levels = [];
+  $selected_subjects = [];
+  $selected_book_series = [];
+  $pic_name     = '';
+  $pic_email    = '';
+  $pic_phone    = '';
+  $jabatan      = '';
+  
+  if($id_draft) {
+    $sql = "SELECT *, p.code as program_code, sp.name as pic_name
+              FROM draft_benefit as db
+            LEFT JOIN user as ec on ec.id_user = db.id_ec
+            LEFT JOIN school_pic as sp on sp.id_draft = db.id_draft
+            LEFT JOIN programs as p on p.name = db.program or p.code = db.program
+            WHERE db.id_draft = $id_draft";
+
+    $result = mysqli_query($conn,$sql);
+
+    while ($dra = $result->fetch_assoc()){
+      $email        = $dra['username'];
+      $ecname       = $dra['generalname'];
+      $id_ec        = $dra['id_ec'];
+      $school_name  = $dra['school_name'];
+      $segment      = $dra['segment'];
+      $level        = $dra['level'];
+      $wilayah      = $dra['wilayah'];
+      $program      = $dra['program_code'];
+      $pic_name     = $dra['pic_name'];
+      $pic_email    = $dra['email'];
+      $pic_phone    = $dra['no_tlp'];
+      $jabatan      = $dra['jabatan'];
+      $jenis_pk     = $dra['jenis_pk'];
+    }
+
+    if(($id_ec != $_SESSION['id_user'] && $_SESSION['role'] != 'admin') && $dra['status'] != 2) {
+      $_SESSION['toast_status'] = 'Error';
+      $_SESSION['toast_msg'] = 'Unauthorized Access';
+      header('Location: ./draft-pk.php');
+      exit();
+    }
+
+    // levels
+    $q = mysqli_query($conn, "SELECT level_id FROM program_adoption_levels WHERE draft_id = $id_draft");
+    while ($r = mysqli_fetch_assoc($q)) {
+        $selected_levels[] = $r['level_id'];
+    }
+
+    // subjects
+    $q = mysqli_query($conn, "SELECT subject_id FROM program_adoption_subjects WHERE draft_id = $id_draft");
+    while ($r = mysqli_fetch_assoc($q)) {
+        $selected_subjects[] = $r['subject_id'];
+    }
+
+    $bs = mysqli_query($conn, "SELECT book_series_id FROM draft_benefit_book_series WHERE id_draft = $id_draft");
+    while ($r = mysqli_fetch_assoc($bs)) {
+        $selected_book_series[] = $r['book_series_id'];
+    }
+  }
+  
+  $ecs = [];
+  $ecs_q = "SELECT * FROM user WHERE role = 'ec' ORDER BY generalname";
+  $ec_exec = mysqli_query($conn, $ecs_q);
+  if (mysqli_num_rows($ec_exec) > 0) {
+    $ecs = mysqli_fetch_all($ec_exec, MYSQLI_ASSOC);    
+  }
+
+  $role = $_SESSION['role'];
+
+  // $programs = [];
+  // $query_admin = $role == 'admin' ? '' : " AND program.is_classified = 0";
+  // $query_program = "SELECT program.*, IFNULL(category.name, 'Unset') as category
+  //                     FROM programs as program
+  //                     LEFT JOIN program_categories as category on category.id = program.program_category_id
+  //                     WHERE program.is_active = 1 AND program.is_pk = 1 $query_admin ";          
+
+  // $exec_program = mysqli_query($conn, $query_program);
+  // if (mysqli_num_rows($exec_program) > 0) {
+  //     $programs = mysqli_fetch_all($exec_program, MYSQLI_ASSOC);    
+  // }
+
+  // $grouped_programs = [];
+
+  // foreach($programs as $prog) {
+  //   $grouped_programs[$prog['category']][] = $prog;
+  // }
+
+?>
+  <!-- Content Start -->
+  <div class="content">
+    <?php include 'navbar.php'; ?>
+
+    <div class="container-fluid p-4 f-1">
+      <div class="row justify-content-center">
+        <div class="col-12">
+          <form method="POST" action="save-draft-pk.php" enctype="multipart/form-data" id="input_form_benefit">
+            <div class="card rounded-4 shadow-sm p-4">
+
+              <div class="d-flex align-items-center mb-4 border-bottom border-2 border-primary p-2">
+                <div class="me-3">
+                  <i class="fas fa-file-signature text-primary fs-4"></i>
+                </div>
+                <div>
+                  <h5 class="mb-0 fw-semibold fs-5">Create Draft Benefit PK</h5>
+                  <small class="text-muted fs-6">Lengkapi data sekolah & PIC</small>
+                </div>
+              </div>
+
+              <div class="row g-4 border rounded shadow-md px-3 pb-4 m-2 mb-4">
+                <!-- INPUTTER -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">EC</label>
+                  <input type="hidden" name="id_user" value="<?= $_SESSION['id_user'] ?>"> 
+                  <?php if($_SESSION['role'] != 'admin') { ?>
+                    <div class="form-control form-control-sm bg-light">
+                      <?= $_SESSION['username']?>
+                    </div>
+                    <input type="hidden" name="inputEC" value="<?= $_SESSION['id_user'] ?>">
+                  <?php } else { ?>
+                    <select name="inputEC" id="inputEC" class="form-select form-select-sm select2" required>
+                      <option value="">Pilih EC</option>
+                      <?php foreach($ecs as $ec) { ?>
+                        <option value="<?= $ec['id_user'] ?>" <?= $ec['id_user'] == $id_ec ? 'selected' : '' ?>>
+                          <?= $ec['generalname'] ?>
+                        </option>
+                      <?php } ?>
+                    </select>
+                  <?php } ?>
+
+                  <?php if($id_draft) { ?>
+                    <input type="hidden" name="id_draft" value="<?= $id_draft ?>">
+                  <?php } ?>
+                </div>
+
+                <!-- MY PLAN -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">My Plan Ref</label>
+                  <select name="myplan_id" id="myplan_id" class="form-select form-select-sm select2" style="width:100%;"></select>
+                </div>
+
+                <!-- NAMA SEKOLAH -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Nama Sekolah</label>
+                  <div id="select_school_div">
+                    <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required style="width:100%;"></select>
+                  </div>
+                  <div class="d-none text-center mt-2" id="loading_school">
+                    <i class="fas fa-spinner fa-spin text-primary"></i>
+                  </div>
+                </div>
+                
+                <div class="col-md-6">
+                  <label class="form-label small text-muted d-block">Program</label>
+                  <select name="program" id="program" class="form-select form-select-sm select2" required style="width:100%;"></select>
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
+                </div>
+
+                <!-- ADOPTION LEVEL -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Cakupan Jenjang Program</label>
+                  <select name="program_adoption_levels[]" id="adoption_levels" class="form-select form-select-sm select2" multiple required>
+                    <?php
+                      $lvl_sql = "SELECT * FROM levels";
+                      $levelsQ = mysqli_query($conn, $lvl_sql);
+                      while ($row = mysqli_fetch_assoc($levelsQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?=  ($level == $row['id'] || $level == strtolower($row['name'])) ? 'selected' : '' ?>><?= $row['name'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
+                <!-- ADOPTION SUBJECT -->
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Cakupan Subjek Program</label>
+                  <select name="program_adoption_subjects[]" id="adoption_subjects" class="form-select form-select-sm select2" multiple required>
+                    <?php
+                      $sub_sql = "SELECT * FROM subjects";
+                      $subsq = mysqli_query($conn, $sub_sql);
+                      while ($row = mysqli_fetch_assoc($subsq)) {
+                        echo "<option value='{$row['id']}'>{$row['name']}</option>";
+                      }
+                    ?>
+                  </select>
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit yang muncul, tergantung dari cakupan subjek yang dipilih</small>
+                </div>
+
+                <!-- PK & PROGRAM -->
+                <div class="col-md-4">
+                  <label class="form-label small text-muted d-block">Jenis PK</label>
+                  <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
+                    <option value="">-- Pilih Jenis PK --</option>
+                    <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
+                    <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
+                  </select>
+                </div>
+
+                <!-- SEGMENT -->
+                <div class="col-md-4">
+                  <label class="form-label small text-muted d-block">Segment</label>
+                  <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
+                    <option value="" disabled selected>- Select Segment -</option>
+                    <?php 
+                      $seg_sql = "SELECT * FROM segments";
+                      $segQ = mysqli_query($conn, $seg_sql);
+                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
+                <div class="col-md-4">
+                  <label class="form-label small text-muted">Discount Program (%)</label>
+                  <input id="discount_program" type="number" name="discount_program" class="form-control form-control-sm" max="100" placeholder="0 - 100">
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
+                    Diskon tidak boleh lebih dari 25%
+                  </small>
+                </div>
+
+                <div class="col-md-12">
+                  <label class="form-label small text-muted d-block">Book Series</label>
+                  <select name="book_series[]" id="book_series" class="form-select form-select-sm select2" multiple required>
+                    <?php 
+                      $book_series_sql = "SELECT * FROM book_series";
+                      $bookQ = mysqli_query($conn, $book_series_sql);
+                      while ($row = mysqli_fetch_assoc($bookQ)) : ?>
+                        <option value='<?= $row['id'] ?>' ><?= $row['name'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
+              </div>
+
+              <!-- PIC SECTION -->
+              <div class="border rounded shadow-md p-3 m-2">
+                <h6 class="fw-bold mb-3 border-bottom border-2 border-primary d-inline-block" style="font-size: 17px !important;">Informasi Person In Charge TTD PK</h6>
+                <div class="row g-4 ">
+                  <div class="col-md-6">
+                    <label class="form-label">Nama Lengkap</label>
+                    <input type="text" name="pic_name" value="<?= $pic_name ?>" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Jabatan</label>
+                    <input type="text" name="jabatan" value="<?= $jabatan ?>" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">No. Telepon</label>
+                    <input type="text" name="no_tlp" value="<?= $pic_phone ?>" class="form-control form-control-sm" required>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" name="email_pic" value="<?= $pic_email ?>" class="form-control form-control-sm" required>
+                  </div>
+                </div>
+              </div>
+            
+            </div>
+
+            <div class="col-12 mt-4">
+              <div class="card shadow-sm border-0">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong style="font-size: 16px;">📚 Benefit List</strong>
+                    <div class="small opacity-75">Benefit yang akan digunakan dalam program</div>
+                  </div>
+
+                  <!-- <button type="button" id="btnAddTitle" class="btn btn-sm btn-outline-light" data-bs-toggle="modal" data-bs-target="" disabled>
+                    <i class="bi bi-plus"></i> Add Title
+                  </button> -->
+                </div>
+                <div class="position-relative" id="contentWrapper">
+                <div id="benefit_container">
+                  <div class="p-4">
+
+                    <!-- EMPTY STATE -->
+                    <div id="emptyState" class="text-center text-muted py-5 border rounded bg-light">
+                      <i class="bi bi-book-half fs-1 mb-3 d-block"></i>
+
+                      <p class="mb-3" style="max-width: 420px; margin: 0 auto;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                      <small>
+                        Silakan <strong>pilih program terlebih dahulu, </strong>
+                      </small> untuk menampilkan benefit yang tersedia.
+                      </p>
+
+                      <span class="badge bg-warning text-dark px-3 py-2">
+                        ⚠️ Program wajib dipilih
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+      <!-- Form End -->
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script type="text/javascript">
+
+  let idDraft   = '<?= $id_draft ?>';
+  let program   = '<?= $program ?>';
+  let schoolId  = '<?= $school_name ?>';
+  let idEc      = '<?= $id_ec ?>';
+
+  let isDirty = false;
+  let isSubmitting = false;
+
+  let countChanges = 0;
+  
+  const selectedLevels = <?= json_encode($selected_levels) ?>;
+  const selectedSubjects = <?= json_encode($selected_subjects) ?>;
+  const selectedBookSeries = <?= json_encode($selected_book_series) ?>;
+
+  if (selectedLevels.length) {
+    $('#adoption_levels').val(selectedLevels).trigger('change');
+  }
+
+  if (selectedSubjects.length) {
+    $('#adoption_subjects').val(selectedSubjects).trigger('change');
+  }
+
+  if(selectedBookSeries.length) {
+    $('#book_series').val(selectedBookSeries).trigger('change');
+  }
+
+  function formatGroupItems(data) {
+
+    if (data.element && data.element.tagName === 'OPTGROUP') {
+      return $(`<div class="select2-optgroup-label" style=" color: #333; padding: 5px; cursor: pointer;">
+                  <b>${data.text}</b>
+              </div>`);
+    }
+    return data.text;
+  }
+
+  function loadSchoolSelect(email) {
+    email = email ?? '<?= $_SESSION['username'] ?>';
+    console.log(`https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`)
+    $.ajax({
+      url: `https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`,
+      type: 'GET',
+      dataType: 'json',
+      beforeSend: function () {
+        $('#select_school_div').addClass('d-none');
+        $('#loading_school').removeClass('d-none');
+      },
+      success: function (response) {
+        let options = '<option value="" disabled selected>Select a school</option>';
+        let schoolId = '<?= $school_name ?>';
+        response.map((data) => {
+          options += `<option value="${data.id}" ${schoolId == data.id ? 'selected' : ''}>${data.name}</option>`;
+        });
+
+        $('#select_school').html(options);
+        $('#select_school').select2({ width: '100%' });
+
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.log('Error school:', textStatus);
+        $('#select_school').html('Error: ' + textStatus);
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      },
+      complete: function () {
+        $('#loading_school').addClass('d-none');
+        $('#select_school_div').removeClass('d-none');
+      }
+    });
+  }
+
+  function getMyPlanRef(schoolPlanId = null) {
+    const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
+
+    if(ec) {
+      $.ajax({
+        url: 'get-ec-plan.php',
+        type: 'POST',
+        dataType: 'json',
+        data: {
+            ec: ec,
+            is_pk: 1,
+            id_draft: idDraft
+        },
+        success: function(response) {
+          let options = '<option value="" selected>Select a plan</option>';
+          response.map((data, index) => {
+            // let selected = index === 0 ? 'selected' : '';
+            // if(selected == 'selected') {
+            //   getPlanData(data.value);
+            // }
+            // options += `<option value="${data.value}" ${selected}>${data.label}</option>`
+            options += `<option value="${data.value}">${data.label}</option>`
+          }) 
+
+          $('#myplan_id').html(options);
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+          console.log('Error:', textStatus, errorThrown);
+          alert("Failed to get myplan")
+        }
+      });
+    }
+  }
+
+  function getPlanData(planId) {
+    return $.ajax({
+      url: 'get-myplan-data.php',
+      method: 'POST',
+      data: { myplan_id: planId },
+      dataType: 'json',
+      success: function (res) {
+        if (res && res.program) {
+          const programName = res.program.trim();
+          if (res.level_ids.length) {
+            $('#adoption_levels').val(res.level_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          }
+          if (res.subject_ids.length) {
+            $('#adoption_subjects').val(res.subject_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          }
+
+          $('#select_school').val(res.school_id).trigger('change.select2').on('select2:opening select2:selecting', e => e.preventDefault());
+          if($('#select_school').val() == null) {
+            $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
+          }
+          getPrograms(res.school_id, formatGroupItems).then(function() {
+            $('#program')
+              .val(programName)
+              .trigger('change')
+              .on('select2:opening select2:selecting', e => e.preventDefault());
+          });
+          $('#segment_input').val(res.segment).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
+          $('input[name="wilayah"]').val(res.wilayah).prop('readonly', true);
+        } else {
+          $('#program').val('').trigger('change');
+        }
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.error('Error:', textStatus, errorThrown);
+        Swal.fire({
+          title: "Failed!",
+          text: "Failed to get myplan",
+          icon: "error"
+        })
+      }
+    });
+  }
+
+  function getPrograms(schoolId, formatGroupItems, selectedProgram = null) {
+    return $.ajax({
+      url: 'get-school-program-grouped.php',
+      type: 'POST',
+      dataType: 'json',
+      data: {
+          school_id: schoolId,
+      },
+      success: function(response) {
+        let options = '<option value="" disabled selected>Select a Program</option>';
+
+        Object.entries(response).forEach(([category, programs]) => {
+          options += `<optgroup label="${category}">`;
+
+          programs.forEach((program) => {
+            options += `<option value="${program.code}">${program.name}</option>`;
+          });
+
+          options += `</optgroup>`;
+        });
+
+        $('#program').html(options);
+        $('#program').select2({
+          placeholder: 'Select a Program',
+          templateResult: formatGroupItems,
+          closeOnSelect: false,
+        });
+        $('#program').val(program ?? selectedProgram).trigger('change');
+        program = null;
+      },
+      error: function(jqXHR, textStatus, errorThrown) {
+        console.log('Error:', textStatus, errorThrown);
+        alert("Failed to get program")
+      }
+    });
+  }
+
+  function clearMyplan() {
+    $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#program').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#segment_input').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#adoption_levels').val('').trigger('change').off('select2:opening select2:selecting');
+    $('#adoption_subjects').val('').trigger('change').off('select2:opening select2:selecting');
+    $('input[name="wilayah"]').val('').prop('readonly', false);
+  }
+
+  function getAllBenefits(program, levels = [], subjects = []) {
+    console.log('countChanges:', countChanges);
+    console.log('idDraft:', idDraft);
+    $.ajax({
+      url: './get_benefits_pk.php',
+      type: 'GET',
+      data: {
+        program: program,
+        levels: levels,
+        subjects: subjects,
+        id_draft: idDraft,
+        countChanges: countChanges
+      },
+      success: function(response) {
+        $('#benefit_container').html(response);
+        $('#submit').prop('disabled', true);
+        // $('.select2').select2({ width: '100%' });
+        filterBookSeriesList();
+      },
+      error: function(xhr) {
+        console.log(xhr.responseText);
+      },
+      complete: function() {
+        countChanges++;
+      }
+    });
+  }
+
+  function initDraftData() {
+    console.log('initDraftData');
+    return $.ajax({
+      url: `./get_benefits_pk.php?id_draft=${idDraft}&program=${program}`,
+      type: 'GET',
+      success: async function (response) {
+        $('#benefit_container').html(response);
+        getPrograms(schoolId, formatGroupItems, program);
+        const userData = await getUserData(idEc);
+        loadSchoolSelect(userData.username);
+      },
+      error: function (jqXHR, textStatus, errorThrown) {
+        console.log('Error benefit:', textStatus);
+        loadSchoolSelect();
+      }
+    });
+  }
+
+  function beforeUnloadHandler(e) {
+    if (isDirty && !isSubmitting) {
+      e.preventDefault();
+      e.returnValue = '';
+    }
+  }
+
+  async function getUserData(userId) {
+    try {
+      $('.loading_school').removeClass('d-none');
+
+      const res = await $.ajax({
+        url: 'get-user-data.php',
+        type: 'POST',
+        dataType: 'json',
+        data: { id_user: userId }
+      });
+
+      return res;
+
+    } catch (err) {
+      console.error('Error:', err);
+      Swal.fire({
+        title: "Failed!",
+        text: "Failed to get user data",
+        icon: "error"
+      })
+      return null;
+
+    } finally {
+      $('.loading_school').addClass('d-none');
+    }
+  }
+
+  function filterBookSeriesList() {
+    // Ambil value yang diizinkan (array of string)
+    let allowedValues = $('#book_series').val() || [];
+
+    // Jika kosong, jangan filter apa-apa (atau bisa dikosongkan semua)
+    if (!Array.isArray(allowedValues)) {
+      allowedValues = allowedValues ? [allowedValues] : [];
+    }
+
+    // Loop semua select dengan class book_series_list
+    $('select.book_series_list').each(function () {
+      const $select = $(this);
+      const selectedVal = $select.val() || [];
+
+      // Simpan value yang saat ini dipilih
+      const currentSelected = Array.isArray(selectedVal) ? selectedVal : [selectedVal];
+
+      // Filter option: sembunyikan yang tidak termasuk allowedValues
+      $select.find('option').each(function () {
+        const $opt = $(this);
+        const optVal = String($opt.val());
+        const isAllowed = allowedValues.map(String).includes(optVal);
+
+        if (isAllowed) {
+          $opt.prop('disabled', false).show();
+        } else {
+          $opt.prop('disabled', true).hide();
+        }
+      });
+
+      // Unselect option yang sudah tidak valid
+      const newSelected = currentSelected.filter(function (v) {
+        return allowedValues.map(String).includes(String(v));
+      });
+
+      if (newSelected.length !== currentSelected.length) {
+        $select.val(newSelected).trigger('change.select2');
+      }
+
+      // Refresh select2 agar perubahan option terlihat
+      $select.select2({
+        width: '100%',
+      });
+    });
+  }
+
+  $(document).ready(function(){
+
+    $('.select2').select2({
+      width: '100%'
+    });
+
+    setTimeout(function() {
+      $('.sidebar-toggler').click();
+    }, 100);
+
+    $('#discount_program').on('input', function () {
+      let value = $(this).val();
+
+      let number = parseFloat(value);
+
+      // Batasi maksimal 25
+      if (!isNaN(number) && number > 25) {
+        $(this).val(25);
+      }
+    });
+
+    $('#select_school').on('change', function() {
+      var schoolId = $(this).val();
+      if (schoolId) getPrograms(schoolId, formatGroupItems);
+    });
+
+    $('#inputEC').on('change', async function() {
+      const userId = $(this).val();
+      if (!userId) return;
+
+      const userData = await getUserData(userId);
+      if (!userData) return;
+
+      await loadSchoolSelect(userData.username);
+      getMyPlanRef();
+    });
+
+    $('#program').select2({
+      placeholder: 'Select a Program',
+      templateResult: formatGroupItems,
+      closeOnSelect: false,
+    });
+
+    if (idDraft) {
+      initDraftData();
+    } else {
+      loadSchoolSelect();
+    }
+
+    $("#program").change(function (e) {
+      let selectedProgram = $(this).val();
+      let selectedSubjects = $('#adoption_subjects').val();
+      let selectedLevels = $('#adoption_levels').val();
+
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    })
+
+    // $('#adoption_levels').change(function () {
+    //   let selectedLevels = $(this).val();
+    //   let selectedProgram = $('#program').val();
+    //   let selectedSubjects = $('#adoption_subjects').val();
+    //   getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    // });
+
+    $('#adoption_subjects').change(function () {
+      let selectedSubjects = $(this).val();
+      let selectedProgram = $('#program').val();
+      let selectedLevels = $('#adoption_levels').val();
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    });
+
+    $('#adoption_levels').change(function () {
+      let selectedLevels = $(this).val();
+      let selectedProgram = $('#program').val();
+      let selectedSubjects = $('#adoption_subjects').val();
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    });
+
+    $(document).on('change', '#myplan_id', function () {
+      const selectedId = $(this).val();
+      clearMyplan()
+      if (!selectedId) return;
+
+      getPlanData(selectedId);
+      
+    });
+
+    getMyPlanRef();
+
+    // input + textarea
+    $('form :input').on('change keyup', function () {
+      isDirty = true;
+    });
+
+    // select2
+    $('form select').on('select2:select select2:unselect', function () {
+      isDirty = true;
+    });
+
+    // detect leave page
+    window.addEventListener('beforeunload', function (e) {
+      if (isDirty && !isSubmitting) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    });
+
+    $('#book_series').on('change', function () {
+      filterBookSeriesList();
+    });
+
+  });
+
+  // Add event listener to toggle groups when clicking on the group label
+  $(document).on('click', '.select2-optgroup-label', function (e) {
+    const $group = $(this).closest('.select2-results__group');
+    $group.nextUntil('.select2-results__group').toggle(); // Hide/show options
+    e.stopPropagation(); // Prevent dropdown close
+  });
+
+  // Additional event listener for when options in a group are shown
+  $(document).on('click', '.select2-results__group', function () {
+      $(this).find('.select2-results__options').toggle(); // Show or hide options on group click
+  });
+
+</script>
+<?php include 'footer.php'; ?>
