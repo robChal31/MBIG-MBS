@@ -336,7 +336,7 @@
                               return in_array($book['id'], $allowed_book_ids);
                           });
                   ?>
-                    <select name="book_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple required>
+                    <select name="book_<?= $data_template['id_template_benefit'] ?>[]" class="book_series_list select2" multiple required>
                       <?php foreach($allowed_book_series as $book_row): ?>
                         <option value="<?= $book_row['id'] ?>" <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>><?= htmlspecialchars($book_row['name']) ?></option>
                       <?php endforeach; ?>

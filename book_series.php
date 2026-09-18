@@ -60,10 +60,13 @@
   }
   
   $books = [];
-  $books_q = "SELECT series.*, level.name AS level_name, subject.name AS subject_name 
+  $books_q = "SELECT series.*, level.name AS level_name, subject.name AS subject_name, ab.id as ab_id
               FROM book_series AS series
               LEFT JOIN levels AS level ON level.id = series.level_id
-              LEFT JOIN subjects AS subject ON subject.id = series.subject_id";
+              LEFT JOIN subjects AS subject ON subject.id = series.subject_id
+              LEFT JOIN allowed_book_benefits AS ab ON ab.book_series_id = series.id
+              WHERE series.is_active = 1 AND deleted_at IS NULL
+              ";
   $books_exec = mysqli_query($conn, $books_q);
   if (mysqli_num_rows($books_exec) > 0) {
     $books = mysqli_fetch_all($books_exec, MYSQLI_ASSOC);    
@@ -104,8 +107,7 @@
                                     <th>Name</th>
                                     <th>Level</th>
                                     <th>Subject</th>
-                                    <th>Is Active</th>
-                                    <th>Deleted At</th>
+                                    <th class="text-center">Allowed for Benefit Selection</th>
                                     <th class="text-center" style="width:10%">Action</th>
                                 </tr>
                             </thead>
@@ -117,14 +119,7 @@
                                     <td><?= $book['level_name'] ?></td>
                                     <td><?= $book['subject_name'] ?></td>
                                     <td class="text-center">
-                                      <?= $book['is_active']
-                                        ? "<i class='fa fa-check-circle text-success'></i>"
-                                        : "<i class='fa fa-minus-circle text-danger'></i>" ?>
-                                    </td>
-                                    <td class="text-center">
-                                      <?= $book['deleted_at']
-                                        ? $book['deleted_at']
-                                        : "-" ?>
+                                      <?= $book['ab_id'] ? "<i class='fa fa-check-circle text-success'> Yes</i>" : "<i class='fa fa-minus-circle text-danger'> No</i>" ?>
                                     </td>
                                     <td class="text-center">
                                         <div class="dropdown" data-bs-boundary="window">

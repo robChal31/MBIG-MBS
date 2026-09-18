@@ -54,7 +54,7 @@ $limitDate   = clone $expiredDate;
 $limitDate->modify('+6 months');
 $now = new DateTime();
 
-if (($now > $expiredDate) && $role != 'admin') {
+if (($now > $expiredDate) && $role == 'ec') {
     echo '<div class="alert alert-danger">Benefit sudah melewati expired date</div>';
     exit;
 }

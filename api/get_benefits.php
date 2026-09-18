@@ -175,7 +175,7 @@ if (empty($pkIds)) {
 $pkIdsString = implode(',', $pkIds);
 $sql = "SELECT 
             p.id as pk_id, p.benefit_id, p.no_pk, p.start_at, p.expired_at, d.id_draft, d.id_benefit_list, d.id_template, d.benefit_name, d.subbenefit, d.description, d.keterangan, d.qty, d.qty2, d.qty3, d.manualValue, dt.subject,
-            d.calcValue, d.pelaksanaan, d.type, d.status, d.isDeleted, d.note, d.updated_at, dt.redeemable, sb.group as subbenefit_group, dt.countable, prog.name as program
+            d.calcValue, d.pelaksanaan, d.type, d.status, d.isDeleted, d.note, d.updated_at, dt.redeemable, sb.group as subbenefit_group, dt.countable, prog.name as program, dt.satuan
         FROM mp_user_pks up
         INNER JOIN pk p ON up.pk_id = p.id
         INNER JOIN draft_benefit_list d ON p.benefit_id = d.id_draft
@@ -278,7 +278,8 @@ while ($row = mysqli_fetch_assoc($result)) {
         'subbenefit_group' => $row['subbenefit_group'],
         'subject_benefit' => $row['subject'],
         'countable' => $row['countable'],
-        'active_quota' => $activeQuota
+        'active_quota' => $activeQuota,
+        'satuan' => $row['satuan']
     ];
     
     // Cek duplikat benefit_detail

@@ -48,13 +48,23 @@ $sql = "SELECT
                     SEPARATOR ', '
                 ), 
                 ''
-            ) AS level_ids
+            ) AS level_ids,
+
+            COALESCE(
+                GROUP_CONCAT(
+                    DISTINCT bbs.book_series_id 
+                    ORDER BY bbs.book_series_id 
+                    SEPARATOR ', '
+                ), 
+                ''
+            ) as book_series
         FROM draft_benefit_list dbl
         LEFT JOIN draft_template_benefit b ON b.id_template_benefit = dbl.id_template
         LEFT JOIN benefit_subjects bs ON bs.draft_benefit_list_id = dbl.id_benefit_list
         LEFT JOIN benefit_org_levels bol ON bol.draft_benefit_list_id = dbl.id_benefit_list
         LEFT JOIN subjects s ON s.id = bs.subject_id
         LEFT JOIN levels ol ON ol.id = bol.level_id
+        LEFT JOIN benefit_book_series as bbs on bbs.draft_benefit_list_id = dbl.id_benefit_list
         WHERE dbl.id_draft = $id_draft
         GROUP BY dbl.id_benefit_list 
         ORDER BY dbl.id_benefit_list ASC 
@@ -541,7 +551,9 @@ function displayBenefitQty($qty, $satuan, $item)
                 <tr>
                     <td class="col-no"><?= $no++ ?></td>
                     <td class="col-program"><?= esc($cleanedName) ?></td>
-                    <td class="col-description"><?= $desc ?></td>
+                    <td class="col-description">
+                        <?= $desc ?>
+                    </td>
                     <td class="col-year">
                         <?= displayBenefitQty($qty1, $item['satuan'] ?? '', $item) ?>
                     </td>

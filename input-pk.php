@@ -10,19 +10,21 @@ $sql = "SELECT
             b.*, 
             c.*, 
             IFNULL(sc.name, b.school_name) as school_name2, 
-            dbl.total_qty,
-            pk.*, pk.id as id_pk
+            -- dbl.total_qty,
+            pk.*, pk.id as id_pk, prog.name as program_name, seg.segment as segment_name
         FROM draft_benefit as b
         LEFT JOIN schools as sc on sc.id = b.school_name
         LEFT JOIN user as c on c.id_user = b.id_ec
         LEFT JOIN pk on pk.benefit_id = b.id_draft
-        LEFT JOIN (
-            SELECT 
-                id_draft, 
-                (SUM(qty) + SUM(qty2) + SUM(qty3)) as total_qty
-            FROM draft_benefit_list
-            GROUP BY id_draft
-        ) as dbl on dbl.id_draft = b.id_draft
+        LEFT JOIN programs as prog on (prog.name = b.program OR prog.code = b.program)
+        LEFT JOIN segments as seg on seg.id = b.segment
+        -- LEFT JOIN (
+        --     SELECT 
+        --         id_draft, 
+        --         (SUM(qty) + SUM(qty2) + SUM(qty3)) as total_qty
+        --     FROM draft_benefit_list
+        --     GROUP BY id_draft
+        -- ) as dbl on dbl.id_draft = b.id_draft
         where b.id_draft = $id_draft";
 $result = $conn->query($sql);
 
@@ -32,7 +34,8 @@ if ($result->num_rows > 0) {
         $school = $row['school_name2'];
         $program = $row['program'];
         $segment = $row['segment'];
-        $total_qty = $row['total_qty'];
+        $segment_name = $row['segment_name'];
+        // $total_qty = $row['total_qty'];
         $id_pk = $row['id_pk'];
         $no_pk = $row['no_pk'];
         $start_date = $row['start_at'];
@@ -43,6 +46,7 @@ if ($result->num_rows > 0) {
         $fileUrl = $row['fileUrl'];
         $perubahan_tahun = $row['perubahan_tahun'];
         $confirmed = $row['confirmed'];
+        $program_name = $row['program_name'];
     }
 
     $sq_query = "SELECT * FROM dash_sa WHERE is_active = 1";
@@ -66,18 +70,18 @@ if ($result->num_rows > 0) {
             <tr>
                 <td><strong>Segment</strong></td>
                 <td>:</td>
-                <td><?= strtoupper($segment) ?></td>
+                <td><?= strtoupper($segment_name) ?></td>
             </tr>
             <tr>
                 <td><strong>Program</strong></td>
                 <td>:</td>
-                <td><?= strtoupper($program) ?></td>
+                <td><?= strtoupper($program_name) ?></td>
             </tr>
-            <tr>
+            <!-- <tr>
                 <td><strong>Total Quantity Adopsi</strong></td>
                 <td>:</td>
                 <td><?= number_format($total_qty, 0, ',', '.') ?></td>
-            </tr>
+            </tr> -->
             <tr>
                 <td><strong>File Draft Benefit</strong></td>
                 <td>:</td>
@@ -133,7 +137,7 @@ if ($result->num_rows > 0) {
                <?php if($action == 'updatePK') { ?>
                     <div class="col-12 mb-3">
                         <label class="form-label">Perubahan Tahun</label>
-                        <select name="perubahan_tahun" id="perubahan_tahun" class="form-control form-control-sm">
+                        <select name="perubahan_tahun" id="perubahan_tahun" class="form-control form-control-sm select2">
                             <option value="" disabled selected>Select Perubahan Tahun</option>
                             <option value="2" <?= $perubahan_tahun == 2 ? 'selected' : '' ?>>2</option>
                             <option value="3" <?= $perubahan_tahun == 3 ? 'selected' : '' ?>>3</option>
