@@ -200,7 +200,12 @@
         // ========== 2. DELETE PIVOT TABLES ==========
         if (!empty($id_benefit_lists)) {
             $ids_string = implode(',', $id_benefit_lists);
-            mysqli_query($conn, "DELETE FROM benefit_subjects WHERE draft_benefit_list_id IN ($ids_string)");
+            // 🔥 benefit_subject_levels dihapus DULU (lewat JOIN karena gak punya draft_benefit_list_id)
+            mysqli_query($conn, "
+                DELETE bsl FROM benefit_subject_levels bsl
+                INNER JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+                WHERE bol.draft_benefit_list_id IN ($ids_string)
+            ");
             mysqli_query($conn, "DELETE FROM benefit_org_levels WHERE draft_benefit_list_id IN ($ids_string)");
         }
         
@@ -220,48 +225,40 @@
                 // 🔥 Ambil id_benefit_list yang baru saja di-insert
                 $id_benefit_list = mysqli_insert_id($conn);
                 
-                if (isset($_POST["subject_" . $id_templates[$i]]) && !empty($_POST["subject_" . $id_templates[$i]])) {
-                    $subjects = $_POST["subject_" . $id_templates[$i]];
-                    if (is_array($subjects)) {
-                        foreach ($subjects as $subject_id) {
-                            if (!empty($subject_id)) {
-                                $subject_id = intval($subject_id);
-                                $sql_subject = "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)";
-                                if (!mysqli_query($conn, $sql_subject)) {
-                                    throw new Exception("Insert benefit_subjects gagal: " . mysqli_error($conn));
-                                }
-                            }
+                // ========== 🔥 SAVE SUBJECT + LEVEL (KOMBINASI) ==========
+                // Format: $_POST["pairs_{tid}"][level_id] = [subject_id, subject_id, ...]
+
+                $pair_key = "pairs_" . $id_templates[$i];
+
+                if (isset($_POST[$pair_key]) && is_array($_POST[$pair_key])) {
+                    foreach ($_POST[$pair_key] as $level_id => $subject_ids) {
+                        $level_id = intval($level_id);
+                        if ($level_id <= 0) continue;
+
+                        // Skip kalau subject_ids kosong
+                        if (empty($subject_ids) || !is_array($subject_ids)) continue;
+
+                        // 1) Insert benefit_org_levels DULU (buat dapetin ID)
+                        $sql_lvl = "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) 
+                                    VALUES ($id_benefit_list, $level_id)";
+                        if (!mysqli_query($conn, $sql_lvl)) {
+                            throw new Exception("Insert benefit_org_levels gagal: " . mysqli_error($conn));
                         }
-                    } else {
-                        $subject_id = intval($subjects);
-                        if ($subject_id > 0) {
-                            $sql_subject = "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)";
-                            if (!mysqli_query($conn, $sql_subject)) {
-                                throw new Exception("Insert benefit_subjects gagal: " . mysqli_error($conn));
-                            }
-                        }
-                    }
-                }
-                
-                // 🔥 LEVEL
-                if (isset($_POST["level_" . $id_templates[$i]]) && !empty($_POST["level_" . $id_templates[$i]])) {
-                    $levels = $_POST["level_" . $id_templates[$i]];
-                    if (is_array($levels)) {
-                        foreach ($levels as $level_id) {
-                            if (!empty($level_id)) {
-                                $level_id = intval($level_id);
-                                $sql_level = "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)";
-                                if (!mysqli_query($conn, $sql_level)) {
-                                    throw new Exception("Insert benefit_org_levels gagal: " . mysqli_error($conn));
-                                }
-                            }
-                        }
-                    } else {
-                        $level_id = intval($levels);
-                        if ($level_id > 0) {
-                            $sql_level = "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)";
-                            if (!mysqli_query($conn, $sql_level)) {
-                                throw new Exception("Insert benefit_org_levels gagal: " . mysqli_error($conn));
+                        $bol_id = mysqli_insert_id($conn);
+
+                        // 2) Insert benefit_subject_levels (TANPA draft_benefit_list_id)
+                        $seen = [];
+                        foreach ($subject_ids as $subject_id) {
+                            $subject_id = intval($subject_id);
+                            if ($subject_id <= 0) continue;
+                            if (isset($seen[$subject_id])) continue;
+                            $seen[$subject_id] = true;
+
+                            $sql_sub = "INSERT INTO benefit_subject_levels 
+                                        (subject_id, benefit_org_levels_id) 
+                                        VALUES ($subject_id, $bol_id)";
+                            if (!mysqli_query($conn, $sql_sub)) {
+                                throw new Exception("Insert benefit_subject_levels gagal: " . mysqli_error($conn));
                             }
                         }
                     }
@@ -808,9 +805,9 @@
                 $ccList
             );
 
-            if ($resultLeader !== true) {
-                echo $resultLeader;
-            }
+            // if ($resultLeader !== true) {
+            //     echo $resultLeader;
+            // }
 
             // ===================== KIRIM EMAIL KE EC =====================
             $subjectEC = 'Woohoo, Pengajuan kamu sudah berhasil diajukan! Untuk program ' . $uc_program . ' ' . $school_name;

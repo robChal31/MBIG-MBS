@@ -360,6 +360,7 @@
 <script>
     let group = '';
     let subject = '';
+    let subjects = '';
     let event_group_code = '';
     $('#pkModal').on('show.bs.modal', function (event) {
         var rowid = event.relatedTarget.getAttribute('data-id')

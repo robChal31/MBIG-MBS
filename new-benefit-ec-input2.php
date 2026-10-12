@@ -38,8 +38,8 @@
 
       //get draft benefit list count
       $sql = "SELECT 
-                dbl.type, dbl.id_template, dbl.subbenefit, dbl.benefit_name, dbl.description, dtb.pelaksanaan, dtb.multiple_subject, dtb.multiple_level,
-                dbl.keterangan, dbl.qty, dbl.qty2, dbl.qty3, dtb.valueMoney, dbl.manualValue, dbl.calcValue, dtb.editable_qty, dtb.book_selection,
+                dbl.type, dbl.id_template, dbl.subbenefit, dbl.benefit_name, dbl.description, dtb.pelaksanaan, dtb.allow_multiple_subject_and_level, dbl.keterangan, dbl.qty, dbl.qty2, dbl.qty3, dtb.valueMoney, dbl.manualValue, dbl.calcValue, dtb.editable_qty, dtb.book_selection, dtb.count_method, dbl.id_benefit_list,
+                dtb.qty1 as qty1_template, dtb.qty2 as qty2_template, dtb.qty3 as qty3_template,
               COALESCE(
                   (SELECT GROUP_CONCAT(DISTINCT bs.subject_id SEPARATOR ',')
                       FROM benefit_subjects bs
@@ -71,7 +71,7 @@
                 ), ''
             ) AS allowed_book_ids
         FROM draft_benefit db
-        LEFT JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
+        INNER JOIN draft_benefit_list dbl ON db.id_draft = dbl.id_draft
         LEFT JOIN draft_template_benefit dtb ON dtb.id_template_benefit = dbl.id_template
         WHERE db.id_draft = $id_draft
         GROUP BY dbl.id_benefit_list";
@@ -93,6 +93,24 @@
 
         while ($row = mysqli_fetch_assoc($tpl_result)) {
           $tpl_data[] = $row;
+        }
+      }else {
+        $template_rows = [];
+        while ($row = mysqli_fetch_assoc($template_data_result)) {
+            $id_bl = $row['id_benefit_list'];
+            $level_subject_map = []; // [level_id => [subject_ids]]
+            $q2 = "SELECT bol.level_id, bsl.subject_id 
+                  FROM benefit_subject_levels bsl
+                  LEFT JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+                  WHERE bol.draft_benefit_list_id = $id_bl";
+            $r2 = mysqli_query($conn, $q2);
+            if ($r2) {
+                while ($pair = mysqli_fetch_assoc($r2)) {
+                    $level_subject_map[$pair['level_id']][] = $pair['subject_id'];
+                }
+            }
+            $row['level_subject_map'] = $level_subject_map;
+            $template_rows[] = $row;
         }
       }
     }
@@ -171,6 +189,7 @@
   if ($exec_book_series && mysqli_num_rows($exec_book_series) > 0) {
     $book_series = mysqli_fetch_all($exec_book_series, MYSQLI_ASSOC);
   }
+  
 ?>
 
 <style>
@@ -714,6 +733,45 @@
       white-space: normal;
       word-wrap: break-word;
   }
+
+  .lv-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    gap: 6px;
+  }
+
+  .lv-head {
+    background: #0077b6;
+    color: #fff;
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    text-align: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .lv-cell .select2-container {
+    width: 100% !important;
+  }
+
+  .lv-cell .select2-selection--multiple {
+    min-height: 36px;
+    font-size: 12px;
+  }
+
+  .subject-level-cell {
+    padding: 8px !important;
+    vertical-align: middle !important;
+    text-align: left !important;
+    white-space: normal !important;
+  }
+
+  .lv-placeholder {
+    font-size: 12px;
+    color: #adb5bd;
+  }
 </style>
 
 <!-- Content Start -->
@@ -782,8 +840,7 @@
                         <td class="td-cust text-center" rowspan="2" style="width:15%;">Nama Benefit</td>
                         <td class="td-cust text-center" rowspan="2" style="width:18%;">Deskripsi</td>
                         <!-- <td class="td-cust text-center" rowspan="2" style="width:10%;">Pelaksanaan</td> -->
-                        <td class="td-cust text-center" rowspan="2" style="width:10%;">Subject</td>
-                        <td class="td-cust text-center" rowspan="2" style="width:10%;">Level</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:20%;">Subjek × Level</td>
                         <td class="td-cust text-center" rowspan="2" style="width:10%;">Book</td>
                         <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Benefit</td>
                         <td class="td-cust text-center" colspan="3" style="width:12%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
@@ -805,7 +862,7 @@
                   <tbody>
                     <?php if (!$use_template_as_default) {
                       $x = 1;
-                      while ($data = $template_data_result->fetch_assoc()): ?>
+                      foreach ($template_rows as $data): ?>
                         <tr id="row<?= $x; ?>">
                           <td class="col-benefit">
                             <span class="benefit"><?= $data['type'] ?></span>
@@ -830,51 +887,36 @@
                           <!-- <td>
                             <textarea id="pelaksanaan" name="pelaksanaan[]" class="form-control form-control-sm txt-area" cols="16"><?= $data['pelaksanaan'] ?></textarea>
                           </td> -->
-                          <td>
-                            <?php if ($data['multiple_subject'] == 1): ?>
-                              <select name="subject_<?= $data['id_template'] ?>[]" class="form-select form-select-sm subject-select select2" multiple required>
-                                <?php 
-                                  // Parse subject_ids dari string ke array
-                                  $selected_subjects = !empty($data['subject_ids']) 
-                                      ? explode(',', $data['subject_ids']) 
-                                      : [];
-                                  
-                                  // Ambil semua subject (1 query aja di awal)
-                                  foreach ($all_subjects as $subject): 
-                                ?>
-                                  <option value="<?= $subject['id'] ?>" <?= in_array($subject['id'], $selected_subjects) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($subject['name']) ?>
-                                  </option>
+                          <td class="subject-level-cell">
+                            <?php 
+                              $tid = $data['id_template'];
+                              $level_subject_map = $data['level_subject_map'] ?? [];
+                            ?>
+
+                            <?php if($data['allow_multiple_subject_and_level'] == 1) { ?>
+                              <div class="lv-grid" style="--cols: <?= count($all_levels) ?>;">
+                                <?php foreach($all_levels as $l): ?>
+                                  <div class="lv-head"><?= htmlspecialchars($l['name']) ?></div>
                                 <?php endforeach; ?>
-                              </select>
-                            <?php else: ?>
-                              <input type="hidden" name="subject_<?= $data['id_template'] ?>[]" value="">
-                              <span class="text-muted" style="font-size: 11px;">-</span>
-                            <?php endif; ?>
-                          </td>
-                          
-                          <!-- 🔥 LEVEL (MULTIPLE) -->
-                          <td>
-                            <?php if ($data['multiple_level'] == 1): ?>
-                              <select name="level_<?= $data['id_template'] ?>[]" class="form-select form-select-sm level-select select2" multiple required>
-                                <?php 
-                                // Parse level_ids dari string ke array
-                                  $selected_levels = !empty($data['level_ids']) ? explode(',', $data['level_ids']) : [];
-                                  $banned_levels = $data['banned_level_ids'] ? explode(',', $data['banned_level_ids']) : [];
-                                  $allowed_levels = array_filter($all_levels, function($level) use ($banned_levels) {
-                                    return !in_array($level['id'], $banned_levels);
-                                  });
-                                  foreach ($all_levels as $level): 
+
+                                <?php foreach($all_levels as $l): 
+                                  $saved = $level_subject_map[$l['id']] ?? [];
                                 ?>
-                                  <option value="<?= $level['id'] ?>" <?= in_array($level['id'], $selected_levels) ? 'selected' : '' ?>>
-                                    <?= htmlspecialchars($level['name']) ?>
-                                  </option>
-                                  <?php endforeach; ?>
-                              </select>
-                            <?php else: ?>
-                              <input type="hidden" name="level_<?= $data['id_template'] ?>[]" value="">
-                              <span class="text-muted" style="font-size: 11px;">-</span>
-                            <?php endif; ?>
+                                  <div class="lv-cell">
+                                    <select name="pairs_<?= $tid ?>[<?= $l['id'] ?>][]" 
+                                            class="select2 lv-subj-select2" multiple>
+                                      <?php foreach($all_subjects as $s): ?>
+                                        <option value="<?= $s['id'] ?>" <?= in_array($s['id'], $saved) ? 'selected' : '' ?>>
+                                          <?= htmlspecialchars($s['name']) ?>
+                                        </option>
+                                      <?php endforeach; ?>
+                                    </select>
+                                  </div>
+                                <?php endforeach; ?>
+                              </div>
+                            <?php } else { ?>
+                              <span class="text-muted">—</span>
+                            <?php } ?>
                           </td>
                           <td>
                             <?php if($data['book_selection'] == 1) { 
@@ -885,7 +927,7 @@
                                         return in_array($book['id'], $allowed_book_ids);
                                     });
                             ?>
-                              <select name="book_series_<?= $data['id_template'] ?>[]" class="select2 book-select form-select form-select-sm" multiple required>
+                              <select name="book_series_<?= $data['id_template'] ?>[]" class="select2 book-select form-select form-select-sm" multiple>
                                 <?php foreach($allowed_book_series as $book_row): ?>
                                   <option value="<?= $book_row['id'] ?>" <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>><?= htmlspecialchars($book_row['name']) ?></option>
                                 <?php endforeach; ?>
@@ -898,14 +940,36 @@
                             <input type="text" class="form-control form-control-sm" id="valben" name="valben[]" placeholder="0" onchange="updateDisabledField(this)" value="<?= number_format($data['valueMoney'], '0', ',', '.'); ?>" readonly>
                           </td>
                           <input type="hidden" class="form-control form-control-sm" id="keterangan" name="keterangan[]" placeholder="Keterangan" value="<?= $data['keterangan'] ?>">
+
+                          <input type="hidden" class="count-method" value="<?= $data['count_method'] ?>">
+                          <!-- Th 1 -->
                           <td>
-                            <input type="number" class="form-control form-control-sm tah1" id="member" name="member[]" placeholder="0" value="<?= $data['qty'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($data['editable_qty'] == '0' || $year == 2 || $year == 3){echo "readonly";} ?>>
+                            <input type="number" class="form-control form-control-sm tah1 qty-input" 
+                                  name="member[]" 
+                                  data-base-qty="<?= (int)$data['qty1_template'] ?>"
+                                  placeholder="0" value="<?= $data['qty'] ?>" min="0" 
+                                  onchange="updateDisabledField(this)"
+                                  <?php if($data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $year == 2 || $year == 3){echo "readonly";} ?>>
                           </td>
+
+                          <!-- Th 2 -->
                           <td>
-                            <input type="number" class="form-control form-control-sm tah2" id="member2" name="member2[]" placeholder="0" value="<?= $data['qty2'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['editable_qty'] == '0' || $year == 3){echo "readonly";} ?> >
+                            <input type="number" class="form-control form-control-sm tah2 qty-input" 
+                                  name="member2[]" 
+                                  data-base-qty="<?= (int)$data['qty2_template'] ?>"
+                                  placeholder="0" value="<?= $data['qty2'] ?>" min="0" 
+                                  onchange="updateDisabledField(this)"
+                                  <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $year == 3){echo "readonly";} ?>>
                           </td>
+
+                          <!-- Th 3 -->
                           <td>
-                            <input type="number" class="form-control form-control-sm tah3" id="member3" name="member3[]" placeholder="0" value="<?= $data['qty3'] ?>" min="0" onchange="updateDisabledField(this)" onload="updateDisabledField(this)" <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['editable_qty'] == '0'){echo "readonly";} ?>>
+                            <input type="number" class="form-control form-control-sm tah3 qty-input" 
+                                  name="member3[]" 
+                                  data-base-qty="<?= (int)$data['qty3_template'] ?>"
+                                  placeholder="0" value="<?= $data['qty3'] ?>" min="0" 
+                                  onchange="updateDisabledField(this)"
+                                  <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level'){echo "readonly";} ?>>
                           </td>
                           <td>
                             <input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]" placeholder="0" value="<?= number_format($data['calcValue'], '0', ',', '.') ?>" readonly>
@@ -917,7 +981,7 @@
                             </button>
                           </td>
                         </tr>
-                      <?php $x++; endwhile; ?>
+                      <?php $x++; endforeach; ?>
                     <?php }; ?>
                   </tbody>
                 </table>
@@ -1029,30 +1093,39 @@
       <!-- <td>
         <textarea name="pelaksanaan[]" class="form-control form-control-sm txt-area"></textarea>
       </td> -->
-      <td>
-        <select name="subject[]" class="form-select form-select-sm subject-select select2" multiple required>
-        </select>
+      <td class="subject-level-cell">
+        <select name="pairs_placeholder[]" class="select2 lv-subj-select2" multiple style="display:none;"></select>
+        <span class="text-muted lv-placeholder">—</span>
       </td>
       <td>
-        <select name="level[]" class="form-select form-select-sm level-select select2" multiple required>
-        </select>
-      </td>
-      <td>
-        <select name="book_series[]" class="form-select form-select-sm select2 book-select select2" multiple required>
+        <select name="book_series[]" class="form-select form-select-sm select2 book-select select2" multiple>
         </select>
       </td>
       <td>
         <input type="text" class="form-control form-control-sm" name="valben[]" value="0" readonly onchange="updateDisabledField(this)">
       </td>
       <input type="hidden" name="keterangan[]" value="">
+      <input type="hidden" class="count-method" value="">
       <td>
-        <input type="number" class="form-control form-control-sm tah1" name="member[]" value="0" min="0" onchange="updateDisabledField(this)">
+        <input type="number" class="form-control form-control-sm tah1 qty-input" 
+              name="member[]" 
+              data-base-qty="0"
+              value="0" min="0" 
+              onchange="updateDisabledField(this)">
       </td>
       <td>
-        <input type="number" class="form-control form-control-sm tah2" name="member2[]" value="0" min="0" onchange="updateDisabledField(this)">
+        <input type="number" class="form-control form-control-sm tah2 qty-input" 
+              name="member2[]" 
+              data-base-qty="0"
+              value="0" min="0" 
+              onchange="updateDisabledField(this)">
       </td>
       <td>
-        <input type="number" class="form-control form-control-sm tah3" name="member3[]" value="0" min="0" onchange="updateDisabledField(this)">
+        <input type="number" class="form-control form-control-sm tah3 qty-input" 
+              name="member3[]" 
+              data-base-qty="0"
+              value="0" min="0" 
+              onchange="updateDisabledField(this)">
       </td>
       <td>
         <input type="text" class="form-control form-control-sm usage" name="calcValue[]" value="0" readonly>
@@ -1120,7 +1193,6 @@
           },
           success: function(response) {
             const data = response[0] ?? [];
-            console.log('data: ', data);
             row.find('input[name="benefit[]"]').val(data.benefit);
             row.find('input[name="id_templates[]"]').val(data.id_template_benefit);
             row.find('span.benefit').html(data.benefit);
@@ -1134,107 +1206,79 @@
             row.find('input[name="member[]"]').val(formatNumber(data.qty1));
             row.find('input[name="member2[]"]').val(formatNumber(data.qty2));
             row.find('input[name="member3[]"]').val(formatNumber(data.qty3));
+            
+            row.find('input[name="member[]"]').prop("readonly", data.count_method == 'template' || (programYear == 2 || programYear == 3));
+            row.find('input[name="member2[]"]').prop("readonly", data.count_method == 'template' || programYear == 3);
+            row.find('input[name="member3[]"]').prop("readonly", data.count_method == 'template');
+            // Simpan base qty di data attribute
+            row.find('input[name="member[]"]').attr('data-base-qty', data.qty1 ?? 0);
+            row.find('input[name="member2[]"]').attr('data-base-qty', data.qty2 ?? 0);
+            row.find('input[name="member3[]"]').attr('data-base-qty', data.qty3 ?? 0);
 
-            row.find('input[name="member[]"]').prop("readonly", data.editable_qty == 0 || (programYear == 2 || programYear == 3));
-            row.find('input[name="member2[]"]').prop("readonly", data.editable_qty == 0 || programYear == 3);
-            row.find('input[name="member3[]"]').prop("readonly", data.editable_qty == 0);
+            // Set count_method ke hidden input
+            row.find('.count-method').val(data.count_method || 'template');
 
+            // Kalau subject_level, set readonly juga
+            if (data.count_method == 'subject_level') {
+              row.find('input[name="member[]"]').prop('readonly', true);
+              row.find('input[name="member2[]"]').prop('readonly', true);
+              row.find('input[name="member3[]"]').prop('readonly', true);
+            }
             var templateId = data.id_template_benefit;
 
-            // ========== SUBJECT ==========
-            var subjectSelect = row.find('select.subject-select');
-            var subjectContainer = subjectSelect.closest('td');
+            // ========== SUBJECT × LEVEL GRID ==========
+            var $cell = row.find('td.subject-level-cell');
+            var $existingGrid = $cell.find('.lv-grid');
 
-            // Hapus span/text-muted yang mungkin ada dari sebelumnya
-            subjectContainer.find('span.text-muted').remove();
-            // Hapus hidden input lama kalo ada
-            subjectContainer.find('input[type="hidden"]').remove();
-
-            // 🔥 Destroy select2 kalo ada
-            if (subjectSelect.hasClass('select2-hidden-accessible')) {
-              subjectSelect.select2('destroy');
-            }
-
-            if (data.multiple_subject == 1) {
-              subjectSelect.attr('name', 'subject_' + templateId + '[]');
-              subjectSelect.show();
-              subjectSelect.empty();
-              $.each(allSubjects, function(index, subject) {
-                  subjectSelect.append($('<option>', {
-                      value: subject.id,
-                      text: subject.name
-                  }));
-              });
-              if (data.subject_ids) {
-                  var subjectIds = data.subject_ids.split(',').map(Number);
-                  subjectSelect.val(subjectIds).trigger('change');
+            // Destroy select2 yg ada
+            $existingGrid.find('select').each(function () {
+              if ($(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2('destroy');
               }
-              // 🔥 Re-init select2
-              subjectSelect.select2({
-                width: '100%',
-                placeholder: 'Pilih Subject'
+            });
+
+            $existingGrid.remove();
+            $cell.empty();
+
+            if (data.allow_multiple_subject_and_level == 1) {
+              var tid = data.id_template_benefit;
+              var bannedLevels = data.banned_level_ids ? data.banned_level_ids.split(',').map(Number) : [];
+              var allowedLevels = allLevels.filter(function (l) {
+                return !bannedLevels.includes(Number(l.id));
               });
+
+              var gridHtml = '<div class="lv-grid" style="--cols: ' + allowedLevels.length + ';">';
+
+              // Header
+              allowedLevels.forEach(function (l) {
+                gridHtml += '<div class="lv-head">' + l.name + '</div>';
+              });
+
+              // Cells
+              allowedLevels.forEach(function (l) {
+                gridHtml += '<div class="lv-cell">';
+                gridHtml += '<select name="pairs_' + tid + '[' + l.id + '][]" class="select2 lv-subj-select2" multiple>';
+                allSubjects.forEach(function (s) {
+                  gridHtml += '<option value="' + s.id + '">' + s.name + '</option>';
+                });
+                gridHtml += '</select>';
+                gridHtml += '</div>';
+              });
+
+              gridHtml += '</div>';
+              $cell.html(gridHtml);
+
+              // Init select2 + bind event LANGSUNG (bukan delegation)
+              $cell.find('.lv-subj-select2').each(function () {
+                bindLvSubjEvents($(this));
+                $(this).select2({
+                  width: '100%',
+                  placeholder: 'Pilih Subjek'
+                });
+              });
+
             } else {
-              // 🔥 Bersihin isi select
-              subjectSelect.empty();
-              subjectSelect.removeAttr('required');
-              // Hide select
-              subjectSelect.hide();
-              // Tambah span dan hidden input
-              subjectContainer.append('<span class="text-muted" style="font-size: 11px;">-</span>');
-              subjectContainer.append('<input type="hidden" name="subject_' + templateId + '[]" value="">');
-            }
-
-            // ========== LEVEL ==========
-            var levelSelect = row.find('select.level-select');
-            var levelContainer = levelSelect.closest('td');
-
-            // Bersihin
-            levelContainer.find('span.text-muted').remove();
-            levelContainer.find('input[type="hidden"]').remove();
-
-            // 🔥 Destroy select2 kalo ada
-            if (levelSelect.hasClass('select2-hidden-accessible')) {
-              levelSelect.select2('destroy');
-            }
-
-            if (data.multiple_level == 1) {
-              levelSelect.attr('name', 'level_' + templateId + '[]');
-              levelSelect.show();
-              levelSelect.empty();
-              
-              // Filter levels berdasarkan banned_level_ids
-              let bannedLevels = data.banned_level_ids ? data.banned_level_ids.split(',').map(Number) : [];
-              let allowedLevels = allLevels.filter(function(level) {
-                return !bannedLevels.includes(Number(level.id));
-              });
-              // Add options from allowedLevels
-              $.each(allowedLevels, function(index, level) {
-                levelSelect.append($('<option>', {
-                  value: level.id,
-                  text: level.name
-                }));
-              });
-              
-              // Set selected values
-              if (data.level_ids) {
-                let levelIds = data.level_ids.split(',').map(Number);
-                levelSelect.val(levelIds).trigger('change');
-              }
-              
-              // 🔥 Re-init select2
-              levelSelect.select2({
-                width: '100%',
-                placeholder: 'Pilih Level'
-              });
-            } else {
-              // 🔥 Bersihin isi select
-              levelSelect.empty();
-              levelSelect.removeAttr('required');
-              // Hide select
-              levelSelect.hide();
-              levelContainer.append('<span class="text-muted" style="font-size: 11px;">-</span>');
-              levelContainer.append('<input type="hidden" name="level_' + templateId + '[]" value="">');
+              $cell.html('<span class="text-muted lv-placeholder">—</span>');
             }
 
             // ========== BOOK SERIES ==========
@@ -1275,7 +1319,7 @@
             } else {
               // 🔥 Bersihin isi select
               bookSeriesSelect.empty();
-              bookSeriesSelect.removeAttr('required');
+              // bookSeriesSelect.removeAttr('required');
               // Hide select
               bookSeriesSelect.hide();
               bookSeriesContainer.append('<span class="text-muted" style="font-size: 11px;">-</span>');
@@ -1298,6 +1342,65 @@
           console.error('Error fetching benefit data:', error);
         }
       });
+  }
+
+  function handleLvSubjChange() {
+    const row = $(this).closest('tr');
+    updateQtyBySubjectLevel(row);
+  }
+
+  function bindLvSubjEvents($select) {
+    $select
+      .off('.lvsubj')
+      .on('change.lvsubj', handleLvSubjChange)
+      .on('select2:select.lvsubj', handleLvSubjChange)
+      .on('select2:unselect.lvsubj', handleLvSubjChange);
+  }
+
+  function updateQtyBySubjectLevel(row) {
+    const countMethod = row.find('.count-method').val() || 'template';
+    const rowId = row.attr('id') || '(no id)';
+
+    // 🔥 DEBUG
+    console.log('=== updateQtyBySubjectLevel ===');
+    console.log('  rowId:', rowId);
+    console.log('  countMethod:', countMethod);
+    
+    if (countMethod != 'subject_level') {
+      console.log('  SKIP: bukan subject_level');
+      return;
+    }
+
+    let total = 0;
+    row.find('.lv-subj-select2').each(function () {
+      total += ($(this).val() || []).length;
+    });
+    const multiplier = total || 1;
+
+    const $q1 = row.find('input[name="member[]"]');
+    const $q2 = row.find('input[name="member2[]"]');
+    const $q3 = row.find('input[name="member3[]"]');
+
+    const base1 = parseInt($q1.attr('data-base-qty')) || 0;
+    const base2 = parseInt($q2.attr('data-base-qty')) || 0;
+    const base3 = parseInt($q3.attr('data-base-qty')) || 0;
+
+    // 🔥 DEBUG
+    console.log('  total subjects:', total);
+    console.log('  multiplier:', multiplier);
+    console.log('  base:', base1, base2, base3);
+
+    const v1 = base1 * multiplier;
+    const v2 = base2 * multiplier;
+    const v3 = base3 * multiplier;
+
+    console.log('  new qty:', v1, v2, v3);
+
+    $q1.val(v1).attr('value', v1);
+    $q2.val(v2).attr('value', v2);
+    $q3.val(v3).attr('value', v3);
+
+    updateDisabledField($q1[0]);
   }
 
   function fillTheValue(id) {
@@ -1332,7 +1435,6 @@
   function accumulateValues() {
     let total_alokasi = $('input[name="sumalok"]').val();
     let program = $('input[name="program"]').val();
-    console.log('programYear: ', programYear);
     let year1 = fillTheValue(1)
 
     let checkIfStillMinus = (programYear == 2 || programYear == 3) ? 0 : $('#selisih_benefit1').val();
@@ -1444,7 +1546,7 @@
         }
       },
       error: function(xhr, status, error) {
-        console.log('error', error);
+        console.error('error', error);
       }
     });
   }
@@ -1485,24 +1587,29 @@
     $row.find('input[name="id_templates[]"]').val(tpl.id_template_benefit);
 
     $('#input_form').append($row);
-
+    console.log('after add_row:');
+    console.log('  .lv-subj-select2 count:', $('.lv-subj-select2').length);
+    console.log('  row contains .lv-subj-select2:', $row.find('.lv-subj-select2').length);
+    console.log('  is hidden?', $row.find('.lv-subj-select2').is(':hidden'));
     populateDropdown(newRow, tpl.id_template_benefit);
   }
 </script>
 
 <script>
+
   $(document).ready(function(){
     $('.select2').select2({
       width: '100%'
     });
-
+    $('.lv-subj-select2').each(function () {
+      bindLvSubjEvents($(this));
+    });
     $('.select2-benefit').select2({
       placeholder: 'Select a benefit',
       width: '100%',
       dropdownAutoWidth: true
     });
     
-    // Atau kalau mau dengan delay biar lebih smooth
     setTimeout(function() {
         $('.sidebar-toggler').click();
     }, 100);
@@ -1519,6 +1626,7 @@
       $row.find('.btn_remove').attr('data-row', 'row' + x);
 
       $('#input_form').append($row);
+      
       populateDropdown('row' + x);
     });
 

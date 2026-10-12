@@ -57,6 +57,10 @@
       border-color: #dc3545 !important;
       box-shadow: 0 0 0 .25rem rgba(220,53,69,.25);
     }
+
+    .select2-results__option[aria-disabled="true"] {
+      display: none !important;
+    }
 </style>
 
 <?php
@@ -78,6 +82,7 @@ ini_set('display_errors', 1);
   $jenis_pk     = '';
   $selected_levels = [];
   $selected_subjects = [];
+  $selected_book_series = [];
   $pic_name     = '';
   $pic_email    = '';
   $pic_phone    = '';
@@ -126,6 +131,11 @@ ini_set('display_errors', 1);
     $q = mysqli_query($conn, "SELECT subject_id FROM program_adoption_subjects WHERE draft_id = $id_draft");
     while ($r = mysqli_fetch_assoc($q)) {
         $selected_subjects[] = $r['subject_id'];
+    }
+
+    $bs = mysqli_query($conn, "SELECT book_series_id FROM draft_benefit_book_series WHERE id_draft = $id_draft");
+    while ($r = mysqli_fetch_assoc($bs)) {
+        $selected_book_series[] = $r['book_series_id'];
     }
   }
   
@@ -286,6 +296,18 @@ ini_set('display_errors', 1);
                   </small>
                 </div>
 
+                <div class="col-md-12">
+                  <label class="form-label small text-muted d-block">Book Series</label>
+                  <select name="book_series[]" id="book_series" class="form-select form-select-sm select2" multiple required>
+                    <?php 
+                      $book_series_sql = "SELECT * FROM book_series";
+                      $bookQ = mysqli_query($conn, $book_series_sql);
+                      while ($row = mysqli_fetch_assoc($bookQ)) : ?>
+                        <option value='<?= $row['id'] ?>' ><?= $row['name'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
               </div>
 
               <!-- PIC SECTION -->
@@ -370,6 +392,7 @@ ini_set('display_errors', 1);
   
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
+  const selectedBookSeries = <?= json_encode($selected_book_series) ?>;
 
   if (selectedLevels.length) {
     $('#adoption_levels').val(selectedLevels).trigger('change');
@@ -377,6 +400,10 @@ ini_set('display_errors', 1);
 
   if (selectedSubjects.length) {
     $('#adoption_subjects').val(selectedSubjects).trigger('change');
+  }
+
+  if(selectedBookSeries.length) {
+    $('#book_series').val(selectedBookSeries).trigger('change');
   }
 
   function formatGroupItems(data) {
@@ -565,6 +592,8 @@ ini_set('display_errors', 1);
       success: function(response) {
         $('#benefit_container').html(response);
         $('#submit').prop('disabled', true);
+        // $('.select2').select2({ width: '100%' });
+        filterBookSeriesList();
       },
       error: function(xhr) {
         console.log(xhr.responseText);
@@ -625,6 +654,52 @@ ini_set('display_errors', 1);
     } finally {
       $('.loading_school').addClass('d-none');
     }
+  }
+
+  function filterBookSeriesList() {
+    // Ambil value yang diizinkan (array of string)
+    let allowedValues = $('#book_series').val() || [];
+
+    // Jika kosong, jangan filter apa-apa (atau bisa dikosongkan semua)
+    if (!Array.isArray(allowedValues)) {
+      allowedValues = allowedValues ? [allowedValues] : [];
+    }
+
+    // Loop semua select dengan class book_series_list
+    $('select.book_series_list').each(function () {
+      const $select = $(this);
+      const selectedVal = $select.val() || [];
+
+      // Simpan value yang saat ini dipilih
+      const currentSelected = Array.isArray(selectedVal) ? selectedVal : [selectedVal];
+
+      // Filter option: sembunyikan yang tidak termasuk allowedValues
+      $select.find('option').each(function () {
+        const $opt = $(this);
+        const optVal = String($opt.val());
+        const isAllowed = allowedValues.map(String).includes(optVal);
+
+        if (isAllowed) {
+          $opt.prop('disabled', false).show();
+        } else {
+          $opt.prop('disabled', true).hide();
+        }
+      });
+
+      // Unselect option yang sudah tidak valid
+      const newSelected = currentSelected.filter(function (v) {
+        return allowedValues.map(String).includes(String(v));
+      });
+
+      if (newSelected.length !== currentSelected.length) {
+        $select.val(newSelected).trigger('change.select2');
+      }
+
+      // Refresh select2 agar perubahan option terlihat
+      $select.select2({
+        width: '100%',
+      });
+    });
   }
 
   $(document).ready(function(){
@@ -732,6 +807,10 @@ ini_set('display_errors', 1);
         e.preventDefault();
         e.returnValue = '';
       }
+    });
+
+    $('#book_series').on('change', function () {
+      filterBookSeriesList();
     });
 
   });

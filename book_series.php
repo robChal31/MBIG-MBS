@@ -60,12 +60,25 @@
   }
   
   $books = [];
-  $books_q = "SELECT series.*, level.name AS level_name, subject.name AS subject_name, ab.id as ab_id
-              FROM book_series AS series
-              LEFT JOIN levels AS level ON level.id = series.level_id
-              LEFT JOIN subjects AS subject ON subject.id = series.subject_id
-              LEFT JOIN allowed_book_benefits AS ab ON ab.book_series_id = series.id
-              WHERE series.is_active = 1 AND deleted_at IS NULL
+  $books_q = "SELECT 
+    series.*,
+    level.name   AS level_name,
+    subject.name AS subject_name,
+    agg.ab_ids,
+    agg.template_ids
+FROM book_series AS series
+LEFT JOIN levels AS level     ON level.id = series.level_id
+LEFT JOIN subjects AS subject ON subject.id = series.subject_id
+LEFT JOIN (
+    SELECT 
+        book_series_id,
+        GROUP_CONCAT(DISTINCT id                  SEPARATOR ',') AS ab_ids,
+        GROUP_CONCAT(DISTINCT id_template_benefit SEPARATOR ',') AS template_ids
+    FROM allowed_book_benefits
+    GROUP BY book_series_id
+) AS agg ON agg.book_series_id = series.id
+WHERE series.is_active = 1 
+  AND series.deleted_at IS NULL
               ";
   $books_exec = mysqli_query($conn, $books_q);
   if (mysqli_num_rows($books_exec) > 0) {
@@ -108,18 +121,22 @@
                                     <th>Level</th>
                                     <th>Subject</th>
                                     <th class="text-center">Allowed for Benefit Selection</th>
+                                    <th class="text-center">Benefit Templates IDs Using This Series</th>
                                     <th class="text-center" style="width:10%">Action</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php $no = 1; foreach($books as $book): ?>
                                 <tr>
-                                    <td class="text-center"><?= $no ?></td>
+                                    <td class="text-center"><?= $book['id'] ?></td>
                                     <td class="fw-semibold"><?= $book['name'] ?></td>
                                     <td><?= $book['level_name'] ?></td>
                                     <td><?= $book['subject_name'] ?></td>
                                     <td class="text-center">
-                                      <?= $book['ab_id'] ? "<i class='fa fa-check-circle text-success'> Yes</i>" : "<i class='fa fa-minus-circle text-danger'> No</i>" ?>
+                                      <?= $book['ab_ids'] ? "<i class='fa fa-check-circle text-success'> Yes</i>" : "<i class='fa fa-minus-circle text-danger'> No</i>" ?>
+                                    </td>
+                                    <td class="text-center">
+                                      <?= $book['template_ids'] ?? 'None' ?>
                                     </td>
                                     <td class="text-center">
                                         <div class="dropdown" data-bs-boundary="window">

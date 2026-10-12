@@ -200,15 +200,37 @@ if (!empty($benefitTypes)) {
     $benefitTypeCondition = " AND sb.group = 'Kolektif Offline'";
 }
 
-// 🔥 FIX: Subject conditions
+// 🔥 Subject condition (prioritas baru)
+// Priority 1: benefit punya mapping di benefit_subject_levels → match subject dari situ
+// Priority 2: benefit gak punya mapping sama sekali → fallback ke dt.subject
 $subjectCondition = "";
 if (!empty($subjects)) {
-    $subjectConditions = [];
+    $subjectList = [];
     foreach ($subjects as $subj) {
         $subj = mysqli_real_escape_string($conn, $subj);
-        $subjectConditions[] = "(dt.subject IS NULL OR dt.subject = '' OR dt.subject = '$subj')";
+        $subjectList[] = "'$subj'";
     }
-    $subjectCondition = " AND (" . implode(' OR ', $subjectConditions) . ")";
+    $subjectInList = implode(',', $subjectList);
+
+    $subjectCondition = " AND (
+        EXISTS (
+            SELECT 1
+            FROM benefit_subject_levels bsl
+            INNER JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+            INNER JOIN subjects subs ON subs.id = bsl.subject_id
+            WHERE bol.draft_benefit_list_id = d.id_benefit_list
+              AND subs.name IN ($subjectInList)
+        )
+        OR (
+            NOT EXISTS (
+                SELECT 1
+                FROM benefit_subject_levels bsl
+                INNER JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+                WHERE bol.draft_benefit_list_id = d.id_benefit_list
+            )
+            AND (dt.subject IS NULL OR dt.subject = '' OR dt.subject IN ($subjectInList))
+        )
+    )";
 }
 
 // 🔥 FIX: event_group_code condition - lebih aman

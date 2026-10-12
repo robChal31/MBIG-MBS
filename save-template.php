@@ -50,11 +50,11 @@ $color          = $_POST['highlight_color'] ?? NULL;
 $info           = $_POST['info'] ?? NULL;
 $manual_input   = $_POST['manual_input'] ?? 0;
 $editable_qty   = $_POST['editable_qty'] ?? 0;
+$count_method   = $_POST['count_method'] ?? 'template';
 $satuan         = $_POST['satuan'] ?? NULL;
 $countable      = $_POST['countable'] ?? NULL;
 $book_selection = $_POST['book_selection'] ?? 0;
-$multiple_subject   = $_POST['multiple_subject'] ?? 0;
-$multiple_level     = $_POST['multiple_level'] ?? 0;
+$allow_multiple_subject_and_level     = $_POST['allow_multiple_subject_and_level'] ?? 'template';
 $levels             = $_POST['levels'] ?? [];
 
 if ($avail == '' || !is_array($avail) || count($avail) == 0) {
@@ -90,7 +90,7 @@ try {
 
     if ($is_template_exist) {
         $sql = "UPDATE draft_template_benefit 
-                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable', benefit_order = '$order', highlight_color = '$color', info = '$info', manual_input = '$manual_input', editable_qty = '$editable_qty', multiple_subject = '$multiple_subject', multiple_level = '$multiple_level', satuan = '$satuan', countable = '$countable', book_selection = '$book_selection'
+                    SET benefit = '$benefit', subbenefit = '$subbenefit', benefit_name = '$benefit_name', description = '$description', pelaksanaan = '$pelaksanaan', avail = '$avail', qty1 = '$qty1', qty2 = '$qty2', qty3 = '$qty3', valueMoney = '$value', optional = '$optional', subject = '$subject', redeemable = '$redeemable', benefit_order = '$order', highlight_color = '$color', info = '$info', manual_input = '$manual_input', editable_qty = '$editable_qty', satuan = '$satuan', countable = '$countable', book_selection = '$book_selection', count_method = '$count_method', allow_multiple_subject_and_level = '$allow_multiple_subject_and_level'
                 WHERE id_template_benefit = '$id_template'";
 
         if (!$conn->query($sql)) {
@@ -119,8 +119,8 @@ try {
         }
         
     } else {
-        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable, benefit_order, highlight_color, info, manual_input, editable_qty, multiple_subject, multiple_level, satuan, countable, book_selection) VALUES (
-            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable', '$order', '$color', '$info', '$manual_input', '$editable_qty', '$multiple_subject', '$multiple_level', '$satuan', '$countable', '$book_selection')";
+        $sql = "INSERT INTO draft_template_benefit (benefit, subbenefit, benefit_name, description, pelaksanaan, avail, qty1, qty2, qty3, valueMoney, optional, subject, redeemable, benefit_order, highlight_color, info, manual_input, editable_qty, satuan, countable, book_selection, count_method, allow_multiple_subject_and_level) VALUES (
+            '$benefit', '$subbenefit', '$benefit_name', '$description', '$pelaksanaan', '$avail', '$qty1', '$qty2', '$qty3', '$value', '$optional', '$subject', '$redeemable', '$order', '$color', '$info', '$manual_input', '$editable_qty', '$satuan', '$countable', '$book_selection', '$count_method', '$allow_multiple_subject_and_level')";
 
         if (!$conn->query($sql)) {
             throw new Exception('Query failed: ' . $conn->error);

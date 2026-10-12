@@ -13,19 +13,12 @@
   $levels         = ISSET($_GET['levels']) ? $_GET['levels'] : [];
   $subjects       = ISSET($_GET['subjects']) ? $_GET['subjects'] : [];
 
-  $data_templates = [];
+  $data_templates  = [];
 
   if($id_draft && $count_changes == 0) {
 
     $query_template_q = "SELECT dbl.id_benefit_list, dbl.id_draft, dbl.id_template, b.id_template_benefit, 
-                        b.benefit, b.subbenefit, b.benefit_name, b.description, b.pelaksanaan, b.qty1, b.qty2, b.qty3, b.multiple_subject, 
-                        b.multiple_level, b.optional, b.book_selection,
-                        COALESCE(
-                            (SELECT GROUP_CONCAT(DISTINCT bs.subject_id SEPARATOR ',')
-                             FROM benefit_subjects bs
-                             WHERE bs.draft_benefit_list_id = dbl.id_benefit_list
-                            ), ''
-                        ) AS subject_ids,
+                        b.benefit, b.subbenefit, b.benefit_name, b.description, b.pelaksanaan, b.qty1, b.qty2, b.qty3,  b.optional, b.book_selection, b.allow_multiple_subject_and_level, b.count_method,
                         COALESCE(
                             (SELECT GROUP_CONCAT(DISTINCT bol.level_id SEPARATOR ',')
                              FROM benefit_org_levels bol
@@ -56,9 +49,30 @@
                     ORDER BY dbl.id_benefit_list DESC";
 
     $result           = mysqli_query($conn, $query_template_q);
-    $current_row      = mysqli_num_rows($result);
+    if (!$result) {
+        die("SQL Error: " . mysqli_error($conn) . "\n\nQuery: " . $query_template_q);
+    }
 
+    $current_row = mysqli_num_rows($result);
     while ($row = mysqli_fetch_assoc($result)) {
+        // === Ambil kombinasi level-subject dari benefit_subject_levels ===
+        $id_bl = $row['id_benefit_list'];
+        
+        $level_subject_map = []; // [level_id => [subject_ids]]
+        
+        $q2 = "SELECT bol.level_id, bsl.subject_id 
+              FROM benefit_subject_levels bsl
+              LEFT JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+              WHERE bol.draft_benefit_list_id = $id_bl";
+        $r2 = mysqli_query($conn, $q2);
+        
+        if ($r2) {
+            while ($pair = mysqli_fetch_assoc($r2)) {
+                $level_subject_map[$pair['level_id']][] = $pair['subject_id'];
+            }
+        }
+        
+        $row['level_subject_map'] = $level_subject_map;
         $data_templates[] = $row;
     }
 
@@ -158,6 +172,7 @@
   if ($exec_book_series && mysqli_num_rows($exec_book_series) > 0) {
     $book_series = mysqli_fetch_all($exec_book_series, MYSQLI_ASSOC);
   }
+
 ?>
 
 <style>
@@ -254,6 +269,42 @@
       align-items: flex-start !important;
   }
   
+  .benefit-table td.subject-level-cell {
+    width: 30%;
+    min-width: 340px;
+    padding: 12px 10px;
+    vertical-align: middle;
+    text-align: left;
+    white-space: normal;
+  }
+
+  .lv-grid {
+    display: grid;
+    grid-template-columns: repeat(var(--cols), 1fr);
+    gap: 6px;
+  }
+
+  .lv-head {
+    background: #0077b6;
+    color: #ffff;
+    font-weight: 700;
+    font-size: .72rem;
+    text-transform: uppercase;
+    letter-spacing: .03em;
+    text-align: center;
+    padding: 6px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+
+  .lv-cell .select2-container {
+    width: 100% !important;
+  }
+
+  .lv-cell .select2-selection--multiple {
+    min-height: 36px;
+    font-size: .75rem;
+  }
 </style>
 
 <div class="row">
@@ -265,13 +316,10 @@
         <div class="table-responsive benefit-table p-2">
           <table class="table table-borderless dataTable no-footer" id="input_form">
             <thead>
-              <!-- <td>Benefit</td>
-              <td>Sub</td> -->
               <td style="width:15%">Benefit Nama</td>
-              <td style="width:25%">Deskripsi</td>
+              <td style="width:20%">Deskripsi</td>
               <td class="d-none">Pelaksanaan</td>
-              <td style="width: 15%">Subjek</td>
-              <td style="width: 15%">Level</td>
+              <td style="width: 25%">Subjek × Level</td>
               <td style="width: 15%">Book</td>
               <td>Th 1</td>
               <td>Th 2</td>
@@ -279,96 +327,142 @@
               <td></td>
             </thead>
             <tbody>
-            <?php $row = 1; foreach($data_templates as $data_template) : ?>
-              <tr id="row<?= $row ?>">
-                <input type="hidden" name="benefit[]" value="<?= $data_template['benefit'] ?>">
-                <input type="hidden" name="id_templates[]" value="<?= $data_template['id_template_benefit'] ?>">
-                <input type="hidden" name="subbenefit[]" value="<?= $data_template['subbenefit'] ?>">
+              <?php $row = 1; foreach($data_templates as $data_template) : ?>
+                <tr id="row<?= $row ?>">
+                  <input type="hidden" name="benefit[]" value="<?= $data_template['benefit'] ?>">
+                  <input type="hidden" name="id_templates[]" value="<?= $data_template['id_template_benefit'] ?>">
+                  <input type="hidden" name="subbenefit[]" value="<?= $data_template['subbenefit'] ?>">
 
-                <td>
-                  <span><?= ucfirst($data_template['benefit_name']); ?></span>
-                  <input type="hidden" name="benefit_name[]" value="<?= $data_template['benefit_name'] ?>">
-                </td>
-                <td class="benefit-desc">
-                  <input type="hidden" name="description[]" value="<?= $data_template['description'] ?>">
-                  <span><?= $data_template['description'] ?></span>
-                </td>
-                <td class="benefit-desc d-none">
-                  <input type="hidden" name="pelaksanaan[]" value="<?= $data_template['pelaksanaan'] ?>">
-                  <span><?= $data_template['pelaksanaan'] ?></span>
-                </td>
-                <td>
-                  <?php if($data_template['multiple_subject'] == 1) { 
-                          $selected_subjects = !empty($data_template['subject_ids']) ? explode(',', $data_template['subject_ids']) : [];
+                  <td>
+                    <span><?= ucfirst($data_template['benefit_name']); ?></span>
+                    <input type="hidden" name="benefit_name[]" value="<?= $data_template['benefit_name'] ?>">
+                  </td>
+                  <td class="benefit-desc">
+                    <input type="hidden" name="description[]" value="<?= $data_template['description'] ?>">
+                    <span><?= $data_template['description'] ?></span>
+                  </td>
+                  <td class="benefit-desc d-none">
+                    <input type="hidden" name="pelaksanaan[]" value="<?= $data_template['pelaksanaan'] ?>">
+                    <span><?= $data_template['pelaksanaan'] ?></span>
+                  </td>
+                  <td class="subject-level-cell">
+                    <?php 
+                      $tid = $data_template['id_template_benefit'];
+                      $level_subject_map = $data_template['level_subject_map'] ?? [];
+                    ?>
+
+                    <?php if($data_template['allow_multiple_subject_and_level'] == 1) { ?>
+                      <div class="lv-grid" style="--cols: <?= count($all_levels) ?>;">
+
+                        <?php 
+                          // Header level
+                          foreach($all_levels as $l): ?>
+                            <div class="lv-head"><?= htmlspecialchars($l['name']) ?></div>
+                        <?php endforeach; ?>
+
+                        <?php 
+                          // Select per level
+                          foreach($all_levels as $l): 
+                            $saved = $level_subject_map[$l['id']] ?? [];
+                        ?>
+                          <div class="lv-cell">
+                            <select name="pairs_<?= $tid ?>[<?= $l['id'] ?>][]" class="select2 lv-subj-select2" multiple>
+                              <?php foreach($all_subjects as $s): ?>
+                                <option value="<?= $s['id'] ?>" <?= in_array($s['id'], $saved) ? 'selected' : '' ?>>
+                                  <?= htmlspecialchars($s['name']) ?>
+                                </option>
+                              <?php endforeach; ?>
+                            </select>
+                          </div>
+                        <?php endforeach; ?>
+
+                      </div>
+
+                    <?php } else { ?>
+                      <span class="text-muted">—</span>
+                    <?php } ?>
+                  </td>
+                  <td>
+                    <?php if($data_template['book_selection'] == 1) { 
+                            $selected_book_series_id = !empty($data_template['book_series_ids']) ? explode(',', $data_template['book_series_ids']) : [];
+                            $allowed_book_ids = !empty($data_template['allowed_book_ids']) ? explode(',', $data_template['allowed_book_ids']) : [];
+                            
+                            $allowed_book_series = array_filter($book_series, function($book) use ($allowed_book_ids) {
+                                return in_array($book['id'], $allowed_book_ids);
+                            });
+                    ?>
+                      <select name="book_<?= $data_template['id_template_benefit'] ?>[]" class="book_series_list select2" multiple required>
+                        <?php foreach($allowed_book_series as $book_row): ?>
+                          <option value="<?= $book_row['id'] ?>" <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>><?= htmlspecialchars($book_row['name']) ?></option>
+                        <?php endforeach; ?>
+                      </select>
+                    <?php } else { ?>
+                      -
+                    <?php } ?>
+                  </td>
+                  <?php 
+                    $count_method = $data_template['count_method'] ?? 'template';
+                    $base_qty1 = (int)($data_template['qty1'] ?? 0);
+                    $base_qty2 = (int)($data_template['qty2'] ?? 0);
+                    $base_qty3 = (int)($data_template['qty3'] ?? 0);
                   ?>
-                    <select name="subject_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple required>
-                      <?php foreach($all_subjects as $subject): ?>
-                        <option value="<?= $subject['id'] ?>" <?= in_array($subject['id'], $selected_subjects) ? 'selected' : '' ?>><?= htmlspecialchars($subject['name']) ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  <?php } else { ?>
-                    -
-                  <?php } ?>
-                </td>
-                <td>
-                  <?php if($data_template['multiple_level'] == 1) { 
-                          $selected_levels = !empty($data_template['level_ids']) ? explode(',', $data_template['level_ids']) : [];
-                          $banned_levels = $data_template['banned_level_ids'] ? explode(',', $data_template['banned_level_ids']) : [];
-                          $allowed_levels = array_filter($all_levels, function($level) use ($banned_levels) {
-                            return !in_array($level['id'], $banned_levels);
-                          });
-                  ?>
-                    <select name="level_<?= $data_template['id_template_benefit'] ?>[]" class="select2" multiple required>
-                      <?php foreach($allowed_levels as $level_row): ?>
-                        <option value="<?= $level_row['id'] ?>" <?= in_array($level_row['id'], $selected_levels) ? 'selected' : '' ?>><?= htmlspecialchars($level_row['name']) ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  <?php } else { ?>
-                    -
-                  <?php } ?>
-                </td>
-                <td>
-                  <?php if($data_template['book_selection'] == 1) { 
-                          $selected_book_series_id = !empty($data_template['book_series_ids']) ? explode(',', $data_template['book_series_ids']) : [];
-                          $allowed_book_ids = !empty($data_template['allowed_book_ids']) ? explode(',', $data_template['allowed_book_ids']) : [];
-                          
-                          $allowed_book_series = array_filter($book_series, function($book) use ($allowed_book_ids) {
-                              return in_array($book['id'], $allowed_book_ids);
-                          });
-                  ?>
-                    <select name="book_<?= $data_template['id_template_benefit'] ?>[]" class="book_series_list select2" multiple required>
-                      <?php foreach($allowed_book_series as $book_row): ?>
-                        <option value="<?= $book_row['id'] ?>" <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>><?= htmlspecialchars($book_row['name']) ?></option>
-                      <?php endforeach; ?>
-                    </select>
-                  <?php } else { ?>
-                    -
-                  <?php } ?>
-                </td>
-                <td>
-                    <input type="hidden" name="qty1_default[]" value="<?= $data_template['qty1'] ?>">
-                    <input type="hidden" name="qty1[]" value="<?= $data_template['qty1'] ?>">
-                    <span class="qty1-display"><?= $data_template['qty1'] ?></span>
-                </td>
-                <td>
-                    <input type="hidden" name="qty2_default[]" value="<?= $data_template['qty2'] ?>">
-                    <input type="hidden" name="qty2[]" value="<?= $data_template['qty2'] ?>">
-                    <span class="qty2-display"><?= $data_template['qty2'] ?></span>
-                </td>
-                <td>
-                    <input type="hidden" name="qty3_default[]" value="<?= $data_template['qty3'] ?>">
-                    <input type="hidden" name="qty3[]" value="<?= $data_template['qty3'] ?>">
-                    <span class="qty3-display"><?= $data_template['qty3'] ?></span>
-                </td>
-                <td>
-                  <?php if($data_template['optional'] == 1) { ?>
-                    <button type="button" class="btn_remove btn btn-outline-danger btn-sm" data-row="row<?= $row ?>">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  <?php } ?>
-                </td>
-              </tr>
-            <?php $row++; endforeach; ?>
+
+                  <!-- ===== Th 1 ===== -->
+                  <td class="qty-cell">
+                    <input type="hidden" class="qty-default" name="qty1_default[]" value="<?= $base_qty1 ?>">
+                    <input type="hidden" class="qty-base" value="<?= $base_qty1 ?>">
+                    <input type="hidden" class="count-method" value="<?= $count_method ?>">
+
+                    <?php if($count_method === 'manual') { ?>
+                      <input type="number" class="form-control form-control-sm qty-manual" 
+                            name="qty1[]" value="<?= $base_qty1 ?>" min="0" 
+                            style="width:70px; margin:auto;">
+                    <?php } else { ?>
+                      <input type="hidden" class="qty-value" name="qty1[]" value="<?= $base_qty1 ?>">
+                      <span class="qty1-display"><?= $base_qty1 ?></span>
+                    <?php } ?>
+                  </td>
+
+                  <!-- ===== Th 2 ===== -->
+                  <td class="qty-cell">
+                    <input type="hidden" class="qty-default" name="qty2_default[]" value="<?= $base_qty2 ?>">
+                    <input type="hidden" class="qty-base" value="<?= $base_qty2 ?>">
+                    <input type="hidden" class="count-method" value="<?= $count_method ?>">
+
+                    <?php if($count_method === 'manual') { ?>
+                      <input type="number" class="form-control form-control-sm qty-manual" 
+                            name="qty2[]" value="<?= $base_qty2 ?>" min="0" 
+                            style="width:70px; margin:auto;">
+                    <?php } else { ?>
+                      <input type="hidden" class="qty-value" name="qty2[]" value="<?= $base_qty2 ?>">
+                      <span class="qty2-display"><?= $base_qty2 ?></span>
+                    <?php } ?>
+                  </td>
+
+                  <!-- ===== Th 3 ===== -->
+                  <td class="qty-cell">
+                    <input type="hidden" class="qty-default" name="qty3_default[]" value="<?= $base_qty3 ?>">
+                    <input type="hidden" class="qty-base" value="<?= $base_qty3 ?>">
+                    <input type="hidden" class="count-method" value="<?= $count_method ?>">
+
+                    <?php if($count_method === 'manual') { ?>
+                      <input type="number" class="form-control form-control-sm qty-manual" 
+                            name="qty3[]" value="<?= $base_qty3 ?>" min="0" 
+                            style="width:70px; margin:auto;">
+                    <?php } else { ?>
+                      <input type="hidden" class="qty-value" name="qty3[]" value="<?= $base_qty3 ?>">
+                      <span class="qty3-display"><?= $base_qty3 ?></span>
+                    <?php } ?>
+                  </td>
+                  <td>
+                    <?php if($data_template['optional'] == 1) { ?>
+                      <button type="button" class="btn_remove btn btn-outline-danger btn-sm" data-row="row<?= $row ?>">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    <?php } ?>
+                  </td>
+                </tr>
+              <?php $row++; endforeach; ?>
             </tbody>
           </table>
         </div>
@@ -420,32 +514,34 @@
     }
 
     function updateQtyBySelection(row) {
+      const countMethod = row.find('.count-method').first().val() || 'template';
 
-      let subjectCount = row.find('select[name^="subject_"]').val()?.length || 1;
-      let levelCount = row.find('select[name^="level_"]').val()?.length || 1;
+      // Cuma proses kalau subject_level
+      if (countMethod !== 'subject_level') return;
 
-      let multiplier = subjectCount * levelCount;
-      // Ambil default dari hidden
-      let defaultQty1 = parseInt(row.find('input[name="qty1_default[]"]').val()) || 0;
-      let defaultQty2 = parseInt(row.find('input[name="qty2_default[]"]').val()) || 0;
-      let defaultQty3 = parseInt(row.find('input[name="qty3_default[]"]').val()) || 0;
-      
-      // Update span tampilan
-      row.find('.qty1-display').text(defaultQty1 * multiplier);
-      row.find('.qty2-display').text(defaultQty2 * multiplier);
-      row.find('.qty3-display').text(defaultQty3 * multiplier);
-      
-      // Update hidden input buat submit
-      row.find('input[name="qty1[]"]').val(defaultQty1 * multiplier);
-      row.find('input[name="qty2[]"]').val(defaultQty2 * multiplier);
-      row.find('input[name="qty3[]"]').val(defaultQty3 * multiplier);
+      // Hitung total subject di semua level
+      let total = 0;
+      row.find('.lv-subj-select2').each(function () {
+        total += ($(this).val() || []).length;
+      });
+      const multiplier = total || 1;
+
+      // Update tiap kolom qty (Th 1, 2, 3)
+      row.find('.qty-cell').each(function () {
+        const $cell = $(this);
+        const base = parseInt($cell.find('.qty-base').val()) || 0;
+        const newVal = base * multiplier;
+
+        $cell.find('.qty-value').val(newVal);
+        $cell.find('.qty1-display, .qty2-display, .qty3-display').text(newVal);
+      });
     }
 
 </script>
 
 <script>
 
-  $(document).on('change', 'select[name^="subject_"], select[name^="level_"]', function() {
+  $(document).on('change', '.lv-subj-select2', function() {
     let row = $(this).closest('tr');
     updateQtyBySelection(row);
   });
@@ -462,9 +558,8 @@
       x--;
     });
 
-    $('select[name^="subject_"]').each(function() {
-      let row = $(this).closest('tr');
-      updateQtyBySelection(row);
+    $('#input_form tbody tr').each(function() {
+      updateQtyBySelection($(this));
     });
 
   });

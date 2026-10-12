@@ -1,5 +1,6 @@
 <?php
-
+error_reporting(0);
+ini_set('display_errors', 0);
 include('../db_con.php');
 $config = require('../config.php');
 
@@ -288,6 +289,24 @@ $activeQuota = getActiveQuota(
     $usageTotals['total_qty3_used']
 );
 
+$subjects = [];
+if(count($benefitDetail)) {
+    $id_bl = $benefitDetail['id_benefit_list'];
+
+    $q2 = "SELECT bol.level_id, bsl.subject_id, subs.name as subject
+            FROM benefit_subject_levels bsl
+            LEFT JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+            LEFT JOIN subjects as subs on subs.id = bsl.subject_id
+            WHERE bol.draft_benefit_list_id = $id_bl GROUP BY bsl.subject_id";
+    $r2 = mysqli_query($conn, $q2);
+    if ($r2) {
+        while ($pair = mysqli_fetch_assoc($r2)) {
+            array_push($subjects, $pair['subject']);
+        }
+    }
+    $subjects = implode(';', $subjects);
+}
+
 // 8. Susun response
 $responseData = [
     'user' => [
@@ -310,6 +329,7 @@ $responseData = [
         'redeemable' => (bool)$benefitDetail['redeemable'],
         'subbenefit_group' => $benefitDetail['subbenefit_group'],
         'subject_benefit' => $benefitDetail['subject_benefit'],
+        'subjects' => $subjects,
         'countable' => $benefitDetail['countable'],
         'quota' => [
             'year1' => [

@@ -88,6 +88,7 @@
     $discount_program          = isset($_POST['discount_program']) && $_POST['discount_program'] !== '' ? floatval(str_replace(',', '.', $_POST['discount_program'])) : "NULL";
     $program_adoption_levels   = $_POST['program_adoption_levels'] ?? [];
     $program_adoption_subjects = $_POST['program_adoption_subjects'] ?? [];
+    $draft_book_series         = $_POST['book_series'] ?? [];
 
     //benefit lists
     $benefits       = $_POST['benefit'] ?? [];
@@ -227,7 +228,10 @@
         // ========== 2. DELETE PIVOT TABLES ==========
         if (!empty($id_benefit_lists)) {
             $ids_string = implode(',', $id_benefit_lists);
-            mysqli_query($conn, "DELETE FROM benefit_subjects WHERE draft_benefit_list_id IN ($ids_string)");
+            mysqli_query($conn, "DELETE bsl FROM benefit_subject_levels bsl
+                INNER JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+                WHERE bol.draft_benefit_list_id IN ($ids_string)
+            ");
             mysqli_query($conn, "DELETE FROM benefit_org_levels WHERE draft_benefit_list_id IN ($ids_string)");
             mysqli_query($conn, "DELETE FROM benefit_book_series WHERE draft_benefit_list_id IN ($ids_string)");
         }
@@ -244,41 +248,41 @@
 
             $id_benefit_list = mysqli_insert_id($conn);
 
-            // ========== 🔥 SAVE SUBJECT & LEVEL ==========
-            // SUBJECT
-            if (isset($_POST["subject_" . $id_templates[$key]]) && !empty($_POST["subject_" . $id_templates[$key]])) {
-                $subjects = $_POST["subject_" . $id_templates[$key]];
-                
-                if (is_array($subjects)) {
-                    foreach ($subjects as $subject_id) {
-                        if (!empty($subject_id)) {
-                            $subject_id = intval($subject_id);
-                            mysqli_query($conn, "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)");
+            // ========== 🔥 SAVE SUBJECT + LEVEL (kombinasi) ==========
+            // Format $_POST: pairs_{tid}[level_id][] = [subject_id, subject_id, ...]
+
+            $pair_key = "pairs_" . $id_templates[$key];
+
+            if (isset($_POST[$pair_key]) && is_array($_POST[$pair_key])) {
+                foreach ($_POST[$pair_key] as $level_id => $subject_ids) {
+                    $level_id = intval($level_id);
+                    if ($level_id <= 0) continue;
+
+                    // Skip kalau subject kosong
+                    if (empty($subject_ids) || !is_array($subject_ids)) continue;
+
+                    // 1) Insert benefit_org_levels DULU (buat dapetin ID)
+                    $sql_lvl = "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) 
+                                VALUES ($id_benefit_list, $level_id)";
+                    if (!mysqli_query($conn, $sql_lvl)) {
+                        throw new Exception("❌ Gagal insert benefit_org_levels: " . mysqli_error($conn));
+                    }
+                    $bol_id = mysqli_insert_id($conn);
+
+                    // 2) Insert benefit_subject_levels (TANPA draft_benefit_list_id)
+                    $seen = [];
+                    foreach ($subject_ids as $subject_id) {
+                        $subject_id = intval($subject_id);
+                        if ($subject_id <= 0) continue;
+                        if (isset($seen[$subject_id])) continue;
+                        $seen[$subject_id] = true;
+
+                        $sql_sub = "INSERT INTO benefit_subject_levels 
+                                    (subject_id, benefit_org_levels_id) 
+                                    VALUES ($subject_id, $bol_id)";
+                        if (!mysqli_query($conn, $sql_sub)) {
+                            throw new Exception("❌ Gagal insert benefit_subject_levels: " . mysqli_error($conn));
                         }
-                    }
-                } else {
-                    $subject_id = intval($subjects);
-                    if ($subject_id > 0) {
-                        mysqli_query($conn, "INSERT INTO benefit_subjects (draft_benefit_list_id, subject_id) VALUES ($id_benefit_list, $subject_id)");
-                    }
-                }
-            }
-            
-            // LEVEL
-            if (isset($_POST["level_" . $id_templates[$key]]) && !empty($_POST["level_" . $id_templates[$key]])) {
-                $levels = $_POST["level_" . $id_templates[$key]];
-                
-                if (is_array($levels)) {
-                    foreach ($levels as $level_id) {
-                        if (!empty($level_id)) {
-                            $level_id = intval($level_id);
-                            mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
-                        }
-                    }
-                } else {
-                    $level_id = intval($levels);
-                    if ($level_id > 0) {
-                        mysqli_query($conn, "INSERT INTO benefit_org_levels (draft_benefit_list_id, level_id) VALUES ($id_benefit_list, $level_id)");
                     }
                 }
             }
@@ -308,7 +312,7 @@
         // ===============================
         mysqli_query($conn, "DELETE FROM program_adoption_levels WHERE draft_id = '$id_draft'");
         mysqli_query($conn, "DELETE FROM program_adoption_subjects WHERE draft_id = '$id_draft'");
-
+        mysqli_query($conn, "DELETE FROM draft_benefit_book_series WHERE id_draft = '$id_draft'");
         // ===============================
         // INSERT LEVELS
         // ===============================
@@ -330,6 +334,17 @@
                     VALUES ('$id_draft', '$subj')";
             if (!mysqli_query($conn, $sql)) {
                 throw new Exception("❌ Gagal insert program_adoption_subjects: " . mysqli_error($conn));
+            }
+        }
+
+        foreach ($draft_book_series as $bs) {
+            $bs = intval($bs);
+            if ($bs > 0) {
+                $sql = "INSERT INTO draft_benefit_book_series (id_draft, book_series_id)
+                        VALUES ('$id_draft', '$bs')";
+                if (!mysqli_query($conn, $sql)) {
+                    throw new Exception("❌ Gagal insert draft_benefit_book_series: " . mysqli_error($conn));
+                }
             }
         }
 
@@ -484,7 +499,7 @@
     
             $cc = [];
     
-            // sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
+            sendEmail($ec_email, $ec_name, $subject, $message, $config, $cc, $fileName);
     
             //for leader mail
             $subject    = 'Keren, '.$_SESSION['generalname'].' telah mengajukan formulir '.$uc_program.' untuk '.$school_name;
@@ -516,7 +531,7 @@
                                     <span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span>
                                 </div>
                             </div>";
-            // sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
+            sendEmail($lead_mail, $lead_name, $subject, $message, $config, $cc, $fileName);
         }
         
         mysqli_commit($conn);

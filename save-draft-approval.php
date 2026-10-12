@@ -22,38 +22,87 @@
         return $randomString;
     }
 
-    function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = []) {
+    // function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = []) {
+    //     $mail = new PHPMailer(true);
+    //     try {
+    //         $mail->isSMTP(); 
+    //         $mail->Host       = $config['host']; 
+    //         $mail->SMTPAuth   = true; 
+    //         $mail->Username   = $config['smtp_username'];
+    //         $mail->Password   = $config['smtp_password']; 
+    //         $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+    //         $mail->Port       = $config['port'] ?? 465;
+
+    //         //Recipients
+    //         $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
+    //         $file_path = 'draft-benefit/'.$fileUrl.'.xlsx';
+            
+    //         if (file_exists($file_path)) {
+    //             $mail->addAttachment($file_path, $fileUrl.'.xlsx');
+    //         }
+
+    //         $mail->addAddress($email, $name);
+    //         if(count($cc) > 0) {
+    //             foreach ($cc as $key => $value) {
+    //                 $mail->addCC($value['email'], $value['name']);
+    //             }
+    //         }
+
+    //         //Content
+    //         $mail->isHTML(true);
+    //         $mail->Subject = $subject;
+    //         $mail->Body    = $message;
+    //         $mail->send();
+            
+    //     } catch (Exception $e) {
+    //         $_SESSION['toast_status'] = "Error";
+    //         $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+    //         header('Location: ./draft-approval-list.php');
+    //         exit();
+    //     }
+    // }
+
+    function sendEmail($email, $name, $subject, $message, $config, $fileUrl, $cc = [], $extraAttachments = []) {
         $mail = new PHPMailer(true);
         try {
-            $mail->isSMTP(); 
-            $mail->Host       = $config['host']; 
-            $mail->SMTPAuth   = true; 
+            $mail->isSMTP();
+            $mail->Host       = $config['host'];
+            $mail->SMTPAuth   = true;
             $mail->Username   = $config['smtp_username'];
-            $mail->Password   = $config['smtp_password']; 
+            $mail->Password   = $config['smtp_password'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port       = $config['port'] ?? 465;
 
-            //Recipients
             $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
-            $file_path = 'draft-benefit/'.$fileUrl.'.xlsx';
-            
+
+            // Attachment xlsx yang lama (kalau ada)
+            $file_path = 'draft-benefit/' . $fileUrl . '.xlsx';
             if (file_exists($file_path)) {
-                $mail->addAttachment($file_path, $fileUrl.'.xlsx');
+                $mail->addAttachment($file_path, $fileUrl . '.xlsx');
             }
 
-            $mail->addAddress($email, $name);
-            if(count($cc) > 0) {
-                foreach ($cc as $key => $value) {
-                    $mail->addCC($value['email'], $value['name']);
+            // 🔥 Attachment tambahan (doc benefit)
+            foreach ($extraAttachments as $att) {
+                // Format: ['name' => 'xxx.doc', 'content' => '<html>...', 'mime' => 'application/msword']
+                if (!empty($att['content']) && !empty($att['name'])) {
+                    $mail->addStringAttachment(
+                        $att['content'],
+                        $att['name'],
+                        PHPMailer::ENCODING_BASE64,
+                        $att['mime'] ?? 'application/octet-stream'
+                    );
                 }
             }
 
-            //Content
+            $mail->addAddress($email, $name);
+            foreach ($cc as $value) {
+                $mail->addCC($value['email'], $value['name']);
+            }
+
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $message;
             $mail->send();
-            
         } catch (Exception $e) {
             $_SESSION['toast_status'] = "Error";
             $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
@@ -291,6 +340,23 @@
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
             }else if($leadid3 == $approver_id) {
                 //mail for ec
+                require_once 'draft-benefit-doc-render.php';
+
+                // 🔥 MHTML mode biar logo muncul di Word
+                $docContent = renderBenefitDoc($conn, (int)$id_draft, [
+                    'mhtml' => true,
+                ]);
+
+                $extraAttachments = [];
+                if ($docContent !== '') {
+                    $safeSchool = preg_replace('/[^A-Za-z0-9_\- ]/', '', $school_name);
+                    $extraAttachments[] = [
+                        'name'    => 'Benefit - ' . $safeSchool . '.doc',
+                        'content' => $docContent,
+                        'mime'    => 'application/msword',
+                    ];
+                }
+
                 $subject = $year == 1 ? "Yeay, formulir $school_name sudah disetujui!" : "Yeay, formulir perubahan PK Tahun Ke-$year $school_name sudah disetujui!";
                 $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>". '<br><br>
 
@@ -328,7 +394,7 @@
                     'name' => "Novi"
                 ];
 
-                sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc);
+                sendEmail($email, $ecname, $subject, $message, $config, $fileUrl, $cc, $extraAttachments);
 
                 $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '70', '0');";
                 mysqli_query($conn,$sql);

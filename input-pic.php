@@ -84,9 +84,9 @@ if ($result->num_rows > 0) {
                 <td><a _blank="true" href='draft-benefit/<?= $fileUrl.".xlsx" ?>' data-toggle='tooltip' title='View Doc'><i class="fa fa-paperclip"></i> Document</a></td>
             </tr>
             <tr>
-                <td><strong>MPP Website</strong></td>
+                <td><strong>MP Website</strong></td>
                 <td>:</td>
-                <td><a href='<?= $config['mp_url'] ?>' target="_blank" data-toggle='tooltip' title='MPP Link'><i class="bi bi-link"></i> <?=  $config['mp_url'] ?></a></td>
+                <td><a href='<?= $config['mp_url'] ?>' target="_blank" data-toggle='tooltip' title='MP Link'><i class="bi bi-link"></i> <?=  $config['mp_url'] ?></a></td>
             </tr>
         </table>
 

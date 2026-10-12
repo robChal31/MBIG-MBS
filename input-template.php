@@ -173,7 +173,7 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                     </select>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk program MPP, jika pilih Yes, EC dapat menghapus benefit tersebut dari daftar benefit yang bisa diberikan</small>
                 </div>
-                <div class="col-3 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Subject</label>
                     <select name="subject" id="subject" class="form-control form-control-sm select2">
                         <option value="" selected>--Select Subject--</option>
@@ -199,17 +199,14 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Pilih warna highlight yang akan muncul untuk benefit ini</small>
                 </div>
 
-                <div class="col-3 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Redeemable</label>
-                    <select name="redeemable" id="redeemable" class="form-control form-control-sm select2" required>
-                        <option value="" disabled selected>--Select--</option>
-                        <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
-                        <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
-                    </select>
-                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka benefit ini dapat digunakan untuk daftar event/acara yang sesuai dari Hadiryuk dan AstaEduhub</small>
+                <div class="col-2 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Order</label>
+                    <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
+                    <input type="number" name="benefit_order" class="form-control form-control-sm" value="<?= $template['benefit_order'] ?? '' ?>" placeholder="benefit order..." required>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit dengan angka order yang lebih besar akan muncul di atas</small>
                 </div>
 
-                <div class="col-2 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">Manual Input Value</label>
                     <select name="manual_input" id="manual_input" class="form-control form-control-sm select2" required>
                         <option value="" disabled selected>--Select --</option>
@@ -219,31 +216,39 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka nilai benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
-                <div class="col-2 mb-3">
-                    <label class="form-label d-flex" style="font-size: .85rem;">Editable Quantity</label>
-                    <select name="editable_qty" id="editable_qty" class="form-control form-control-sm select2" required>
-                        <option value="" disabled selected>--Select --</option>
-                        <option value="1" <?= ($template['editable_qty'] ?? '') == '1' ? 'selected' : '' ?> >Yes</option>
-                        <option value="0" <?= ($template['editable_qty'] ?? '') == '0' ? 'selected' : '' ?> >No</option>
+                <div class="col-4 mb-3">
+                    <label class="form-label small text-muted d-block">Metode Perhitungan Qty</label>
+                    <select name="count_method" id="count_method" class="form-select form-select-sm select2" required>
+                        <option value="">-- Pilih Metode --</option>
+                        <option value="template" <?= ($template['count_method'] ?? '') == 'template' ? 'selected' : '' ?>>Sesuai Template</option>
+                        <option value="manual" <?= ($template['count_method'] ?? '') == 'manual' ? 'selected' : '' ?>>Input Manual oleh EC</option>
+                        <!-- <option value="subject" <?= ($template['count_method'] ?? '') == 'subject' ? 'selected' : '' ?>>Dikalikan Jumlah Subjek</option>
+                        <option value="level" <?= ($template['count_method'] ?? '') == 'level' ? 'selected' : '' ?>>Dikalikan Jumlah Level</option> -->
+                        <option value="subject_level" <?= ($template['count_method'] ?? '') == 'subject_level' ? 'selected' : '' ?>>Dikalikan Subjek × Level</option>
+                        <!-- <option value="book_series" <?= ($template['count_method'] ?? '') == 'book_series' ? 'selected' : '' ?>>Dikalikan Jumlah Seri Buku</option> -->
                     </select>
-                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka quantity benefit ini dapat disesuaikan oleh EC</small>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                        Menentukan bagaimana Qty Tahun 1/2/3 dihitung di setiap baris benefit.
+                    </small>
+                </div>
+               <div class="col-4 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Redeemable</label>
+                    <select name="redeemable" id="redeemable" class="form-control form-control-sm select2" required>
+                        <option value="" disabled selected>--Select--</option>
+                        <option value="0" <?= ($template['redeemable'] ?? '') == '0' ? 'selected' : '' ?>>No</option>
+                        <option value="1" <?= ($template['redeemable'] ?? '') == '1' ? 'selected' : '' ?>>Yes</option>
+                    </select>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka benefit ini dapat digunakan untuk daftar event/acara yang sesuai dari Hadiryuk dan AstaEduhub</small>
                 </div>
 
-                <div class="col-2 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Order</label>
-                    <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
-                    <input type="number" name="benefit_order" class="form-control form-control-sm" value="<?= $template['benefit_order'] ?? '' ?>" placeholder="benefit order..." required>
-                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit dengan angka order yang lebih besar akan muncul di atas</small>
-                </div>
-
-                <div class="col-3 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Info</label>
                     <span style="display: inline-block; color: #ddd; font-size: .65rem">&nbsp;</span>
                     <input type="text" name="info" class="form-control form-control-sm" value="<?= $template['info'] ?? '' ?>" placeholder="info...">
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Info benefit yang akan tampil ketika EC pilih benefit</small>
                 </div>
 
-                <div class="col-3 mb-3">
+                <div class="col-4 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Enable Book Selection</label>
                     <select name="book_selection" id="book_selection" class="form-control form-control-sm select2">
                        <option value="" disabled selected>--Select--</option>
@@ -253,24 +258,14 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka benefit ini dapat disesuaikan oleh EC untuk menentukan buku yang akan digunakan</small>
                 </div>
 
-                <div class="col-3 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Enable EC Select Subject</label>
-                    <select name="multiple_subject" id="multiple_subject" class="form-control form-control-sm select2">
+                <div class="col-4 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Enable EC Select Multiple Subject and Level</label>
+                    <select name="allow_multiple_subject_and_level" id="allow_multiple_subject_and_level" class="form-control form-control-sm select2">
                        <option value="" disabled selected>--Select--</option>
-                       <option value="0" <?= ($template['multiple_subject'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
-                       <option value="1" <?= ($template['multiple_subject'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
+                       <option value="0" <?= ($template['allow_multiple_subject_and_level'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
+                       <option value="1" <?= ($template['allow_multiple_subject_and_level'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
                     </select>
-                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka subject dari benefit ini dapat disesuaikan oleh EC</small>
-                </div>
-
-                <div class="col-3 mb-3">
-                    <label class="form-label" style="font-size: .85rem;">Enable EC Select Level</label>
-                    <select name="multiple_level" id="multiple_level" class="form-control form-control-sm select2">
-                       <option value="" disabled selected>--Select--</option>
-                       <option value="0" <?= ($template['multiple_level'] ?? '') == 0 ? 'selected' : '' ?>>No</option>
-                       <option value="1" <?= ($template['multiple_level'] ?? '') == 1 ? 'selected' : '' ?>>Yes</option>
-                    </select>
-                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka level dari benefit ini dapat disesuaikan oleh EC</small>
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka level dan subject dari benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
                 <div class="col-6 mb-3">

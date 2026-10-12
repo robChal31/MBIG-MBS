@@ -117,7 +117,7 @@
                                             <?php if($row['is_pk']) : ?>
                                                 <li>
                                                     <a class="dropdown-item text-primary" href="<?= $config['mp_url'] ?>" target="_blank" title="Qty manfaat PK3 refill tiap Juli">
-                                                        <i class="fa fa-link me-2"></i> MPP Portal
+                                                        <i class="fa fa-link me-2"></i> MP Portal
                                                     </a>
                                                 </li>
                                             <?php endif; ?>

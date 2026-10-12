@@ -1,6 +1,13 @@
 <?php
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+ini_set('display_startup_errors', '1');
+
 include 'db_con.php';
 session_start();
+
+// Kalau mysqli throw exception, biar ke-catch
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
 if (!isset($_SESSION['username'])) {
     header("Location: ./index.php");
@@ -30,46 +37,40 @@ $draft = mysqli_fetch_assoc($result) or die('Data draft tidak ditemukan');
 // 2. AMBIL DATA BENEFIT
 // ==================================================
 $sql = "SELECT 
-            dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.pelaksanaan, b.multiple_subject, b.multiple_level,
-            dbl.qty, dbl.qty2, dbl.qty3, b.satuan, COUNT(bs.subject_id) AS total_subject, COUNT(bol.level_id) AS total_level,
+            dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.pelaksanaan, b.allow_multiple_subject_and_level, b.count_method,
+            dbl.qty, dbl.qty2, dbl.qty3, b.qty1 as qty1_template, b.qty2 as qty2_template, b.qty3 as qty3_template, b.satuan,
+            COUNT(DISTINCT bsl.id) AS total_combination,
+            COUNT(DISTINCT bsl.subject_id) AS total_subject,
+            COUNT(DISTINCT bol.level_id) AS total_level,
             COALESCE(
                 GROUP_CONCAT(
-                    DISTINCT s.name 
-                    ORDER BY s.name 
+                    DISTINCT CONCAT(s.name, '|', ol.name)
                     SEPARATOR ', '
                 ), 
                 ''
-            ) AS subject_ids,
-
+            ) AS subject_level_pairs,
             COALESCE(
                 GROUP_CONCAT(
-                    DISTINCT ol.name 
-                    ORDER BY ol.name 
+                    DISTINCT bs.name
+                    ORDER BY bs.name
                     SEPARATOR ', '
                 ), 
                 ''
-            ) AS level_ids,
-
-            COALESCE(
-                GROUP_CONCAT(
-                    DISTINCT bbs.book_series_id 
-                    ORDER BY bbs.book_series_id 
-                    SEPARATOR ', '
-                ), 
-                ''
-            ) as book_series
+            ) AS book_series_names
         FROM draft_benefit_list dbl
         LEFT JOIN draft_template_benefit b ON b.id_template_benefit = dbl.id_template
-        LEFT JOIN benefit_subjects bs ON bs.draft_benefit_list_id = dbl.id_benefit_list
         LEFT JOIN benefit_org_levels bol ON bol.draft_benefit_list_id = dbl.id_benefit_list
-        LEFT JOIN subjects s ON s.id = bs.subject_id
+        LEFT JOIN benefit_subject_levels bsl ON bsl.benefit_org_levels_id = bol.id
+        LEFT JOIN subjects s ON s.id = bsl.subject_id
         LEFT JOIN levels ol ON ol.id = bol.level_id
-        LEFT JOIN benefit_book_series as bbs on bbs.draft_benefit_list_id = dbl.id_benefit_list
+        LEFT JOIN benefit_book_series bbs ON bbs.draft_benefit_list_id = dbl.id_benefit_list
+        LEFT JOIN book_series bs ON bs.id = bbs.book_series_id
         WHERE dbl.id_draft = $id_draft
         GROUP BY dbl.id_benefit_list 
-        ORDER BY dbl.id_benefit_list ASC 
+        ORDER BY dbl.id_benefit_list ASC
         ";
-$benefits = mysqli_query($conn, $sql) ? mysqli_fetch_all(mysqli_query($conn, $sql), MYSQLI_ASSOC) : [];
+$benefit_result = mysqli_query($conn, $sql);
+$benefits = $benefit_result ? mysqli_fetch_all($benefit_result, MYSQLI_ASSOC) : [];
 
 // ==================================================
 // 3. HELPER FUNCTIONS
@@ -118,6 +119,9 @@ function cleanBenefitName($string)
         return '';
     }
 
+    // 🔥 Decode HTML entities dulu (&#38; → &, &amp; → &, dll)
+    $string = html_entity_decode($string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
     // Hapus nomor di awal: "1. ", "2. ", "10. ", dst
     $string = preg_replace('/^\d+\.\s*/', '', trim($string));
 
@@ -138,6 +142,96 @@ function cleanBenefitName($string)
     return $string;
 }
 
+function formatSubjectLevelBreakdown($qty, $satuan, $item)
+{
+    $countMethod = $item['count_method'] ?? 'template';
+
+    // 🔥 Cuma subject_level yang punya breakdown
+    if ($countMethod !== 'subject_level') return '';
+
+    if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '';
+    if (empty($item['subject_level_pairs'])) return '';
+
+    $qty    = (float)$qty;
+    $satuan = trim((string)$satuan);
+
+    // Parse pairs
+    $pairs = [];
+    foreach (explode(',', $item['subject_level_pairs']) as $pair) {
+        $pair = trim($pair);
+        if ($pair === '') continue;
+        $parts = explode('|', $pair);
+        $subj = trim($parts[0] ?? '');
+        $lvl  = trim($parts[1] ?? '');
+        if ($subj === '' && $lvl === '') continue;
+        $pairs[] = ['subject' => $subj, 'level' => $lvl];
+    }
+
+    usort($pairs, function($a, $b) {
+        $cmp = strcasecmp($a['level'], $b['level']);
+        if ($cmp !== 0) return $cmp;
+        return strcasecmp($a['subject'], $b['subject']);
+    });
+
+
+    if (empty($pairs)) return '';
+
+    // 🔥 Per kombinasi = qty_db / jumlah kombinasi
+    $qtyPerCombination = $qty / count($pairs);
+
+    if (floor($qtyPerCombination) == $qtyPerCombination) {
+        $qtyText = (int)$qtyPerCombination;
+    } else {
+        $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
+    }
+
+    $html  = '<div class="breakdown">';
+    $html .= '<span class="breakdown-title">Rincian per Subjek &amp; Level:</span>';
+
+    foreach ($pairs as $pair) {
+        $line = '&bull; ';
+        if ($pair['subject'] !== '' && $pair['level'] !== '') {
+            $line .= esc($pair['subject']) . ' (' . esc($pair['level']) . ')';
+        } elseif ($pair['subject'] !== '') {
+            $line .= esc($pair['subject']);
+        } else {
+            $line .= esc($pair['level']);
+        }
+        $line .= ' : ' . esc($qtyText);
+        if ($satuan !== '') {
+            $line .= ' ' . esc($satuan);
+        }
+        $html .= '<span class="breakdown-line">' . $line . '</span>';
+    }
+
+    $html .= '</div>';
+    return $html;
+}
+
+function formatBookSeriesList($item)
+{
+    if (empty($item['book_series_names'])) {
+        return '';
+    }
+
+    // Parse nama series
+    $series = array_filter(
+        array_map('trim', explode(',', $item['book_series_names']))
+    );
+
+    if (empty($series)) return '';
+
+    $html  = '<div class="book-series">';
+    $html .= '<span class="book-series-title">Book Series:</span>';
+
+    foreach ($series as $s) {
+        $html .= '<span class="book-series-line">&bull; ' . esc($s) . '</span>';
+    }
+
+    $html .= '</div>';
+
+    return $html;
+}
 $logo_program = imageToDataUri(__DIR__ . '/img/prestasi-logo.png');
 $logo_mentari = imageToDataUri(__DIR__ . '/img/comp-logo.png');
 
@@ -156,83 +250,66 @@ function displayBenefitQty($qty, $satuan, $item)
         return '-';
     }
 
-    $qty = (float)$qty;
+    $qty    = (float)$qty;
     $satuan = trim((string)$satuan);
 
-    $multipleSubject = (int)($item['multiple_subject'] ?? 0) === 1;
-    $multipleLevel   = (int)($item['multiple_level'] ?? 0) === 1;
+    $countMethod = $item['count_method'] ?? 'template';
 
-    // Pecah subject
-    $subjects = [];
-
-    if ($multipleSubject && !empty($item['subject_ids'])) {
-        $subjects = array_filter(
-            array_map('trim', explode(',', $item['subject_ids']))
-        );
+    // 🔥 Hanya subject_level yang pakai breakdown
+    if ($countMethod !== 'subject_level') {
+        $text = (floor($qty) == $qty) ? (int)$qty : $qty;
+        $text = esc($text);
+        if ($satuan !== '') {
+            $text .= ' ' . esc($satuan);
+        }
+        return $text;
     }
 
-    // Pecah level
-    $levels = [];
-
-    if ($multipleLevel && !empty($item['level_ids'])) {
-        $levels = array_filter(
-            array_map('trim', explode(',', $item['level_ids']))
-        );
+    // Parse pairs
+    $pairs = [];
+    if (!empty($item['subject_level_pairs'])) {
+        foreach (explode(',', $item['subject_level_pairs']) as $pair) {
+            $pair = trim($pair);
+            if ($pair === '') continue;
+            $parts = explode('|', $pair);
+            $pairs[] = [
+                'subject' => trim($parts[0] ?? ''),
+                'level'   => trim($parts[1] ?? ''),
+            ];
+        }
     }
 
-    // Kalau tidak menggunakan subject
-    if (!$multipleSubject) {
-        $subjects = [''];
+    if (empty($pairs)) {
+        $text = (floor($qty) == $qty) ? (int)$qty : $qty;
+        $text = esc($text);
+        if ($satuan !== '') {
+            $text .= ' ' . esc($satuan);
+        }
+        return $text;
     }
 
-    // Kalau tidak menggunakan level
-    if (!$multipleLevel) {
-        $levels = [''];
+    // 🔥 Per kombinasi = qty_db / jumlah kombinasi
+    $qtyPerCombination = $qty / count($pairs);
+
+    if (floor($qtyPerCombination) == $qtyPerCombination) {
+        $qtyText = (int)$qtyPerCombination;
+    } else {
+        $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
     }
-
-    // Pastikan minimal ada satu kombinasi
-    if (empty($subjects)) {
-        $subjects = [''];
-    }
-
-    if (empty($levels)) {
-        $levels = [''];
-    }
-
-    // Total kombinasi
-    $totalCombination = count($subjects) * count($levels);
-
-    // Qty dibagi rata ke semua kombinasi
-    $qtyPerCombination = $qty / $totalCombination;
 
     $results = [];
-
-    foreach ($levels as $level) {
-        foreach ($subjects as $subject) {
-
-            $qtyText = $qtyPerCombination;
-
-            // Hilangkan .0 kalau angka bulat
-            if (floor($qtyText) == $qtyText) {
-                $qtyText = (int)$qtyText;
-            }
-
-            $text = esc($qtyText);
-
-            if ($satuan !== '') {
-                $text .= ' ' . esc($satuan);
-            }
-
-            if ($subject !== '') {
-                $text .= ' / ' . esc($subject);
-            }
-
-            if ($level !== '') {
-                $text .= ' / ' . esc($level);
-            }
-
-            $results[] = $text;
+    foreach ($pairs as $pair) {
+        $text = esc($qtyText);
+        if ($satuan !== '') {
+            $text .= ' ' . esc($satuan);
         }
+        if ($pair['subject'] !== '') {
+            $text .= ' / ' . esc($pair['subject']);
+        }
+        if ($pair['level'] !== '') {
+            $text .= ' / ' . esc($pair['level']);
+        }
+        $results[] = $text;
     }
 
     return implode('<br>', $results);
@@ -461,6 +538,40 @@ function displayBenefitQty($qty, $satuan, $item)
                 box-shadow: none;
             }
         }
+
+        .breakdown {
+            margin-top: 2mm;
+            padding-top: 1.5mm;
+            border-top: 1px dashed #999;
+            font-size: 7.5pt;
+            line-height: 1.3;
+        }
+        .breakdown-title {
+            display: block;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 0.8mm;
+        }
+        .breakdown-line {
+            display: block;
+        }
+        /* ===== BOOK SERIES ===== */
+        .book-series {
+            margin-top: 2mm;
+            padding-top: 1.5mm;
+            border-top: 1px dashed #999;
+            font-size: 7.5pt;
+            line-height: 1.3;
+        }
+        .book-series-title {
+            display: block;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 0.8mm;
+        }
+        .book-series-line {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -538,15 +649,29 @@ function displayBenefitQty($qty, $satuan, $item)
             <?php
             $no = 1;
             foreach ($benefits as $item):
-                $qty1 = $item['qty1'] ?? $item['qty'] ?? 0;
+                $qty1 = $item['qty'] ?? 0;
                 $qty2 = $item['qty2'] ?? 0;
                 $qty3 = $item['qty3'] ?? 0;
                 $name = $item['benefit_name'] ?? $item['benefit'] ?? '-';
                 $cleanedName = cleanBenefitName($name);
                 $desc = formatDescription($item['description'] ?? '');
+
                 if ($pel = trim((string)($item['pelaksanaan'] ?? ''))) {
                     $desc .= '<span class="pelaksanaan">' . esc($pel) . '</span>';
                 }
+
+                // 🔥 Breakdown per subjek & level — conditional by count_method (sudah dihandle di function)
+                $breakdown = formatSubjectLevelBreakdown($qty1, $item['satuan'] ?? '', $item);
+                if ($breakdown !== '') {
+                    $desc .= $breakdown;
+                }
+                // 🔥 Book Series
+                $bookSeriesHtml = formatBookSeriesList($item);
+                if ($bookSeriesHtml !== '') {
+                    $desc .= $bookSeriesHtml;
+                }
+
+
             ?>
                 <tr>
                     <td class="col-no"><?= $no++ ?></td>
@@ -555,15 +680,16 @@ function displayBenefitQty($qty, $satuan, $item)
                         <?= $desc ?>
                     </td>
                     <td class="col-year">
-                        <?= displayBenefitQty($qty1, $item['satuan'] ?? '', $item) ?>
+                        <!-- <?= displayBenefitQty($qty1, $item['satuan'] ?? '', $item) ?> -->
+                        <?= $qty1 ? ($qty1 . ' ' . $item['satuan']) : '-' ?>
                     </td>
-
                     <td class="col-year">
-                        <?= displayBenefitQty($qty2, $item['satuan'] ?? '', $item) ?>
+                        <!-- <?= displayBenefitQty($qty2, $item['satuan'] ?? '', $item) ?> -->
+                        <?= $qty2 ? ($qty2 . ' ' . $item['satuan']) : '-' ?>
                     </td>
-
                     <td class="col-year">
-                        <?= displayBenefitQty($qty3, $item['satuan'] ?? '', $item) ?>
+                        <!-- <?= displayBenefitQty($qty3, $item['satuan'] ?? '', $item) ?> -->
+                        <?= $qty3 ? ($qty3 . ' ' . $item['satuan']) : '-' ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

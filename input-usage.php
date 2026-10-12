@@ -96,6 +96,26 @@ if (!$result || $result->num_rows == 0) {
 }
 
 $usages = mysqli_fetch_assoc($result);
+$subjects = [];
+if(count($usages)) {
+    $id_bl = $usages['id_benefit_list'];
+
+    $q2 = "SELECT bol.level_id, bsl.subject_id, subs.name as subject
+            FROM benefit_subject_levels bsl
+            LEFT JOIN benefit_org_levels bol ON bol.id = bsl.benefit_org_levels_id
+            LEFT JOIN subjects as subs on subs.id = bsl.subject_id
+            WHERE bol.draft_benefit_list_id = $id_bl GROUP BY bsl.subject_id";
+    $r2 = mysqli_query($conn, $q2);
+    echo '<br />';
+
+    if ($r2) {
+        while ($pair = mysqli_fetch_assoc($r2)) {
+            array_push($subjects, $pair['subject']);
+        }
+    }
+    $subjects = implode(';', $subjects);
+}
+
 
 if (($now > $expiredDate) && $usages['redeemable'] == 1) {
     echo '<div class="alert alert-danger">Benefit sudah melewati expired date</div>';
@@ -222,7 +242,7 @@ Nama Peserta: </textarea>
 
 <script>
     group = '<?= $group ?>';
-    subject = '<?= $subject ?>';
+    subject = '<?= $subjects != '' ? $subjects : $subject ?>';
     event_group_code = '<?= $event_group_code ?>';
     $(document).ready(function() {
         $('.select2').select2({
