@@ -349,21 +349,30 @@
                     <?php 
                       $tid = $data_template['id_template_benefit'];
                       $level_subject_map = $data_template['level_subject_map'] ?? [];
+
+                      /* ===== Filter banned level KHUSUS row ini ===== */
+                      $banned_per_row = !empty($data_template['banned_level_ids']) 
+                          ? array_map('trim', explode(',', $data_template['banned_level_ids'])) 
+                          : [];
+                      $banned_per_row = array_values(array_filter($banned_per_row, fn($v) => $v !== ''));
+
+                      /* ===== Visible levels = $all_levels - banned_row ===== */
+                      $visible_levels = array_values(array_filter($all_levels, function($l) use ($banned_per_row) {
+                          return !in_array((string)$l['id'], $banned_per_row, true);
+                      }));
                     ?>
 
-                    <?php if($data_template['allow_multiple_subject_and_level'] == 1) { ?>
-                      <div class="lv-grid" style="--cols: <?= count($all_levels) ?>;">
+                    <?php if($data_template['allow_multiple_subject_and_level'] == 1 && count($visible_levels) > 0) { ?>
+                      <div class="lv-grid" style="--cols: <?= count($visible_levels) ?>;">
 
-                        <?php 
-                          // Header level
-                          foreach($all_levels as $l): ?>
-                            <div class="lv-head"><?= htmlspecialchars($l['name']) ?></div>
+                        <?php // ===== Headers ===== ?>
+                        <?php foreach($visible_levels as $l): ?>
+                          <div class="lv-head"><?= htmlspecialchars($l['name']) ?></div>
                         <?php endforeach; ?>
 
-                        <?php 
-                          // Select per level
-                          foreach($all_levels as $l): 
-                            $saved = $level_subject_map[$l['id']] ?? [];
+                        <?php // ===== Select per visible level ===== ?>
+                        <?php foreach($visible_levels as $l): 
+                          $saved = $level_subject_map[$l['id']] ?? [];
                         ?>
                           <div class="lv-cell">
                             <select name="pairs_<?= $tid ?>[<?= $l['id'] ?>][]" class="select2 lv-subj-select2" multiple>

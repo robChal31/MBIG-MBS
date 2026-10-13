@@ -357,13 +357,58 @@
                     ];
                 }
 
-                $subject = $year == 1 ? "Yeay, formulir $school_name sudah disetujui!" : "Yeay, formulir perubahan PK Tahun Ke-$year $school_name sudah disetujui!";
-                $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>". '<br><br>
+                /* ===== Fetch PIC dari school_pic ===== */
+                $pic_rows = [];
+                $pic_q = mysqli_query($conn, "SELECT name, jabatan, no_tlp, email 
+                                            FROM school_pic 
+                                            WHERE id_draft = '$id_draft'
+                                            ORDER BY id ASC");
+                if ($pic_q && mysqli_num_rows($pic_q) > 0) {
+                    while ($p = mysqli_fetch_assoc($pic_q)) {
+                        $pic_rows[] = $p;
+                    }
+                }
+                $subject = $year == 1 
+                    ? "Yeay, formulir $school_name sudah disetujui!" 
+                    : "Yeay, formulir perubahan PK Tahun Ke-$year $school_name sudah disetujui!";
 
-                            <strong>Notes dari Approver:</strong><br>
-                            <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars($notes)).'
-                            </div>';
+                /* ===== Build PIC HTML table ===== */
+                $pic_html = '';
+                if (!empty($pic_rows)) {
+                    $pic_html .= '
+                        <br><br>
+                        <strong>Informasi PIC Sekolah:</strong>
+                        <table cellpadding="8" cellspacing="0" border="0" 
+                            style="border-collapse:collapse; width:100%; margin-top:8px; font-size:13px; background:#ffffff; border:1px solid #dee2e6;">
+                            <thead>
+                                <tr style="background:#f1f3f5;">
+                                    <th style="text-align:left; border:1px solid #dee2e6; padding:8px;">Nama</th>
+                                    <th style="text-align:left; border:1px solid #dee2e6; padding:8px;">Jabatan</th>
+                                    <th style="text-align:left; border:1px solid #dee2e6; padding:8px;">No. Telp</th>
+                                    <th style="text-align:left; border:1px solid #dee2e6; padding:8px;">Email</th>
+                                </tr>
+                            </thead>
+                            <tbody>';
+
+                    foreach ($pic_rows as $p) {
+                        $pic_html .= '<tr>
+                            <td style="border:1px solid #dee2e6; padding:8px;">' . htmlspecialchars($p['name'] ?? '-') . '</td>
+                            <td style="border:1px solid #dee2e6; padding:8px;">' . htmlspecialchars($p['jabatan'] ?? '-') . '</td>
+                            <td style="border:1px solid #dee2e6; padding:8px;">' . htmlspecialchars($p['no_tlp'] ?? '-') . '</td>
+                            <td style="border:1px solid #dee2e6; padding:8px;">' . htmlspecialchars($p['email'] ?? '-') . '</td>
+                        </tr>';
+                    }
+
+                    $pic_html .= '</tbody></table>';
+                }
+
+                $message = "<p>Yeay, formulir $uc_program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>"
+                    . '<br><br>
+                        <strong>Notes dari Approver:</strong><br>
+                        <div style=\"background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;\">
+                            ' . nl2br(htmlspecialchars($notes)) . '
+                        </div>'
+                    . $pic_html;
                 
                 $cc = [];
                 if(ISSET($saemail)) {

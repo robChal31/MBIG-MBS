@@ -577,8 +577,7 @@ ini_set('display_errors', 1);
   }
 
   function getAllBenefits(program, levels = [], subjects = []) {
-    console.log('countChanges:', countChanges);
-    console.log('idDraft:', idDraft);
+
     $.ajax({
       url: './get_benefits_pk.php',
       type: 'GET',
