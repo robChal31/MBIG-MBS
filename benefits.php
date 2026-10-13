@@ -528,7 +528,7 @@
             dom: '<"d-flex justify-content-between align-items-center mb-2"<"dt-buttons"B><"dt-search"f>>rt<"d-flex justify-content-between align-items-center mt-2"<"dt-info"i><"dt-length"l><"dt-paging"p>>',
             pageLength: 10,
             searchDelay: 1200,
-            lengthMenu: [10, 20, 50, 100],
+            lengthMenu: [10, 20, 50, 100, 1000],
             order: [[8, 'desc']],
             createdRow: function(row, data, dataIndex) {
                 if (data.row_class) {
