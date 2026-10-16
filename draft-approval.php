@@ -36,14 +36,19 @@ $config = require 'config.php';
     if(mysqli_affected_rows($conn) == 1){
         // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
         $sql = "SELECT 
-                    db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, leader.id_user as leader_id, 
-                    leader.leadid, db.school_name, db.program, leader.sa_email, leader.generalname as approver_name
-                FROM draft_approval da 
-                LEFT JOIN draft_benefit db on db.id_draft = da.id_draft 
-                LEFT JOIN user leader on da.id_user_approver = leader.id_user
-                LEFT join user as ec on ec.id_user = db.id_ec  
-                WHERE da.token = '$token'
-                AND db.id_draft = $id_draft";
+            db.fileUrl, db.segment, ec.username, ec.generalname, ec.id_user as ec_id_user, 
+            leader.id_user as leader_id, 
+            us.leadid  as approver_leadid,
+            us.leadid2 as approver_leadid2,
+            us.leadid3 as approver_leadid3,
+            db.school_name, db.program, leader.sa_email, leader.generalname as approver_name
+        FROM draft_approval da 
+        LEFT JOIN draft_benefit db on db.id_draft = da.id_draft 
+        LEFT JOIN user leader on da.id_user_approver = leader.id_user
+        LEFT JOIN user as ec on ec.id_user = db.id_ec  
+        LEFT JOIN user_segments us ON us.id_user = leader.id_user AND us.segment_id = db.segment
+        WHERE da.token = '$token'
+        AND db.id_draft = $id_draft";
         $result = mysqli_query($conn,$sql);
 
         while ($dra = $result->fetch_assoc()){
@@ -54,7 +59,7 @@ $config = require 'config.php';
             $ecname = $dra['generalname'];
             $approver_name = $dra['approver_name'];
             $saemail = $dra['sa_email'];
-            $leadid = $dra['leadid'];
+            $leadid = $dra['approver_leadid'] ?: ($dra['approver_leadid2'] ?: $dra['approver_leadid3']);
         }
     }else{
         exit("Sudah pernah approve. Operation terminated");

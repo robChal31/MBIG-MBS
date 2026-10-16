@@ -51,21 +51,23 @@
 
                             <tbody>
                             <?php
-                            $sql = "SELECT mpu.*, user.*, sc.name as school_name
-                                        FROM myplan_update AS mpu
-                                        LEFT JOIN myplan AS mp ON mp.id = mpu.myplan_id
-                                        LEFT JOIN schools AS sc ON sc.id = mp.school_id
-                                        LEFT JOIN user ON mp.user_id = user.id_user
-                                        LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
-                                        WHERE mp.deleted_at IS NULL
-                                        AND mp.id = $myplan_id";
+                                $sql = "SELECT mpu.*, user.*, sc.name as school_name
+                                            FROM myplan_update AS mpu
+                                            LEFT JOIN myplan AS mp ON mp.id = mpu.myplan_id
+                                            LEFT JOIN schools AS sc ON sc.id = mp.school_id
+                                            LEFT JOIN user ON mp.user_id = user.id_user
+                                            LEFT JOIN draft_benefit db ON db.myplan_id = mp.id
+                                            LEFT JOIN user_segments us ON us.id_user = mp.user_id AND us.segment_id = db.segment
+                                            LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
+                                            WHERE mp.deleted_at IS NULL
+                                            AND mp.id = $myplan_id";
 
-                            if ($role == 'ec') {
-                                $sql .= " AND (mp.user_id = $id_user
-                                        OR user.leadId = $id_user
-                                        OR user.leadId2 = $id_user
-                                        OR user.leadId3 = $id_user)";
-                            }
+                                if ($role == 'ec') {
+                                    $sql .= " AND (mp.user_id = $id_user
+                                            OR us.leadid  = $id_user
+                                            OR us.leadid2 = $id_user
+                                            OR us.leadid3 = $id_user)";
+                                }
 
                             $sql .= " ORDER BY mpu.created_at DESC";
                             $result = mysqli_query($conn, $sql);

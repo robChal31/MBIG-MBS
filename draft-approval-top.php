@@ -23,17 +23,23 @@
     mysqli_query($conn, $sql);
     $leadid =  null;
     if(mysqli_affected_rows($conn) == 1){
-        $sql = "select * from draft_benefit a left join user b on a.id_ec = b.id_user where id_draft = $id_draft";
+        $sql = "SELECT a.fileUrl, a.school_name, a.program, 
+                    b.username, b.generalname, b.sa_email,
+                    us.leadid as seg_leadid, us.leadid2 as seg_leadid2, us.leadid3 as seg_leadid3
+                FROM draft_benefit a 
+                LEFT JOIN user b ON a.id_ec = b.id_user 
+                LEFT JOIN user_segments us ON us.id_user = a.id_ec AND us.segment_id = a.segment
+                WHERE a.id_draft = $id_draft";
         $result = mysqli_query($conn,$sql);
 
         while ($dra = $result->fetch_assoc()){
-            $fileUrl = $dra['fileUrl'];
-            $email  = $dra['username'];
+            $fileUrl     = $dra['fileUrl'];
+            $email       = $dra['username'];
             $school_name = $dra['school_name'];
-            $program = $dra['program'];
-            $ecname = $dra['generalname'];
-            $saemail = $dra['sa_email'];
-            $leadid = $dra['leadid'];
+            $program     = $dra['program'];
+            $ecname      = $dra['generalname'];
+            $saemail     = $dra['sa_email'];
+            $leadid      = $dra['seg_leadid'] ?: ($dra['seg_leadid2'] ?: $dra['seg_leadid3']);
         }
     }
     if(!is_null($leadid)){

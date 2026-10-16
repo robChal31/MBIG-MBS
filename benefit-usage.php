@@ -39,15 +39,25 @@
                                 $id_user = $_SESSION['id_user'];
 
                                 $sql = "SELECT 
-                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2,
-                                            c.generalname, pk.id as pk_id, b.verified, a.token, b.deleted_at, b.fileUrl, pk.file_pk, pk.no_pk, pk.start_at, pk.expired_at, pk.created_at
+                                            b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.school_name, b.segment, b.program, 
+                                            IFNULL(sc.name, b.school_name) as school_name2,
+                                            c.generalname, pk.id as pk_id, b.verified, a.token, 
+                                            b.deleted_at, b.fileUrl, pk.file_pk, pk.no_pk, pk.start_at, pk.expired_at, pk.created_at,
+                                            seg.segment as segment_name
                                         FROM draft_benefit b
                                         LEFT JOIN draft_approval as a on a.id_draft = b.id_draft AND a.id_user_approver = $id_user
                                         LEFT JOIN schools sc on sc.id = b.school_name
                                         LEFT JOIN user c on c.id_user = b.id_ec 
+                                        LEFT JOIN segments as seg on seg.id = b.segment
+                                        LEFT JOIN user_segments us ON us.id_user = b.id_ec AND us.segment_id = b.segment
                                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
+
                                 if($_SESSION['role'] == 'ec'){
-                                    $sql .= " WHERE (a.id_user_approver = $id_user or c.leadId = $id_user or c.leadid2 = $id_user or c.leadid3 = $id_user or b.id_ec = $id_user) ";
+                                    $sql .= " WHERE (a.id_user_approver = $id_user 
+                                            OR us.leadid  = $id_user 
+                                            OR us.leadid2 = $id_user 
+                                            OR us.leadid3 = $id_user 
+                                            OR b.id_ec = $id_user) ";
                                     $sql_q = " AND ";
                                 }
 
@@ -66,7 +76,7 @@
                                             <td><?= $row['no_pk'] ?></td>
                                             <td><?= $row['generalname'] ?></td>
                                             <td><?= $row['school_name2'] ?></td>
-                                            <td><?= ucfirst($row['segment']) ?></td>
+                                            <td><?= ucfirst($row['segment_name'] ?? $row['segment']) ?></td>
                                             <td><?= $row['start_at'] ?></td>
                                             <td><?= $row['expired_at'] ?></td>
                                             <td><?= $row['program'] ?></td>

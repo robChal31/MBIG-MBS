@@ -4,11 +4,15 @@ $dbl = [];
 
 $dbl_q = "SELECT bir.id, bir.period, bir.file,
             b.id_draft, b.status, b.date, b.id_user, b.id_ec, b.segment, b.program, IFNULL(sc.name, b.school_name) as school_name2, b.alokasi, b.year, c.generalname, pk.id as pk_id, b.verified, b.deleted_at, b.fileUrl, pk.file_pk, 
-            pk.no_pk, pk.start_at, pk.expired_at, pk.created_at, b.confirmed, b.jenis_pk, c.leadId
+            pk.no_pk, pk.start_at, pk.expired_at, pk.created_at, b.confirmed, b.jenis_pk,
+            us.leadid  AS seg_leadid,
+            us.leadid2 AS seg_leadid2,
+            us.leadid3 AS seg_leadid3
         FROM benefit_imp_report AS bir
         LEFT JOIN draft_benefit AS b on b.id_draft = bir.id_draft
         LEFT JOIN schools sc on sc.id = b.school_name
         LEFT JOIN user c on c.id_user = b.id_ec 
+        LEFT JOIN user_segments us ON us.id_user = b.id_ec AND us.segment_id = b.segment
         LEFT JOIN pk pk on pk.benefit_id = b.id_draft
         WHERE bir.id = $bir_id";
 $dbl_exec = mysqli_query($conn, $dbl_q);
@@ -17,35 +21,49 @@ if ($dbl_exec && mysqli_num_rows($dbl_exec) > 0) {
     $dbl = mysqli_fetch_assoc($dbl_exec);
 }
 
-$school_name = $dbl['school_name2'] ? trim($dbl['school_name2']) : null;
-$segment = $dbl['segment'] ?? null;
-$program = $dbl['program'] ?? null;
-$alokasi = $dbl['alokasi'] ?? null;
-$year = $dbl['year'] ?? null;
-$generalname = $dbl['generalname'] ?? null;
-$no_pk = $dbl['no_pk'] ?? null;
-$start_at = $dbl['start_at'] ?? null;
-$expired_at = $dbl['expired_at'] ?? null;
-$created_at = $dbl['created_at'] ?? null;
-$leadId = $dbl['leadId'] ?? null;
-$period = $dbl['period'] ?? null;
+$school_name  = $dbl['school_name2'] ? trim($dbl['school_name2']) : null;
+$segment      = $dbl['segment'] ?? null;
+$program      = $dbl['program'] ?? null;
+$alokasi      = $dbl['alokasi'] ?? null;
+$year         = $dbl['year'] ?? null;
+$generalname  = $dbl['generalname'] ?? null;
+$no_pk        = $dbl['no_pk'] ?? null;
+$start_at     = $dbl['start_at'] ?? null;
+$expired_at   = $dbl['expired_at'] ?? null;
+$created_at   = $dbl['created_at'] ?? null;
+$period       = $dbl['period'] ?? null;
+$id_ec_r      = $dbl['id_ec'] ?? null;
 
-$leaderId   = null;
-$sql        = "Select * from user where id_user='$id_ec_r';";
-$ress       = mysqli_query($conn, $sql);
+// Chain dari user_segments (sesuai segment draft)
+$leadid_seg   = $dbl['seg_leadid']  ?? null;
+$leadid2_seg  = $dbl['seg_leadid2'] ?? null;
+$leadid3_seg  = $dbl['seg_leadid3'] ?? null;
+
 $leaderEmail = '';
-$leaderName = '';
-$ec_name = '';
-$ec_email = '';
-while ($datt = mysqli_fetch_assoc($ress)){
-    $leaderId  = $datt['leadid3'];
-    $ec_name   = $datt['generalname'];
-    $ec_email  = $datt['username'];
-    $sql        = "SELECT username, generalname from user where id_user = '$leaderId';";
-    $ress       = mysqli_query($conn,$sql);
-    while ($datt = mysqli_fetch_assoc($ress)){
-        $leaderName     = $datt['generalname'];
-        $leaderEmail    = $datt['username'];
+$leaderName  = '';
+$ec_name     = '';
+$ec_email    = '';
+
+// EC info
+if (!empty($id_ec_r)) {
+    $sql  = "SELECT generalname, username FROM user WHERE id_user = '$id_ec_r' LIMIT 1";
+    $ress = mysqli_query($conn, $sql);
+    if ($ress && $datt = mysqli_fetch_assoc($ress)) {
+        $ec_name  = $datt['generalname'];
+        $ec_email = $datt['username'];
+    }
+}
+
+// Leader info - ambil leadid3 dari user_segments (fallback leadid/leadid2 kalau leadid3 kosong)
+$leaderId = $leadid3_seg ?: ($leadid2_seg ?: $leadid_seg);
+
+if (!empty($leaderId)) {
+    $leaderId = (int) $leaderId;
+    $sql  = "SELECT username, generalname FROM user WHERE id_user = $leaderId LIMIT 1";
+    $res_leader = mysqli_query($conn, $sql);
+    if ($res_leader && $datt = mysqli_fetch_assoc($res_leader)) {
+        $leaderName  = $datt['generalname'];
+        $leaderEmail = $datt['username'];
     }
 }
 

@@ -54,20 +54,20 @@
                                             LEFT JOIN schools as sc on sc.id = a.school_name
                                             LEFT JOIN segments as seg on seg.id = a.segment
                                             LEFT JOIN user b on a.id_ec = b.id_user
+                                            LEFT JOIN user_segments us ON us.id_user = a.id_ec AND us.segment_id = a.segment
                                             LEFT JOIN programs AS prog ON (prog.name = a.program OR prog.code = a.program)
                                             WHERE a.deleted_at IS NULL
                                             AND prog.is_active = 1 AND prog.is_pk = 1";
 
                                     if($_SESSION['role'] == 'ec'){
                                         $sql.=" AND (a.id_ec = $id_user 
-                                                    OR b.leadId = $id_user 
-                                                    OR b.leadId2 = $id_user 
-                                                    OR b.leadId3 = $id_user)";
+                                                    OR us.leadid  = $id_user 
+                                                    OR us.leadid2 = $id_user 
+                                                    OR us.leadid3 = $id_user)";
                                     }
 
                                     $sql .= $order_by;
                                     $result = mysqli_query($conn, $sql);
-
                                     if (mysqli_num_rows($result) > 0) {
                                         while($row = mysqli_fetch_assoc($result)) {
 

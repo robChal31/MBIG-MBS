@@ -128,11 +128,14 @@
                                         ON a.id_draft = db.id_draft AND a.id_user_approver = $id_user
                                     LEFT JOIN schools sc ON sc.id = db.school_name
                                     LEFT JOIN user c ON c.id_user = db.id_ec
+                                    LEFT JOIN user_segments us ON us.id_user = db.id_ec AND us.segment_id = db.segment
                                     LEFT JOIN programs prog ON (prog.name = db.program OR prog.code = db.program)";
 
                             if($_SESSION['role'] == 'ec'){
                                 $sql .= " WHERE (a.id_user_approver = $id_user
-                                        OR c.leadId = $id_user
+                                        OR us.leadid  = $id_user
+                                        OR us.leadid2 = $id_user
+                                        OR us.leadid3 = $id_user
                                         OR db.id_ec = $id_user)";
                                 $sql_q = " AND ";
                             }

@@ -142,7 +142,7 @@
         curl_close($curl);
 
         $school_data = json_decode($response, true);
-
+        $school_name2 = $school_name;
         if(count($school_data) > 0) {
             $school_id_new              = $school_data[0]['institutionid'];
             $school_name_new            = mysqli_real_escape_string($conn, $school_data[0]['name']);
@@ -357,9 +357,10 @@
                     lead3.generalname as lead_name3, lead3.username as lead_mail3, lead3.id_user as lead_id3
                 FROM draft_benefit as db
                 LEFT JOIN user as ec on ec.id_user = db.id_ec 
-                LEFT JOIN user as lead1 on ec.leadid = lead1.id_user
-                LEFT JOIN user as lead2 on ec.leadid2 = lead2.id_user
-                LEFT JOIN user as lead3 on ec.leadid3 = lead3.id_user
+                LEFT JOIN user_segments as us ON us.id_user = db.id_ec AND us.segment_id = db.segment
+                LEFT JOIN user as lead1 on us.leadid  = lead1.id_user
+                LEFT JOIN user as lead2 on us.leadid2 = lead2.id_user
+                LEFT JOIN user as lead3 on us.leadid3 = lead3.id_user
                 WHERE db.id_draft = $id_draft";
 
         $result = mysqli_query($conn,$sql);
@@ -372,12 +373,19 @@
         $lead_id = '';
 
         while ($dra = $result->fetch_assoc()){
-            $saemail = $dra['sa_email'];
-            $ec_email = $dra['username'];
-            $ec_name = $dra['generalname'];
-            $lead_mail = $dra['lead_mail1'] ? $dra['lead_mail1'] : ($dra['lead_mail2'] ? $dra['lead_mail2'] : $dra['lead_mail3']);
-            $lead_name = $dra['lead_name1'] ? $dra['lead_name1'] : ($dra['lead_name2'] ? $dra['lead_name2'] : $dra['lead_name3']);
-            $lead_id = $dra['lead_id1'] ? $dra['lead_id1'] : ($dra['lead_id2'] ? $dra['lead_id2'] : $dra['lead_id3']);
+            $saemail    = $dra['sa_email'];
+            $ec_email   = $dra['username'];
+            $ec_name    = $dra['generalname'];
+            $lead_mail  = $dra['lead_mail1']  ?: ($dra['lead_mail2']  ?: $dra['lead_mail3']);
+            $lead_name  = $dra['lead_name1']  ?: ($dra['lead_name2']  ?: $dra['lead_name3']);
+            $lead_id    = $dra['lead_id1']    ?: ($dra['lead_id2']    ?: $dra['lead_id3']);
+        }
+
+        // 🔥 Fallback kalau lead gak ketemu (EC gak punya row di user_segments untuk segment draft)
+        if (empty($lead_id)) {
+            $lead_id   = 1;
+            $lead_mail = 'bany@mentarigroups.com';
+            $lead_name = 'Bany';
         }
         
         $spreadsheet = new Spreadsheet();

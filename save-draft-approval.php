@@ -118,6 +118,7 @@
         exit();
     }
 
+    $role = $_SESSION['role'];
     $url_redirect = $role != 'ec' ? 'Location: ./approved_list.php' : 'Location: ./draft-approval-list.php';
 
     try {
@@ -130,7 +131,6 @@
         $id_draft_approval  = ISSET($_POST['id_draft_approval']) ? $_POST['id_draft_approval'] : '';
         $notes              = ISSET($_POST['notes']) ? $_POST['notes'] : '';
         $approver_id        = $_SESSION['id_user'];
-        $role               = $_SESSION['role'];
         
         $status_msg = $status == 1 ? 'Approve' : 'Reject';
 
@@ -155,13 +155,17 @@
         if(mysqli_affected_rows($conn) == 1){
             // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
             $sql = "SELECT 
-                        db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, leader.id_user as leader_id, db.year, db.verified, db.status,
-                        ec.leadid, ec.leadid2, ec.leadid3, IFNULL(sc.name, db.school_name) as school_name, db.program, ec.sa_email, leader.generalname as approver_name
+                        db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, 
+                        leader.id_user as leader_id, db.year, db.verified, db.status, db.segment,
+                        us.leadid, us.leadid2, us.leadid3, 
+                        IFNULL(sc.name, db.school_name) as school_name, db.program, 
+                        ec.sa_email, leader.generalname as approver_name
                     FROM draft_approval da 
                     LEFT JOIN draft_benefit db on db.id_draft = da.id_draft
                     LEFT JOIN schools as sc on sc.id = db.school_name 
                     LEFT JOIN user leader on da.id_user_approver = leader.id_user
-                    LEFT join user as ec on ec.id_user = db.id_ec  
+                    LEFT JOIN user as ec on ec.id_user = db.id_ec  
+                    LEFT JOIN user_segments as us ON us.id_user = db.id_ec AND us.segment_id = db.segment
                     WHERE da.token = '$token'
                     AND db.id_draft = $id_draft";
             $result = mysqli_query($conn,$sql);
@@ -192,6 +196,13 @@
         }
 
         $uc_program = ISSET($program) ? strtoupper($program) : '';
+
+        // Guard: cek approval chain ada
+        if (empty($leadid) && empty($leadid2) && empty($leadid3)) {
+            if ($approver_id != 70 && $approver_id != 5 && $role != 'admin') {
+                throw new Exception("Approval chain tidak ditemukan untuk draft $id_draft. Cek user_segments untuk id_ec $id_ec di segment " . ($segment ?? '-'));
+            }
+        }
 
         if($status == 1) {
             
@@ -245,9 +256,6 @@
                                     </div>
                                 ";
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
-                
-                $mail = new PHPMailer(true);
-                
             }else if(($leadid2 == $approver_id) || ($leadid == $approver_id && !$leadid2)) {
                 $cc = [];
                 $leademail  = 'secretary@mentaribooks.com';
@@ -466,7 +474,7 @@
                             </div>';
         
         
-                sendEmail('novitasari@mentaribooks.com', $name, $subject, $message, $config, $fileUrl);
+                sendEmail('novitasari@mentaribooks.com', 'Novi', $subject, $message, $config, $fileUrl);
             }else if($role == 'admin' && $draft_status == 0) {
                 $sql = "SELECT * from user where id_user = $leadid3";
                 $result = mysqli_query($conn,$sql);
@@ -676,7 +684,6 @@
             }
 
         }else if($status == 2) {
-            $mail = new PHPMailer(true);
 
             // this is for ec mail when rejected
             $subject = $year == 1 ? "Pengajuan $uc_program $school_name BELUM DISETUJUI" : "Pengajuan perubahan PK Tahun Ke-$year $school_name BELUM DISETUJUI";

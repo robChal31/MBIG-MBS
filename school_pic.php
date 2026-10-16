@@ -56,16 +56,19 @@
                                     FROM draft_benefit b
                                     LEFT JOIN draft_approval a
                                         ON a.id_draft = b.id_draft
-                                    AND a.id_user_approver = $id_user
+                                        AND a.id_user_approver = $id_user
                                     LEFT JOIN schools sc ON sc.id = b.school_name
                                     LEFT JOIN user c ON c.id_user = b.id_ec
+                                    LEFT JOIN user_segments us ON us.id_user = b.id_ec AND us.segment_id = b.segment
                                     INNER JOIN pk pk ON pk.benefit_id = b.id_draft
                                     LEFT JOIN school_pic_partner spp ON spp.id_draft = b.id_draft
                                     LEFT JOIN programs prog ON (prog.name = b.program OR prog.code = b.program)";
 
                             if($_SESSION['role'] == 'ec'){
                                 $sql .= " WHERE (a.id_user_approver = $id_user
-                                        OR c.leadId = $id_user
+                                        OR us.leadid  = $id_user
+                                        OR us.leadid2 = $id_user
+                                        OR us.leadid3 = $id_user
                                         OR b.id_ec = $id_user)";
                                 $sql_q = " AND ";
                             }

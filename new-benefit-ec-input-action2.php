@@ -684,24 +684,52 @@
             $tokenLeader = generateRandomString(16);
             
             //get Leader ID;
-            $leaderId   = null;
-            $sql        = "SELECT * from user where id_user='$id_ec_r';";
-            $ress       = mysqli_query($conn,$sql);
-            $leaderId1  = null;
-            $leaderId2  = null;
-            $leaderId3  = null;
+            // Ambil segment_id dari draft_benefit
+            $segment_id_draft = null;
+            $sql_seg = "SELECT segment FROM draft_benefit WHERE id_draft = '$id_draft' LIMIT 1";
+            $res_seg = mysqli_query($conn, $sql_seg);
+            if ($res_seg && $row_seg = mysqli_fetch_assoc($res_seg)) {
+                $segment_id_draft = $row_seg['segment'];
+            }
 
-            while ($datt = mysqli_fetch_assoc($ress)){
-                $leaderId1  = $datt['leadid'];
-                $leaderId2  = $datt['leadid2'];
-                $leaderId3  = $datt['leadid3'];
-                $leaderId   = $datt['leadid'] ? $datt['leadid'] : ($datt['leadid2'] ? $datt['leadid2'] : 70);
-                $sql        = "SELECT username, generalname from user where id_user = '$leaderId';";
-                $ress       = mysqli_query($conn,$sql);
-                while ($datt = mysqli_fetch_assoc($ress)){
-                    $leaderName     = $datt['generalname'];
-                    $leaderEmail    = $datt['username'];
+            // Ambil leadid/leadid2/leadid3 dari user_segments sesuai segment draft
+            $leaderId1 = null;
+            $leaderId2 = null;
+            $leaderId3 = null;
+
+            if (!is_null($segment_id_draft) && $segment_id_draft !== '') {
+                $segment_id_safe = (int) $segment_id_draft;
+                $sql = "SELECT leadid, leadid2, leadid3
+                        FROM user_segments
+                        WHERE id_user = '$id_ec_r'
+                        AND segment_id = $segment_id_safe
+                        LIMIT 1";
+                $ress = mysqli_query($conn, $sql);
+                if ($ress && $datt = mysqli_fetch_assoc($ress)) {
+                    $leaderId1 = $datt['leadid'];
+                    $leaderId2 = $datt['leadid2'];
+                    $leaderId3 = $datt['leadid3'];
                 }
+            }
+
+            // Tentukan leader pertama yang ada
+            $leaderId = $leaderId1 ?: ($leaderId2 ?: ($leaderId3 ?: 70));
+
+            // Ambil data leader
+            $leaderName  = '';
+            $leaderEmail = '';
+            $sql = "SELECT username, generalname FROM user WHERE id_user = '$leaderId' LIMIT 1";
+            $res_leader = mysqli_query($conn, $sql);
+            if ($res_leader && $datt = mysqli_fetch_assoc($res_leader)) {
+                $leaderName  = $datt['generalname'];
+                $leaderEmail = $datt['username'];
+            }
+
+            // Kalau leader gak ketemu (misal id 70 gak ada), fallback ke Bany
+            if (empty($leaderEmail)) {
+                $leaderId    = 1;
+                $leaderEmail = 'bany@mentarigroups.com';
+                $leaderName  = 'Bany';
             }
 
             $cc = [];
@@ -724,7 +752,7 @@
         
             $sql = "INSERT INTO `draft_approval` (`id_draft_approval`, `id_draft`, `date`, `token`, `id_user_approver`, `status`) VALUES (NULL, '$id_draft', current_timestamp(), '".$tokenLeader."', '".$leaderId."', '0');";
             mysqli_query($conn,$sql);
-
+            $uc_program = strtoupper($program_name);
             $previous_year = $program_year - 1;
             $is_adendum = $program_year != 1 ? ", formulir ini adalah perubahan pada tahun ke $program_year dan adalah perubahan dari tahun sebelumnya yaitu tahun ke $previous_year, " : "";
         

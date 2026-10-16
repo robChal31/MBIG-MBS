@@ -59,15 +59,16 @@
                                                 LEFT JOIN schools AS sc ON sc.id = mp.school_id
                                                 LEFT JOIN draft_benefit AS db ON mp.id = db.myplan_id
                                                 LEFT JOIN user ON mp.user_id = user.id_user
+                                                LEFT JOIN user_segments us ON us.id_user = mp.user_id AND us.segment_id = mp.segment
                                                 LEFT JOIN programs AS prog ON (prog.name = mp.program OR prog.code = mp.program)
                                                 LEFT JOIN segments AS seg ON seg.id = mp.segment
                                                 WHERE mp.deleted_at IS NULL";
 
                                         if ($role == 'ec') {
                                             $sql .= " AND (mp.user_id = $id_user 
-                                                    OR user.leadId = $id_user 
-                                                    OR user.leadId2 = $id_user 
-                                                    OR user.leadId3 = $id_user)";
+                                                    OR us.leadid  = $id_user 
+                                                    OR us.leadid2 = $id_user 
+                                                    OR us.leadid3 = $id_user)";
                                         }
 
                                         $sql .= " ORDER BY mp.created_at DESC";

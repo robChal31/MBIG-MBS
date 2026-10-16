@@ -62,7 +62,8 @@
                             b.program, prog.name as program_name, IFNULL(sc.name, b.school_name) as school_name2,
                             c.generalname, pk.id as pk_id, b.verified, a.token,
                             b.deleted_at, b.fileUrl, pk.file_pk, b.confirmed,
-                            b.jenis_pk, c.leadid, c.leadid2, c.leadid3, b.year, IFNULL(seg.segment, '-') as segment_name
+                            b.jenis_pk, us.leadid, us.leadid2, us.leadid3, b.year, 
+                            IFNULL(seg.segment, '-') as segment_name
                         FROM draft_benefit b
                         LEFT JOIN (
                             SELECT *
@@ -79,14 +80,15 @@
                         LEFT JOIN programs as prog on (prog.name = b.program OR prog.code = b.program)
                         LEFT JOIN user c on c.id_user = b.id_ec 
                         LEFT JOIN segments as seg on seg.id = b.segment
+                        LEFT JOIN user_segments us ON us.id_user = b.id_ec AND us.segment_id = b.segment
                         LEFT JOIN pk pk on pk.benefit_id = b.id_draft";
 
                 if($_SESSION['role'] == 'ec'){
                     $sql .= " WHERE (a.id_user_approver = $id_user
-                              OR c.leadid = $id_user
-                              OR c.leadid2 = $id_user
-                              OR c.leadid3 = $id_user
-                              OR b.id_ec = $id_user)";
+                            OR us.leadid  = $id_user
+                            OR us.leadid2 = $id_user
+                            OR us.leadid3 = $id_user
+                            OR b.id_ec = $id_user)";
                     $sql_q = " AND ";
                 }
 
