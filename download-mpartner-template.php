@@ -11,7 +11,7 @@ $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Data');
 
-// Header: 7 kolom
+// Header: 7 kolom (gak berubah)
 $headers = ['Name', 'Email', 'Phone Number', 'School ID', 'School Name', 'PK ID', 'No PK'];
 $sheet->fromArray($headers, null, 'A1');
 $sheet->getStyle('A1:G1')->applyFromArray([
@@ -53,22 +53,24 @@ while ($row = mysqli_fetch_assoc($q)) {
     $r++;
 }
 
-// --- Blok B: PK ---
+// --- Blok B: PK (tambah Start At & Expired At) ---
 $refSheet->setCellValue('D1', 'PK ID');
 $refSheet->setCellValue('E1', 'No PK');
 $refSheet->setCellValue('F1', 'School');
 $refSheet->setCellValue('G1', 'Program');
-$refSheet->getStyle('D1:G1')->getFont()->setBold(true);
+$refSheet->setCellValue('H1', 'Start At');
+$refSheet->setCellValue('I1', 'Expired At');
+$refSheet->getStyle('D1:I1')->getFont()->setBold(true);
 
-$q = mysqli_query($conn, "
-    SELECT pk.id, pk.no_pk,
+$q = mysqli_query($conn, "SELECT pk.id, pk.no_pk, pk.start_at, pk.expired_at,
            IFNULL(sc.name, db.school_name) AS school_name,
            IFNULL(prog.name, db.program) AS program
     FROM pk
-    LEFT JOIN draft_benefit db ON db.id_draft = pk.benefit_id
+    INNER JOIN draft_benefit db ON db.id_draft = pk.benefit_id
     LEFT JOIN programs prog ON (prog.name = db.program OR prog.code = db.program)
     LEFT JOIN schools sc ON sc.id = db.school_name
     WHERE db.deleted_at IS NULL
+      AND db.confirmed = 1
     ORDER BY pk.id ASC
 ");
 $r = 2;
@@ -77,9 +79,11 @@ while ($row = mysqli_fetch_assoc($q)) {
     $refSheet->setCellValue('E' . $r, $row['no_pk']);
     $refSheet->setCellValue('F' . $r, $row['school_name']);
     $refSheet->setCellValue('G' . $r, $row['program']);
+    $refSheet->setCellValue('H' . $r, $row['start_at']);
+    $refSheet->setCellValue('I' . $r, $row['expired_at']);
     $r++;
 }
-foreach (['A'=>12, 'B'=>40, 'D'=>12, 'E'=>25, 'F'=>35, 'G'=>30] as $c => $w) {
+foreach (['A'=>12, 'B'=>40, 'D'=>12, 'E'=>25, 'F'=>35, 'G'=>30, 'H'=>14, 'I'=>14] as $c => $w) {
     $refSheet->getColumnDimension($c)->setWidth($w);
 }
 
