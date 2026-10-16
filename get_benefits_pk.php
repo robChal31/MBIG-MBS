@@ -4,6 +4,40 @@
   ini_set('display_startup_errors', '1');
   error_reporting(E_ALL);
 
+  function esc($v) {
+    return htmlspecialchars((string)$v, ENT_QUOTES, 'UTF-8');
+  }
+  
+  function formatDescription($text) {
+    $text = (string)$text;
+
+    // 1. Decode HTML entities DULU (&#38; → &, &amp; → &, &nbsp; → spasi)
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // 2. Buang tag HTML
+    $text = strip_tags($text);
+
+    // 3. Normalize newline (Windows \r\n, Mac \r → \n)
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+    // 4. Auto newline untuk marker list "1. ", "a. ", "1) ", "a) "
+    //    - Cuma match kalau didahului spasi / awal string
+    //    - JANGAN match kalau udah di awal baris (biar gak double \n)
+    //    - JANGAN match "- ", "* " → biar dash biasa kayak "1,5 - 2 jam" gak kena
+    $text = preg_replace(
+        '/(?<!\n)(?<=\s|^)((?:[a-zA-Z]|\d+)[\.\)])\s/u',
+        "\n$1 ",
+        $text
+    );
+
+    // 5. Rapihin whitespace
+    $text = preg_replace('/[ \t]+/', ' ', $text);
+    $text = preg_replace('/\n{3,}/', "\n\n", $text);
+    $text = trim($text);
+
+    // 6. Esc + nl2br
+    return nl2br(esc($text), false);
+  }
   /* ===================== DATA LOGIC (UNCHANGED) ===================== */
   $current_row    = 1;
   $id_draft       = ISSET($_GET['id_draft']) ? $_GET['id_draft'] : NULL;
@@ -18,7 +52,7 @@
   if($id_draft && $count_changes == 0) {
 
     $query_template_q = "SELECT dbl.id_benefit_list, dbl.id_draft, dbl.id_template, b.id_template_benefit, 
-                        b.benefit, b.subbenefit, b.benefit_name, b.description, b.pelaksanaan, b.qty1, b.qty2, b.qty3,  b.optional, b.book_selection, b.allow_multiple_subject_and_level, b.count_method,
+                        b.benefit, b.subbenefit, b.benefit_name, b.description, b.pelaksanaan, b.qty1, b.qty2, b.qty3,  b.optional, b.book_selection, b.allow_multiple_subject_and_level, b.count_method, b.satuan,
                         COALESCE(
                             (SELECT GROUP_CONCAT(DISTINCT bol.level_id SEPARATOR ',')
                              FROM benefit_org_levels bol
@@ -46,7 +80,7 @@
                     FROM draft_benefit_list dbl
                     LEFT JOIN draft_template_benefit b ON dbl.id_template = b.id_template_benefit   
                     WHERE dbl.id_draft = '$id_draft'
-                    ORDER BY dbl.id_benefit_list DESC";
+                    ORDER BY b.id_template_benefit ASC";
 
     $result           = mysqli_query($conn, $query_template_q);
     if (!$result) {
@@ -320,10 +354,11 @@
               <td style="width:20%">Deskripsi</td>
               <td class="d-none">Pelaksanaan</td>
               <td style="width: 25%">Subjek × Level</td>
-              <td style="width: 15%">Book</td>
-              <td>Th 1</td>
-              <td>Th 2</td>
-              <td>Th 3</td>
+              <td style="width: 15%">Judul Buku untuk IHT/SPV</td>
+              <td>Tahun 1</td>
+              <td>Tahun 2</td>
+              <td>Tahun 3</td>
+              <td>Satuan</td>
               <td></td>
             </thead>
             <tbody>
@@ -339,7 +374,7 @@
                   </td>
                   <td class="benefit-desc">
                     <input type="hidden" name="description[]" value="<?= $data_template['description'] ?>">
-                    <span><?= $data_template['description'] ?></span>
+                    <span><?= formatDescription($data_template['description']) ?></span>
                   </td>
                   <td class="benefit-desc d-none">
                     <input type="hidden" name="pelaksanaan[]" value="<?= $data_template['pelaksanaan'] ?>">
@@ -462,6 +497,10 @@
                       <input type="hidden" class="qty-value" name="qty3[]" value="<?= $base_qty3 ?>">
                       <span class="qty3-display"><?= $base_qty3 ?></span>
                     <?php } ?>
+                  </td>
+
+                  <td>
+                    <?= ucfirst($data_template['satuan']) ?>
                   </td>
                   <td>
                     <?php if($data_template['optional'] == 1) { ?>

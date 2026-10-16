@@ -21,7 +21,7 @@ if ($id_draft <= 0) die('ID Draft tidak valid');
 // 1. AMBIL DATA DRAFT
 // ==================================================
 $sql = "SELECT db.*, sc.name AS school_name2, ec.generalname AS ec_name, p.name AS program_name, 
-        p.code AS program_code, pc.name AS program_category, pk.id as pk_id, pk.no_pk
+        p.code AS program_code, pc.name AS program_category, pc.logo_file AS program_logo_file, pk.id as pk_id, pk.no_pk
         FROM draft_benefit db
         LEFT JOIN schools sc ON sc.id = db.school_name
         LEFT JOIN user ec ON ec.id_user = db.id_ec
@@ -37,7 +37,7 @@ $draft = mysqli_fetch_assoc($result) or die('Data draft tidak ditemukan');
 // 2. AMBIL DATA BENEFIT
 // ==================================================
 $sql = "SELECT 
-            dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.pelaksanaan, b.allow_multiple_subject_and_level, b.count_method,
+            dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.pelaksanaan, b.allow_multiple_subject_and_level, b.count_method, b.countable,
             dbl.qty, dbl.qty2, dbl.qty3, b.qty1 as qty1_template, b.qty2 as qty2_template, b.qty3 as qty3_template, b.satuan,
             COUNT(DISTINCT bsl.id) AS total_combination,
             COUNT(DISTINCT bsl.subject_id) AS total_subject,
@@ -234,6 +234,14 @@ function formatBookSeriesList($item)
 }
 $logo_program = imageToDataUri(__DIR__ . '/img/prestasi-logo.png');
 $logo_mentari = imageToDataUri(__DIR__ . '/img/comp-logo.png');
+// Ambil nama file dari DB, fallback ke default kalau kosong
+$logo_file = trim($draft['program_logo_file'] ?? '');
+if ($logo_file !== '' && file_exists(__DIR__ . '/img/' . $logo_file)) {
+    $logo_program = imageToDataUri(__DIR__ . '/img/' . $logo_file);
+} else {
+    // Fallback kalau logo belum di-set di DB
+    $logo_program = imageToDataUri(__DIR__ . '/img/prestasi-logo.png');
+}
 
 // ==================================================
 // 5. DATA UNTUK VIEW
@@ -389,7 +397,7 @@ function displayBenefitQty($qty, $satuan, $item)
             border: none;
             padding: 0;
             margin: 0;
-            vertical-align: top;
+            vertical-align: middle;
         }
         .logo-left {
             width: 50%;
@@ -590,7 +598,7 @@ function displayBenefitQty($qty, $satuan, $item)
             <tr>
                 <td class="logo-left">
                     <?php if ($logo_program): ?>
-                        <!-- <img src="<?= $logo_program ?>" class="logo-program" alt="Program Prestasi"> -->
+                        <img src="<?= $logo_program ?>" class="logo-program" alt="Program Prestasi">
                     <?php endif; ?>
                 </td>
                 <td class="logo-right">
@@ -618,7 +626,7 @@ function displayBenefitQty($qty, $satuan, $item)
                 Sebagai bentuk komitmen dukungan dari Mentari Group atas Perjanjian Kerja Sama Program <?= esc($program_title) ?>
                 antara Mentari Group<br>
                 dan <?= esc($school_name) ?> dengan Ref. No : <?= esc($no_pk) ?>, yang ditandatangani pada<br>
-                <?= esc($date) ?>, berikut adalah daftar dukungan yang kami berikan untuk sekolah:
+                ...., berikut adalah daftar dukungan yang kami berikan untuk sekolah:
             </p>
         </div>
 
@@ -679,18 +687,23 @@ function displayBenefitQty($qty, $satuan, $item)
                     <td class="col-description">
                         <?= $desc ?>
                     </td>
-                    <td class="col-year">
-                        <!-- <?= displayBenefitQty($qty1, $item['satuan'] ?? '', $item) ?> -->
-                        <?= $qty1 ? ($qty1 . ' ' . $item['satuan']) : '-' ?>
-                    </td>
-                    <td class="col-year">
-                        <!-- <?= displayBenefitQty($qty2, $item['satuan'] ?? '', $item) ?> -->
-                        <?= $qty2 ? ($qty2 . ' ' . $item['satuan']) : '-' ?>
-                    </td>
-                    <td class="col-year">
-                        <!-- <?= displayBenefitQty($qty3, $item['satuan'] ?? '', $item) ?> -->
-                        <?= $qty3 ? ($qty3 . ' ' . $item['satuan']) : '-' ?>
-                    </td>
+                    <?php 
+                        if($item['countable'] == 1) { ?>
+                            <td class="col-year">
+                                <!-- <?= displayBenefitQty($qty1, $item['satuan'] ?? '', $item) ?> -->
+                                <?= $qty1 ? ($qty1 . ' ' . $item['satuan']) : '-' ?>
+                            </td>
+                            <td class="col-year">
+                                <!-- <?= displayBenefitQty($qty2, $item['satuan'] ?? '', $item) ?> -->
+                                <?= $qty2 ? ($qty2 . ' ' . $item['satuan']) : '-' ?>
+                            </td>
+                            <td class="col-year">
+                                <!-- <?= displayBenefitQty($qty3, $item['satuan'] ?? '', $item) ?> -->
+                                <?= $qty3 ? ($qty3 . ' ' . $item['satuan']) : '-' ?>
+                            </td>
+                    <?php }else{ ?>
+                            <td colspan="3" style="text-align: center; vertical-align: middle;">Sesuai ketentuan</td>
+                    <?php } ?>
                 </tr>
             <?php endforeach; ?>
             </tbody>

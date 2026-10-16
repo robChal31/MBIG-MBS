@@ -8,10 +8,13 @@ use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 
 $spreadsheet = new Spreadsheet();
+
+/* ============================================================
+   SHEET 1: Data
+   ============================================================ */
 $sheet = $spreadsheet->getActiveSheet();
 $sheet->setTitle('Data');
 
-// Header: 7 kolom (gak berubah)
 $headers = ['Name', 'Email', 'Phone Number', 'School ID', 'School Name', 'PK ID', 'No PK'];
 $sheet->fromArray($headers, null, 'A1');
 $sheet->getStyle('A1:G1')->applyFromArray([
@@ -20,13 +23,11 @@ $sheet->getStyle('A1:G1')->applyFromArray([
     'alignment' => ['horizontal' => 'center'],
 ]);
 
-// Highlight kolom validasi (School ID & PK ID)
 $sheet->getStyle('D1')->getFill()->setFillType(Fill::FILL_SOLID)
       ->getStartColor()->setRGB('F59E0B');
 $sheet->getStyle('F1')->getFill()->setFillType(Fill::FILL_SOLID)
       ->getStartColor()->setRGB('F59E0B');
 
-// Sample row
 $sheet->fromArray(
     ['John Doe', 'john@example.com', '08123456789', 123, 'Sample School Name', '101, 102', 'PK001, PK002'],
     null, 'A2'
@@ -36,57 +37,66 @@ foreach (['A'=>25, 'B'=>30, 'C'=>20, 'D'=>12, 'E'=>35, 'F'=>20, 'G'=>40] as $col
     $sheet->getColumnDimension($col)->setWidth($w);
 }
 
-/* ===== Sheet Reference ===== */
+/* ============================================================
+   SHEET 2: Reference — dump apa adanya
+   ============================================================ */
 $refSheet = $spreadsheet->createSheet();
 $refSheet->setTitle('Reference');
 
-// --- Blok A: Schools ---
-$refSheet->setCellValue('A1', 'School ID');
-$refSheet->setCellValue('B1', 'School Name');
-$refSheet->getStyle('A1:B1')->getFont()->setBold(true);
+$q = mysqli_query($conn, "SELECT
+        sc.id           AS school_id,
+        pk.id           AS id,
+        pk.no_pk        AS no_pk,
+        IFNULL(sc.name, db.school_name) AS school_name,
+        IFNULL(prog.name, db.program)   AS program,
+        pk.start_at     AS start_at,
+        pk.expired_at   AS expired_at
+    FROM draft_benefit db
+    LEFT JOIN pk
+           ON pk.benefit_id = db.id_draft
+    LEFT JOIN programs prog
+           ON (prog.name = db.program OR prog.code = db.program)
+    LEFT JOIN schools sc
+           ON sc.name = db.school_name OR sc.id = db.school_name
+    WHERE db.deleted_at IS NULL
+      AND db.confirmed = 1
+    ORDER BY db.id_draft ASC, pk.id ASC
+");
 
-$q = mysqli_query($conn, "SELECT id, name FROM schools WHERE name IS NOT NULL ORDER BY name ASC");
+if (!$q) {
+    die('Query error: ' . mysqli_error($conn));
+}
+
+// Header = nama kolom hasil query, urut
+$refSheet->fromArray(
+    ['ID PK', 'No PK', 'School ID', 'School Name', 'Program', 'Start At', 'Expired At'],
+    null, 'A1'
+);
+$refSheet->getStyle('A1:G1')->getFont()->setBold(true);
+$refSheet->getStyle('A1:G1')->getFill()
+    ->setFillType(Fill::FILL_SOLID)
+    ->getStartColor()->setRGB('E5E7EB');
+
+// Isi data
 $r = 2;
 while ($row = mysqli_fetch_assoc($q)) {
     $refSheet->setCellValue('A' . $r, $row['id']);
-    $refSheet->setCellValue('B' . $r, $row['name']);
+    $refSheet->setCellValue('B' . $r, $row['no_pk']);
+    $refSheet->setCellValue('C' . $r, $row['school_id']);
+    $refSheet->setCellValue('D' . $r, $row['school_name']);
+    $refSheet->setCellValue('E' . $r, $row['program']);
+    $refSheet->setCellValue('F' . $r, $row['start_at']);
+    $refSheet->setCellValue('G' . $r, $row['expired_at']);
     $r++;
 }
 
-// --- Blok B: PK (tambah Start At & Expired At) ---
-$refSheet->setCellValue('D1', 'PK ID');
-$refSheet->setCellValue('E1', 'No PK');
-$refSheet->setCellValue('F1', 'School');
-$refSheet->setCellValue('G1', 'Program');
-$refSheet->setCellValue('H1', 'Start At');
-$refSheet->setCellValue('I1', 'Expired At');
-$refSheet->getStyle('D1:I1')->getFont()->setBold(true);
-
-$q = mysqli_query($conn, "SELECT pk.id, pk.no_pk, pk.start_at, pk.expired_at,
-           IFNULL(sc.name, db.school_name) AS school_name,
-           IFNULL(prog.name, db.program) AS program
-    FROM pk
-    INNER JOIN draft_benefit db ON db.id_draft = pk.benefit_id
-    LEFT JOIN programs prog ON (prog.name = db.program OR prog.code = db.program)
-    LEFT JOIN schools sc ON sc.id = db.school_name
-    WHERE db.deleted_at IS NULL
-      AND db.confirmed = 1
-    ORDER BY pk.id ASC
-");
-$r = 2;
-while ($row = mysqli_fetch_assoc($q)) {
-    $refSheet->setCellValue('D' . $r, $row['id']);
-    $refSheet->setCellValue('E' . $r, $row['no_pk']);
-    $refSheet->setCellValue('F' . $r, $row['school_name']);
-    $refSheet->setCellValue('G' . $r, $row['program']);
-    $refSheet->setCellValue('H' . $r, $row['start_at']);
-    $refSheet->setCellValue('I' . $r, $row['expired_at']);
-    $r++;
-}
-foreach (['A'=>12, 'B'=>40, 'D'=>12, 'E'=>25, 'F'=>35, 'G'=>30, 'H'=>14, 'I'=>14] as $c => $w) {
+foreach (['A'=>12, 'B'=>10, 'C'=>38, 'D'=>40, 'E'=>32, 'F'=>14, 'G'=>14] as $c => $w) {
     $refSheet->getColumnDimension($c)->setWidth($w);
 }
 
+/* ============================================================
+   Output
+   ============================================================ */
 $spreadsheet->setActiveSheetIndex(0);
 
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');

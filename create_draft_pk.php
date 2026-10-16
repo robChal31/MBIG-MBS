@@ -238,7 +238,7 @@ ini_set('display_errors', 1);
 
                 <!-- ADOPTION LEVEL -->
                 <div class="col-md-6">
-                  <label class="form-label small text-muted">Cakupan Jenjang Program</label>
+                  <label class="form-label small text-muted">Jenjang Program</label>
                   <select name="program_adoption_levels[]" id="adoption_levels" class="form-select form-select-sm select2" multiple required>
                     <?php
                       $lvl_sql = "SELECT * FROM levels";
@@ -251,7 +251,7 @@ ini_set('display_errors', 1);
 
                 <!-- ADOPTION SUBJECT -->
                 <div class="col-md-6">
-                  <label class="form-label small text-muted">Cakupan Subjek Program</label>
+                  <label class="form-label small text-muted">Subjek Program</label>
                   <select name="program_adoption_subjects[]" id="adoption_subjects" class="form-select form-select-sm select2" multiple required>
                     <?php
                       $sub_sql = "SELECT * FROM subjects";
@@ -297,7 +297,7 @@ ini_set('display_errors', 1);
                 </div>
 
                 <div class="col-md-12">
-                  <label class="form-label small text-muted d-block">Book Series</label>
+                  <label class="form-label small text-muted d-block">Judul Buku Adopsi</label>
                   <select name="book_series[]" id="book_series" class="form-select form-select-sm select2" multiple required>
                     <?php 
                       $book_series_sql = "SELECT * FROM book_series";
@@ -402,9 +402,12 @@ ini_set('display_errors', 1);
     $('#adoption_subjects').val(selectedSubjects).trigger('change');
   }
 
-  if(selectedBookSeries.length) {
-    $('#book_series').val(selectedBookSeries).trigger('change');
-  }
+  // Load book series dulu berdasarkan level, BARU set selected lama
+  loadBookSeriesByLevels(false).then(function () {
+    if (selectedBookSeries.length) {
+      $('#book_series').val(selectedBookSeries).trigger('change');
+    }
+  });
 
   function formatGroupItems(data) {
 
@@ -701,6 +704,32 @@ ini_set('display_errors', 1);
     });
   }
 
+  function loadBookSeriesByLevels(keepSelected = true) {
+    const levels = $('#adoption_levels').val() || [];
+    const currentSelected = keepSelected ? ($('#book_series').val() || []) : [];
+
+    if (!levels.length) {
+      $('#book_series').html('').trigger('change');
+      return $.Deferred().resolve().promise();
+    }
+
+    return $.ajax({
+      url: 'get-book-series-by-levels.php',
+      type: 'POST',
+      dataType: 'json',
+      data: { levels: levels }
+    }).then(function (response) {
+      let options = '';
+      (response || []).forEach(function (bs) {
+        const isSelected = currentSelected.map(String).includes(String(bs.id));
+        options += `<option value="${bs.id}" ${isSelected ? 'selected' : ''}>${bs.name}</option>`;
+      });
+      $('#book_series').html(options).trigger('change');
+    }).fail(function (xhr) {
+      console.error('Gagal load book series:', xhr.responseText);
+    });
+  }
+
   $(document).ready(function(){
 
     $('.select2').select2({
@@ -776,6 +805,7 @@ ini_set('display_errors', 1);
       let selectedLevels = $(this).val();
       let selectedProgram = $('#program').val();
       let selectedSubjects = $('#adoption_subjects').val();
+      loadBookSeriesByLevels(true);
       getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
     });
 
