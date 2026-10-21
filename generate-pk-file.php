@@ -222,7 +222,7 @@ function formatBookSeriesList($item)
     if (empty($series)) return '';
 
     $html  = '<div class="book-series">';
-    $html .= '<span class="book-series-title">Book Series:</span>';
+    $html .= '<span class="book-series-title">Untuk Penggunaan:</span>';
 
     foreach ($series as $s) {
         $html .= '<span class="book-series-line">&bull; ' . esc($s) . '</span>';

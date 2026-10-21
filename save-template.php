@@ -56,6 +56,10 @@ $countable      = $_POST['countable'] ?? NULL;
 $book_selection = $_POST['book_selection'] ?? 0;
 $allow_multiple_subject_and_level     = $_POST['allow_multiple_subject_and_level'] ?? 'template';
 $levels             = $_POST['levels'] ?? [];
+$allowed_books      = $_POST['allowed_books'] ?? []; 
+if (!is_array($allowed_books)) {
+    $allowed_books = [];
+}
 
 if ($avail == '' || !is_array($avail) || count($avail) == 0) {
     error_json("Please select at least one availability");
@@ -111,11 +115,10 @@ try {
         if (!$conn->query($sql)) {
             throw new Exception('Query failed: ' . $conn->error);
         }
-        foreach($levels as $level){
-            $sql = "INSERT INTO banned_level_benefits (id_template_benefit, level_id) VALUES ('$id_template', '$level')";
-            if (!$conn->query($sql)) {
-                throw new Exception('Query failed: ' . $conn->error);
-            }
+
+        $sql_delete_books = "DELETE FROM allowed_book_benefits WHERE id_template_benefit = '$id_template'";
+        if (!$conn->query($sql_delete_books)) {
+            throw new Exception('Query failed: ' . $conn->error);
         }
         
     } else {
@@ -132,11 +135,25 @@ try {
             throw new Exception('Query failed: ' . $conn->error);
         }
 
-        foreach($levels as $level){
-            $sql = "INSERT INTO banned_level_benefits (id_template_benefit, level_id) VALUES ('$id_template', '$level')";
-            if (!$conn->query($sql)) {
+
+    }
+
+     if ($book_selection == 1 && count($allowed_books) > 0) {
+        foreach($allowed_books as $book_id) {
+            // Sanitasi ID buku
+            $safe_book_id = mysqli_real_escape_string($conn, $book_id);
+            
+            $sql_insert_book = "INSERT INTO allowed_book_benefits (id_template_benefit, book_series_id) VALUES ('$id_template', '$safe_book_id')";
+            if (!$conn->query($sql_insert_book)) {
                 throw new Exception('Query failed: ' . $conn->error);
             }
+        }
+    }
+
+    foreach($levels as $level){
+        $sql = "INSERT INTO banned_level_benefits (id_template_benefit, level_id) VALUES ('$id_template', '$level')";
+        if (!$conn->query($sql)) {
+            throw new Exception('Query failed: ' . $conn->error);
         }
     }
 

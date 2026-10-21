@@ -93,10 +93,10 @@
     //benefit lists
     $benefits       = $_POST['benefit'] ?? [];
     $id_templates   = $_POST['id_templates'] ?? [];
-    $subbenefits    = $_POST['subbenefit'] ?? [];
-    $benefit_names  = $_POST['benefit_name'] ?? [];
-    $descriptions   = $_POST['description'] ?? [];
-    $pelaksanaans   = $_POST['pelaksanaan'] ?? [];
+    $benefit_names  = array_map(function($val) use ($conn) { return mysqli_real_escape_string($conn, $val); }, $_POST['benefit_name'] ?? []);
+    $subbenefits    = array_map(function($val) use ($conn) { return mysqli_real_escape_string($conn, $val); }, $_POST['subbenefit'] ?? []);
+    $descriptions   = array_map(function($val) use ($conn) { return mysqli_real_escape_string($conn, $val); }, $_POST['description'] ?? []);
+    $pelaksanaans   = array_map(function($val) use ($conn) { return mysqli_real_escape_string($conn, $val); }, $_POST['pelaksanaan'] ?? []);
 
     $qty1s = $_POST['qty1'];
     $qty2s = $_POST['qty2'];

@@ -91,6 +91,22 @@ if (mysqli_num_rows($levels_exec) > 0) {
 }
 
 $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
+
+$book_series = [];
+$query_book_series = "SELECT * FROM book_series WHERE is_active = 1 ORDER BY name ASC";
+$exec_book_series = mysqli_query($conn, $query_book_series);
+
+if ($exec_book_series && mysqli_num_rows($exec_book_series) > 0) {
+    $book_series = mysqli_fetch_all($exec_book_series, MYSQLI_ASSOC);
+}
+
+$allowed_book_series = [];
+$allowed_book_series_query = "SELECT * FROM allowed_book_benefits WHERE id_template_benefit = '$id_template'";
+$allowed_book_series_exec = mysqli_query($conn, $allowed_book_series_query);
+if ($allowed_book_series_exec && mysqli_num_rows($allowed_book_series_exec) > 0) {
+    $allowed_book_series = mysqli_fetch_all($allowed_book_series_exec, MYSQLI_ASSOC);
+}
+$allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
 ?>
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
@@ -268,6 +284,22 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Jika pilih Yes, maka level dan subject dari benefit ini dapat disesuaikan oleh EC</small>
                 </div>
 
+                <div class="col-12 mb-3 allowed-books">
+                    <label class="form-label" style="font-size: .85rem;">Allowed Book For this Benefit</label>
+
+                    <select name="allowed_books[]" id="allowed_books" class="form-control form-control-sm select2" multiple>
+                        <?php foreach($book_series as $series): ?>
+                            <option value="<?= $series['id'] ?>" <?= in_array($series['id'], $allowedBookSeriesIds) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($series['name']) ?>
+                            </option>  
+                        <?php endforeach; ?>
+                    </select>
+
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                        Jenjang sekolah yang dipilih akan dibatasi untuk bisa mendapat benefit ini
+                    </small>
+                </div>
+
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Exclude School Level</label>
 
@@ -283,6 +315,7 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                         Jenjang sekolah yang dipilih akan dibatasi untuk bisa mendapat benefit ini
                     </small>
                 </div>
+
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Is Benefit Countable?</label>
 
@@ -312,10 +345,24 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
     </div>
 
 <script>
+    function toggleAllowedBooks() {
+        let isBookSelection = $('#book_selection').val();
+        
+        if (isBookSelection == '1') {
+            $('.allowed-books').show(); // Munculkan jika Yes
+        } else {
+            $('.allowed-books').hide(); // Sembunyikan jika No atau kosong
+            // Opsional: Kosongkan pilihan buku jika di-hide agar tidak tersimpan tidak sengaja
+            // $('#allowed_books').val(null).trigger('change'); 
+        }
+    }
+
     $(document).ready(function() {
         $('.select2').select2({
             width: '100%'
         });
+
+        toggleAllowedBooks();
 
         $('#form_template').on('submit', function(event) {
             event.preventDefault();
@@ -406,6 +453,10 @@ $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
                     console.log(err);
                 }
             });
+        });
+
+        $('#book_selection').on('change', function() {
+            toggleAllowedBooks();
         });
 
     })

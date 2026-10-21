@@ -326,8 +326,8 @@
 
                   <!-- WILAYAH -->
                   <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?>">
-                    <label class="form-label small text-muted">Wilayah Sekolah</label>
-                    <input type="text" name="wilayah" value="<?=  $wilayah ?>" class="form-control form-control-sm" placeholder="Ex: Jakarta" required>
+                    <label class="form-label small text-muted">Alamat Institusi</label>
+                    <textarea name="wilayah" class="form-control form-control-sm" placeholder="Alamat Institusi" style="height: 100px !important;"><?= $wilayah ?></textarea>
                   </div>
 
                   <!-- DISCOUNT -->
@@ -696,7 +696,7 @@
     $('#segment_input').val('').trigger('change').off('select2:opening select2:selecting');
     $('#adoption_levels').val('').trigger('change').off('select2:opening select2:selecting');
     $('#adoption_subjects').val('').trigger('change').off('select2:opening select2:selecting');
-    $('input[name="wilayah"]').val('').prop('readonly', false);
+    $('textarea[name="wilayah"]').val('').prop('readonly', false);
   }
 
   function addTitleCard() {
@@ -895,7 +895,7 @@
             $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
           }
           $('#segment_input').val(res.segment).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
-          $('input[name="wilayah"]').val(res.wilayah).prop('readonly', true);
+          $('textarea[name="wilayah"]').val(res.wilayah).prop('readonly', true);
         } else {
           $('#program').val('').trigger('change');
         }
@@ -1415,70 +1415,122 @@
   }
 
   async function loadBooks() {
-    const totalSeries = Object.keys(booksBySeries).length;
     for (const [seriesId, savedBooks] of Object.entries(booksBySeries)) {
 
       const books = await getBooks(seriesId);
-      if(books.length === 0) {
+      if (books.length === 0) {
         Swal.fire({
           title: 'Daftar buku kosong, mohon infokan ke tim developer',
           icon: 'warning'
-        })
-      }else {
-        const seriesTpl   = document.getElementById('seriesCardTemplate');
-        const seriesClone = seriesTpl.content.cloneNode(true);
-        const seriesCard  = seriesClone.querySelector('.series-card');
-        seriesCard.dataset.seriesId = seriesId;
-        seriesClone.querySelector('.series-title').textContent = savedBooks[0].series_name ?? 'Unknown Series';
+        });
+        continue;
+      }
 
-        const bookList = seriesClone.querySelector('.book-list');
-        let additionalPriceToAdd = 0;
-        books.forEach(book => {
-          const savedBook = savedBooks.filter(el => el.book_id === book.id);
-          if(savedBook.length <= 0) return;
-          let selectedBook = savedBook[0];
-          const bookTpl   = document.getElementById('bookRowTemplate');
-          const bookClone = bookTpl.content.cloneNode(true);
+      const seriesTpl   = document.getElementById('seriesCardTemplate');
+      const seriesClone = seriesTpl.content.cloneNode(true);
+      const seriesCard  = seriesClone.querySelector('.series-card');
+      seriesCard.dataset.seriesId = seriesId;
+      seriesClone.querySelector('.series-title').textContent = savedBooks[0].series_name ?? 'Unknown Series';
 
-          bookClone.querySelector('.book').innerHTML = `<option value="${book.name}">${book.name}</option>`;
-          $(bookClone.querySelector('.book')).select2({
-            width: '100%',
-            placeholder: 'Select book',
-            dropdownParent: seriesCard
-          })
-          
-          bookClone.querySelector('.level').innerHTML = `<option value="${book.grade}">${book.grade}</option>`;
+      const bookList = seriesClone.querySelector('.book-list');
+      let additionalPriceToAdd = 0;
 
-          bookClone.querySelector('.booktype').innerHTML = `<option value="${book.type}">${book.type}</option>`;
+      // Array untuk menyimpan nilai buku yang harus di-set setelah Select2 jadi
+      const selectedValues = [];
 
-          bookClone.querySelector('[name="book_ids[]"]').value = book.id;
-          bookClone.querySelector('[name="jumlahsiswa[]"]').value = selectedBook.qty;
-          bookClone.querySelector('[name="usulanharga[]"]').value = formatNumber(selectedBook.usulan_harga);
-          bookClone.querySelector('[name="diskon[]"]').value = selectedBook.discount;
+      // 1️⃣ LOOPING DARI savedBooks
+      savedBooks.forEach(savedBook => {
+        const bookTpl   = document.getElementById('bookRowTemplate');
+        const bookClone = bookTpl.content.cloneNode(true);
+        const bookSelect = bookClone.querySelector('.book');
 
-          let additionalPrice = parseFloat(selectedBook.normalprice) - parseFloat(selectedBook.price);
-          let bookPrice = parseFloat(selectedBook.price) + additionalPrice;
-          const hargaNormalInput = bookClone.querySelector('[name="harganormal[]"]');
-          hargaNormalInput.dataset.bookPrice = book.price;
-          hargaNormalInput.value = formatNumber(bookPrice);
+        // Buat semua opsi TANPA atribut "selected" (biarkan JS yang mengurus)
+        let optionsHtml = '';
+        books.forEach(b => {
+          optionsHtml += `<option value="${b.name}" data-id="${b.id}" data-price="${b.price}" data-level="${b.grade}" data-type="${b.type}">${b.name}</option>`;
+        });
+        
+        bookSelect.innerHTML = optionsHtml;
 
-          bookList.appendChild(bookClone);
+        // Simpan nilai (nama buku) ke dalam antrean array
+        selectedValues.push(savedBook.book_title ?? savedBook.name);
 
-          additionalPriceToAdd = additionalPrice;
+        // Set field pendukung lainnya
+        const currentBook = books.find(b => String(b.id) === String(savedBook.book_id));
+        const levelVal = currentBook?.grade ?? '';
+        const typeVal  = currentBook?.type  ?? '';
 
-          selectedDiscount = selectedBook.discount ?? '';
+        bookClone.querySelector('.level').innerHTML = `<option value="${levelVal}" selected>${levelVal}</option>`;
+        bookClone.querySelector('.booktype').innerHTML = `<option value="${typeVal}" selected>${typeVal}</option>`;
+
+        bookClone.querySelector('[name="book_ids[]"]').value = savedBook.book_id;
+        bookClone.querySelector('[name="jumlahsiswa[]"]').value = savedBook.qty;
+        bookClone.querySelector('[name="usulanharga[]"]').value = formatNumber(savedBook.usulan_harga);
+        bookClone.querySelector('[name="diskon[]"]').value = savedBook.discount;
+
+        let additionalPrice = parseFloat(savedBook.normalprice) - parseFloat(savedBook.price);
+        let bookPrice = parseFloat(savedBook.price) + additionalPrice;
+        const hargaNormalInput = bookClone.querySelector('[name="harganormal[]"]');
+        hargaNormalInput.dataset.bookPrice = currentBook?.price ?? savedBook.price;
+        hargaNormalInput.value = formatNumber(bookPrice);
+
+        bookList.appendChild(bookClone);
+
+        additionalPriceToAdd = additionalPrice;
+        selectedDiscount = savedBook.discount ?? '';
+      });
+
+      $('#additional_price').val(formatNumber(additionalPriceToAdd));
+      $('#emptyState').fadeOut(200);
+
+      // 2️⃣ Append ke DOM terlebih dahulu
+      document.getElementById('titleList').appendChild(seriesClone);
+
+      // 3️⃣ Inisialisasi Select2, lalu langsung SET VALUE-nya
+      $(seriesCard).find('select.book').each(function (index) {
+        const $select = $(this);
+        
+        $select.select2({
+          width: '100%',
+          placeholder: 'Select book',
+          dropdownParent: $(document.body) // Gunakan body agar dropdown tidak terpotong
         });
 
-        $('#additional_price').val(formatNumber(additionalPriceToAdd))
+        // 🔥 KUNCI UTAMA: Set nilai setelah Select2 terbentuk, lalu trigger change
+        if (selectedValues[index]) {
+          $select.val(selectedValues[index]).trigger('change.select2');
+        }
+      });
 
-        $('#draftBenefitModal').modal('hide');
-        $('#emptyState').fadeOut(200);
+      // 4️⃣ Handler jika user mengganti buku
+      $(seriesCard).find('select.book').on('change', function () {
+        const opt = $(this).find(':selected');
+        const row = $(this).closest('.book-row');
 
-        document.getElementById('titleList').appendChild(seriesClone);
+        row.find('[name="book_ids[]"]').val(opt.data('id') || '');
+        row.find('.level').html(`<option value="${opt.data('level') || ''}">${opt.data('level') || ''}</option>`);
+        row.find('.booktype').html(`<option value="${opt.data('type') || ''}">${opt.data('type') || ''}</option>`);
 
-        savedBookCounter++;
-      }
+        const basePrice = Number(opt.data('price')) || 0;
+        const addPrice  = removeNonDigits($('#additional_price').val()) || 0;
+
+        const hargaNormalInput = row.find('[name="harganormal[]"]')[0];
+        hargaNormalInput.dataset.bookPrice = basePrice;
+        hargaNormalInput.value = formatNumber(basePrice + addPrice);
+
+        updateDisabledField(row.find('[name="jumlahsiswa[]"]')[0]);
+      });
+
+      // 5️⃣ Hitung alokasi untuk tiap baris
+      $(seriesCard).find('.book-row').each(function () {
+        updateDisabledField(
+          $(this).find('[name="jumlahsiswa[]"]')[0]
+        );
+      });
+
+      savedBookCounter++;
     }
+    
     $('#program').val(programCode.toLowerCase()).trigger('change');
   }
 
@@ -1827,7 +1879,7 @@
 
     getSchoolPrograms();
     
-    initDraftData(ecDraftOwnerID, schoolId, programCode)
+    await initDraftData(ecDraftOwnerID, schoolId, programCode)
 
     await loadBooks();
 

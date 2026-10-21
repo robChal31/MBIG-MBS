@@ -437,7 +437,12 @@
                     ?>
                       <select name="book_<?= $data_template['id_template_benefit'] ?>[]" class="book_series_list select2" multiple required>
                         <?php foreach($allowed_book_series as $book_row): ?>
-                          <option value="<?= $book_row['id'] ?>" <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>><?= htmlspecialchars($book_row['name']) ?></option>
+                          <option value="<?= $book_row['id'] ?>" 
+                                  data-level="<?= $book_row['level_id'] ?? '' ?>" 
+                                  data-subject="<?= $book_row['subject_id'] ?? '' ?>" 
+                                  <?= in_array($book_row['id'], $selected_book_series_id) ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($book_row['name']) ?>
+                          </option>
                         <?php endforeach; ?>
                       </select>
                     <?php } else { ?>
@@ -540,50 +545,126 @@
 
 <script type="text/javascript">
 
-    function removeNonDigits(numberString) {
-      let nonDigitRegex = /\D/g;
+  function removeNonDigits(numberString) {
+    let nonDigitRegex = /\D/g;
 
-      let result = numberString.replace(nonDigitRegex, '');
+    let result = numberString.replace(nonDigitRegex, '');
 
-      return result;
+    return result;
+  }
+
+  function formatNumber(number) {
+    let parts = number.toString().split('.');
+    let integerPart = parts[0];
+
+    let formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+    if (parts.length > 1) {
+        let decimalPart = parts[1];
+        return formattedIntegerPart + ',' + decimalPart;
+    } else {
+        return formattedIntegerPart;
     }
+  }
 
-    function formatNumber(number) {
-      let parts = number.toString().split('.');
-      let integerPart = parts[0];
+  function updateQtyBySelection(row) {
+    const countMethod = row.find('.count-method').first().val() || 'template';
 
-      let formattedIntegerPart = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-      if (parts.length > 1) {
-          let decimalPart = parts[1];
-          return formattedIntegerPart + ',' + decimalPart;
-      } else {
-          return formattedIntegerPart;
+    // Cuma proses kalau subject_level
+    if (countMethod !== 'subject_level') return;
+
+    // Hitung total subject di semua level
+    let total = 0;
+    row.find('.lv-subj-select2').each(function () {
+      total += ($(this).val() || []).length;
+    });
+    const multiplier = total || 1;
+
+    // Update tiap kolom qty (Th 1, 2, 3)
+    row.find('.qty-cell').each(function () {
+      const $cell = $(this);
+      const base = parseInt($cell.find('.qty-base').val()) || 0;
+      const newVal = base * multiplier;
+
+      $cell.find('.qty-value').val(newVal);
+      $cell.find('.qty1-display, .qty2-display, .qty3-display').text(newVal);
+    });
+  }
+
+  function filterRowBookSeries(row) {
+    let $bookSelect = row.find('.book_series_list');
+    if ($bookSelect.length === 0) return;
+
+    // 1. Ambil value global dari parent (#book_series di new-benefit-pk.php)
+    let globalSelected = $('#book_series').val() || [];
+    if (!Array.isArray(globalSelected)) globalSelected = [globalSelected];
+    let globalSelectedStr = globalSelected.map(String);
+
+    // 2. Cek apakah row ini punya filter level/subject (grid)
+    let hasLevelSubjectGrid = row.find('.lv-subj-select2').length > 0;
+    let selectedMap = {};
+    let hasSubject = false;
+
+    if (hasLevelSubjectGrid) {
+      row.find('.lv-subj-select2').each(function() {
+        let name = $(this).attr('name');
+        let match = name ? name.match(/\[(\d+)\]\[\]/) : null;
+        if (match) {
+          let levelId = match[1];
+          let subjects = $(this).val() || [];
+          if (subjects.length > 0) {
+            selectedMap[levelId] = subjects.map(String);
+            hasSubject = true;
+          }
+        }
+      });
+      
+      // Jika wajib punya subject tapi belum ada yang dipilih, disable semua opsi
+      if (!hasSubject) {
+        $bookSelect.val([]).trigger('change.select2');
+        $bookSelect.find('option').prop('disabled', true).hide();
+        return;
       }
     }
 
-    function updateQtyBySelection(row) {
-      const countMethod = row.find('.count-method').first().val() || 'template';
+    // 3. Loop semua option buku dan filter
+    $bookSelect.find('option').each(function() {
+      let $opt = $(this);
+      let optVal = String($opt.val());
+      let optLevel = String($opt.data('level') || '');
+      let optSubjectsRaw = String($opt.data('subject') || '');
+      let optSubjects = optSubjectsRaw.split(',').map(s => s.trim());
 
-      // Cuma proses kalau subject_level
-      if (countMethod !== 'subject_level') return;
+      // Cek A: Apakah dipilih di global "Judul Buku Adopsi"?
+      let isGlobalAllowed = globalSelectedStr.includes(optVal);
 
-      // Hitung total subject di semua level
-      let total = 0;
-      row.find('.lv-subj-select2').each(function () {
-        total += ($(this).val() || []).length;
-      });
-      const multiplier = total || 1;
+      // Cek B: Apakah cocok dengan Level & Subject di baris ini?
+      let isRowMatch = false;
+      if (!hasLevelSubjectGrid) {
+        isRowMatch = true; // Jika tidak ada grid, loloskan (hanya filter global & benefit)
+      } else {
+        if (selectedMap[optLevel]) {
+          isRowMatch = optSubjects.some(subj => selectedMap[optLevel].includes(subj));
+        }
+      }
 
-      // Update tiap kolom qty (Th 1, 2, 3)
-      row.find('.qty-cell').each(function () {
-        const $cell = $(this);
-        const base = parseInt($cell.find('.qty-base').val()) || 0;
-        const newVal = base * multiplier;
+      if (isGlobalAllowed && isRowMatch) {
+        $opt.prop('disabled', false).show();
+      } else {
+        $opt.prop('disabled', true).hide();
+      }
+    });
 
-        $cell.find('.qty-value').val(newVal);
-        $cell.find('.qty1-display, .qty2-display, .qty3-display').text(newVal);
-      });
+    // 4. Hapus pilihan buku yang sudah tidak valid
+    let currentSelected = $bookSelect.val() || [];
+    let validValues = currentSelected.filter(val => {
+      let $opt = $bookSelect.find(`option[value="${val}"]`);
+      return $opt.length > 0 && !$opt.prop('disabled');
+    });
+
+    if (validValues.length !== currentSelected.length) {
+      $bookSelect.val(validValues).trigger('change.select2');
     }
+  }
 
 </script>
 
@@ -592,6 +673,7 @@
   $(document).on('change', '.lv-subj-select2', function() {
     let row = $(this).closest('tr');
     updateQtyBySelection(row);
+    filterRowBookSeries(row);
   });
 
   $(document).ready(function(){
@@ -608,6 +690,7 @@
 
     $('#input_form tbody tr').each(function() {
       updateQtyBySelection($(this));
+      filterRowBookSeries($(this));
     });
 
   });

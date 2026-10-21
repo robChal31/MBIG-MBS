@@ -236,6 +236,46 @@ ini_set('display_errors', 1);
                   <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk memuncukkan program, silahkan pilih sekolah terlebih dahulu</small>
                 </div>
 
+                <!-- PK & PROGRAM -->
+                <div class="col-md-2">
+                  <label class="form-label small text-muted d-block">Jenis PK</label>
+                  <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
+                    <option value="">-- Pilih Jenis PK --</option>
+                    <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
+                    <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
+                  </select>
+                </div>
+
+                <!-- SEGMENT -->
+                <div class="col-md-2">
+                  <label class="form-label small text-muted d-block">Segment</label>
+                  <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
+                    <option value="" disabled selected>- Select Segment -</option>
+                    <?php 
+                      $seg_sql = "SELECT * FROM segments";
+                      $segQ = mysqli_query($conn, $seg_sql);
+                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
+                    <?php endwhile; ?>
+                  </select>
+                </div>
+
+                <div class="col-md-2">
+                  <label class="form-label small text-muted">Discount Program (%)</label>
+                  <input id="discount_program" type="number" name="discount_program" class="form-control form-control-sm" max="100" placeholder="0 - 100">
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
+                    Diskon tidak boleh lebih dari 25%
+                  </small>
+                </div>
+
+                <div class="col-md-6">
+                  <label class="form-label small text-muted">Alamat Institusi</label>
+                  <textarea name="wilayah" class="form-control form-control-sm" placeholder="Alamat Institusi" style="height: 100px !important;"><?= $wilayah ?></textarea>
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
+                    Diskon tidak boleh lebih dari 25%
+                  </small>
+                </div>
+
                 <!-- ADOPTION LEVEL -->
                 <div class="col-md-6">
                   <label class="form-label small text-muted">Jenjang Program</label>
@@ -264,48 +304,24 @@ ini_set('display_errors', 1);
                   <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Benefit yang muncul, tergantung dari cakupan subjek yang dipilih</small>
                 </div>
 
-                <!-- PK & PROGRAM -->
-                <div class="col-md-4">
-                  <label class="form-label small text-muted d-block">Jenis PK</label>
-                  <select name="jenis_pk" id="jenis_pk" class="form-select form-select-sm select2" required style="width:100%;">
-                    <option value="">-- Pilih Jenis PK --</option>
-                    <option value="1" <?= $jenis_pk == 1 ? 'selected' : '' ?>>PK Baru</option>
-                    <option value="2" <?= $jenis_pk == 2 ? 'selected' : '' ?>>Amandemen</option>
-                  </select>
-                </div>
-
-                <!-- SEGMENT -->
-                <div class="col-md-4">
-                  <label class="form-label small text-muted d-block">Segment</label>
-                  <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
-                    <option value="" disabled selected>- Select Segment -</option>
-                    <?php 
-                      $seg_sql = "SELECT * FROM segments";
-                      $segQ = mysqli_query($conn, $seg_sql);
-                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
-                        <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
-                    <?php endwhile; ?>
-                  </select>
-                </div>
-
-                <div class="col-md-4">
-                  <label class="form-label small text-muted">Discount Program (%)</label>
-                  <input id="discount_program" type="number" name="discount_program" class="form-control form-control-sm" max="100" placeholder="0 - 100">
-                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
-                    Diskon tidak boleh lebih dari 25%
-                  </small>
-                </div>
-
                 <div class="col-md-12">
                   <label class="form-label small text-muted d-block">Judul Buku Adopsi</label>
                   <select name="book_series[]" id="book_series" class="form-select form-select-sm select2" multiple required>
                     <?php 
-                      $book_series_sql = "SELECT * FROM book_series";
+                      $book_series_sql = "SELECT bs.*, l.name as level, s.name as subject 
+                                            FROM book_series AS bs
+                                            LEFT JOIN levels as l on l.id = bs.level_id
+                                            LEFT JOIN subjects as s on s.id = bs.subject_id
+                                            WHERE bs.is_active = 1 and bs.deleted_at IS NULL
+                                            ORDER BY bs.name ASC";
                       $bookQ = mysqli_query($conn, $book_series_sql);
                       while ($row = mysqli_fetch_assoc($bookQ)) : ?>
-                        <option value='<?= $row['id'] ?>' ><?= $row['name'] ?></option>
+                        <option value="<?= $row['id'] ?>"><?= $row['name'] . " - " . $row['level'] ?></option>
                     <?php endwhile; ?>
                   </select>
+                  <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                    <i class="bi bi-info-circle"></i> Pilih setidaknya 1 Jenjang dan 1 Subjek di atas untuk menampilkan daftar buku.
+                  </small>
                 </div>
 
               </div>
@@ -402,8 +418,7 @@ ini_set('display_errors', 1);
     $('#adoption_subjects').val(selectedSubjects).trigger('change');
   }
 
-  // Load book series dulu berdasarkan level, BARU set selected lama
-  loadBookSeriesByLevels(false).then(function () {
+  loadBookSeriesByScope(false).then(function () {
     if (selectedBookSeries.length) {
       $('#book_series').val(selectedBookSeries).trigger('change');
     }
@@ -419,9 +434,39 @@ ini_set('display_errors', 1);
     return data.text;
   }
 
+  function loadBookSeriesByScope(keepSelected = true) {
+    const levels = $('#adoption_levels').val() || [];
+    const subjects = $('#adoption_subjects').val() || [];
+    const currentSelected = keepSelected ? ($('#book_series').val() || []) : [];
+
+    // 🔥 WAJIB ADA LEVEL & SUBJECT: Jika salah satu kosong, langsung kosongkan
+    if (levels.length === 0 || subjects.length === 0) {
+      $('#book_series').html('').trigger('change');
+      return $.Deferred().resolve().promise();
+    }
+
+    return $.ajax({
+      url: 'get-book-series-by-levels.php', 
+      type: 'POST',
+      dataType: 'json',
+      data: { 
+        levels: levels,
+        subjects: subjects 
+      }
+    }).then(function (response) {
+      let options = '';
+      (response || []).forEach(function (bs) {
+        const isSelected = currentSelected.map(String).includes(String(bs.id));
+        options += `<option value="${bs.id}" ${isSelected ? 'selected' : ''}>${bs.name} - [${bs.level}]</option>`;
+      });
+      $('#book_series').html(options).trigger('change');
+    }).fail(function (xhr) {
+      console.error('Gagal load book series:', xhr.responseText);
+    });
+  }
+
   function loadSchoolSelect(email) {
     email = email ?? '<?= $_SESSION['username'] ?>';
-    console.log(`https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`)
     $.ajax({
       url: `https://mentarimarapp.com/admin/api/get-institution.php?key=marapp2024&param=select&ec_email=${email}`,
       type: 'GET',
@@ -576,7 +621,7 @@ ini_set('display_errors', 1);
     $('#segment_input').val('').trigger('change').off('select2:opening select2:selecting');
     $('#adoption_levels').val('').trigger('change').off('select2:opening select2:selecting');
     $('#adoption_subjects').val('').trigger('change').off('select2:opening select2:selecting');
-    $('input[name="wilayah"]').val('').prop('readonly', false);
+    $('textarea[name="wilayah"]').val('').prop('readonly', false);
   }
 
   function getAllBenefits(program, levels = [], subjects = []) {
@@ -607,7 +652,6 @@ ini_set('display_errors', 1);
   }
 
   function initDraftData() {
-    console.log('initDraftData');
     return $.ajax({
       url: `./get_benefits_pk.php?id_draft=${idDraft}&program=${program}`,
       type: 'GET',
@@ -704,32 +748,6 @@ ini_set('display_errors', 1);
     });
   }
 
-  function loadBookSeriesByLevels(keepSelected = true) {
-    const levels = $('#adoption_levels').val() || [];
-    const currentSelected = keepSelected ? ($('#book_series').val() || []) : [];
-
-    if (!levels.length) {
-      $('#book_series').html('').trigger('change');
-      return $.Deferred().resolve().promise();
-    }
-
-    return $.ajax({
-      url: 'get-book-series-by-levels.php',
-      type: 'POST',
-      dataType: 'json',
-      data: { levels: levels }
-    }).then(function (response) {
-      let options = '';
-      (response || []).forEach(function (bs) {
-        const isSelected = currentSelected.map(String).includes(String(bs.id));
-        options += `<option value="${bs.id}" ${isSelected ? 'selected' : ''}>${bs.name}</option>`;
-      });
-      $('#book_series').html(options).trigger('change');
-    }).fail(function (xhr) {
-      console.error('Gagal load book series:', xhr.responseText);
-    });
-  }
-
   $(document).ready(function(){
 
     $('.select2').select2({
@@ -787,28 +805,6 @@ ini_set('display_errors', 1);
       getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
     })
 
-    // $('#adoption_levels').change(function () {
-    //   let selectedLevels = $(this).val();
-    //   let selectedProgram = $('#program').val();
-    //   let selectedSubjects = $('#adoption_subjects').val();
-    //   getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
-    // });
-
-    $('#adoption_subjects').change(function () {
-      let selectedSubjects = $(this).val();
-      let selectedProgram = $('#program').val();
-      let selectedLevels = $('#adoption_levels').val();
-      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
-    });
-
-    $('#adoption_levels').change(function () {
-      let selectedLevels = $(this).val();
-      let selectedProgram = $('#program').val();
-      let selectedSubjects = $('#adoption_subjects').val();
-      loadBookSeriesByLevels(true);
-      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
-    });
-
     $(document).on('change', '#myplan_id', function () {
       const selectedId = $(this).val();
       clearMyplan()
@@ -839,7 +835,30 @@ ini_set('display_errors', 1);
     });
 
     $('#book_series').on('change', function () {
-      filterBookSeriesList();
+      // Loop semua baris di tabel benefit dan jalankan filter
+      $('#input_form tbody tr').each(function() {
+        if (typeof filterRowBookSeries === 'function') {
+          filterRowBookSeries($(this));
+        }
+      });
+    });
+
+    $('#adoption_subjects').change(function () {
+      let selectedSubjects = $(this).val();
+      let selectedProgram = $('#program').val();
+      let selectedLevels = $('#adoption_levels').val();
+      
+      loadBookSeriesByScope(true); // <--- Panggil di sini
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
+    });
+
+    $('#adoption_levels').change(function () {
+      let selectedLevels = $(this).val();
+      let selectedProgram = $('#program').val();
+      let selectedSubjects = $('#adoption_subjects').val();
+      
+      loadBookSeriesByScope(true); // <--- Panggil di sini
+      getAllBenefits(selectedProgram, selectedLevels, selectedSubjects);
     });
 
   });
