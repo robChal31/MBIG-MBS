@@ -93,7 +93,11 @@ if (mysqli_num_rows($levels_exec) > 0) {
 $allowedLevelIds = array_column($banned_level_benefits, 'level_id');
 
 $book_series = [];
-$query_book_series = "SELECT * FROM book_series WHERE is_active = 1 ORDER BY name ASC";
+$query_book_series = "SELECT bs.*, lv.name AS level, sb.name AS subject
+                        FROM book_series as bs 
+                        LEFT JOIN levels as lv ON lv.id = bs.level_id
+                        LEFT JOIN subjects as sb ON sb.id = bs.subject_id
+                        WHERE bs.is_active = 1 ORDER BY name ASC";
 $exec_book_series = mysqli_query($conn, $query_book_series);
 
 if ($exec_book_series && mysqli_num_rows($exec_book_series) > 0) {
@@ -290,13 +294,13 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <select name="allowed_books[]" id="allowed_books" class="form-control form-control-sm select2" multiple>
                         <?php foreach($book_series as $series): ?>
                             <option value="<?= $series['id'] ?>" <?= in_array($series['id'], $allowedBookSeriesIds) ? 'selected' : '' ?>>
-                                <?= htmlspecialchars($series['name']) ?>
+                                <?= htmlspecialchars($series['name']) ?> - [<?= $series['level'] ?> - <?= $series['subject'] ?>]
                             </option>  
                         <?php endforeach; ?>
                     </select>
 
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
-                        Jenjang sekolah yang dipilih akan dibatasi untuk bisa mendapat benefit ini
+                        Buku yang dipilih adalah buku yang dapat digunakan untuk benefit ini
                     </small>
                 </div>
 
