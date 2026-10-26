@@ -1347,9 +1347,11 @@
 
     let bookSeriesSelect = row.find('select.book-select');
     if (bookSeriesSelect.length === 0) return;
-
+    console.log('allBookSeries: ', allBookSeries);
+    console.log('allowed_book_ids: ', data.allowed_book_ids);
     let allowedBookIds = data.allowed_book_ids ? data.allowed_book_ids.split(',').map(Number) : [];
     let allowedBookSeries = allBookSeries.filter(book => allowedBookIds.includes(Number(book.id)));
+    console.log('allowedBookSeries: ', allowedBookSeries);
 
     let selectedLevelSubjects = {};
     let hasSubject = false;
