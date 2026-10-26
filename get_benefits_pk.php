@@ -508,7 +508,7 @@
                   </td>
 
                   <td>
-                    <?= ucfirst($data_template['satuan']) ?>
+                    <?= ucfirst($data_template['satuan'] ?? '') ?>
                   </td>
                   <td>
                     <?php if($data_template['optional'] == 1) { ?>
