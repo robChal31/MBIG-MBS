@@ -327,7 +327,7 @@
                   <!-- WILAYAH -->
                   <div class="<?= $role == 'ec' ? 'col-md-4' : 'col-md-6' ?>">
                     <label class="form-label small text-muted">Alamat Institusi</label>
-                    <textarea name="wilayah" class="form-control form-control-sm" placeholder="Alamat Institusi" style="height: 100px !important;"><?= $wilayah ?></textarea>
+                    <textarea name="wilayah" class="form-control form-control-sm" placeholder="Alamat Institusi" style="height: 100px !important;" required><?= $wilayah ?></textarea>
                   </div>
 
                   <!-- DISCOUNT -->

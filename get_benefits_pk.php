@@ -350,6 +350,7 @@
         <div class="table-responsive benefit-table p-2">
           <table class="table table-borderless dataTable no-footer" id="input_form">
             <thead>
+              <td style="width:5%">ID</td>
               <td style="width:15%">Benefit Nama</td>
               <td style="width:20%">Deskripsi</td>
               <td class="d-none">Pelaksanaan</td>
@@ -367,7 +368,9 @@
                   <input type="hidden" name="benefit[]" value="<?= $data_template['benefit'] ?>">
                   <input type="hidden" name="id_templates[]" value="<?= $data_template['id_template_benefit'] ?>">
                   <input type="hidden" name="subbenefit[]" value="<?= $data_template['subbenefit'] ?>">
-
+                  <td class="col-id">
+                    <span><?= $data_template['id_template_benefit']; ?></span>
+                  </td>
                   <td>
                     <span><?= ucfirst($data_template['benefit_name']); ?></span>
                     <input type="hidden" name="benefit_name[]" value="<?= $data_template['benefit_name'] ?>">

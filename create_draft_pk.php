@@ -270,7 +270,7 @@ ini_set('display_errors', 1);
 
                 <div class="col-md-6">
                   <label class="form-label small text-muted">Alamat Institusi</label>
-                  <textarea name="wilayah" class="form-control form-control-sm" placeholder="Alamat Institusi" style="height: 100px !important;"><?= $wilayah ?></textarea>
+                  <textarea name="wilayah" class="form-control form-control-sm" placeholder="Alamat Institusi" style="height: 100px !important;" required><?= $wilayah ?></textarea>
                   <small class="text-muted d-block mt-1" style="font-size: 11px !important;" id="discount_program_note">
                     Diskon tidak boleh lebih dari 25%
                   </small>
