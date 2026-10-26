@@ -188,7 +188,7 @@
                         FROM calc_table AS ct
                         LEFT JOIN books AS b ON b.id = ct.book_id
                         LEFT JOIN book_series AS bs ON bs.id = b.book_series_id
-                        WHERE ct.id_draft = 2329 AND bs.is_active = 1 GROUP BY bs.id ORDER BY bs.name ASC";
+                        WHERE ct.id_draft = $id_draft AND bs.is_active = 1 GROUP BY bs.id ORDER BY bs.name ASC";
   $exec_book_series = mysqli_query($conn, $query_book_series);
 
   if ($exec_book_series && mysqli_num_rows($exec_book_series) > 0) {
