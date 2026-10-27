@@ -287,11 +287,21 @@
                     <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
                       <option value="" disabled selected>- Select Segment -</option>
                       <?php 
-                        $seg_sql = "SELECT * FROM segments";
-                        $segQ = mysqli_query($conn, $seg_sql);
-                        while ($row = mysqli_fetch_assoc($segQ)) : ?>
-                          <option value='<?= $row['id'] ?>' <?=  ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>><?= $row['segment'] ?></option>
-                      <?php endwhile; ?>
+                        if($role != 'admin') {
+                          // non-admin tetap server-side
+                          $seg_sql = "SELECT seg.* 
+                                      FROM user_segments as us
+                                      LEFT JOIN segments as seg on us.segment_id = seg.id
+                                      WHERE us.id_user = '$id_user'";
+                          $segQ = mysqli_query($conn, $seg_sql);
+                          while ($row = mysqli_fetch_assoc($segQ)) : ?>
+                            <option value='<?= $row['id'] ?>' <?= ($segment == $row['id'] || $segment == strtolower($row['segment'])) ? 'selected' : '' ?>>
+                              <?= $row['segment'] ?>
+                            </option>
+                          <?php endwhile;
+                        }
+                        // admin: diisi via AJAX setelah EC dipilih
+                      ?>
                     </select>
                   </div>
 
@@ -651,6 +661,8 @@
 
   let isDirty = false;
   let isSubmitting = false;
+  let userRole        = '<?= $role ?>';
+  let currentSegment  = '<?= $segment ?? '' ?>'; 
 
   function fetchShool(email, schoolId = null) {
     schoolReady = false;
@@ -687,6 +699,39 @@
         $('.loading_school').addClass('d-none');
         $('.select_school_div').removeClass('d-none');
       }
+    });
+  }
+
+  function loadSegmentsByEc(ecId, selectedSegment = null) {
+    if (!ecId) {
+      $('#segment_input')
+        .off('select2:opening select2:selecting')
+        .html('<option value="" disabled selected>- Select Segment -</option>')
+        .trigger('change');
+      return $.Deferred().resolve().promise();
+    }
+
+    return $.ajax({
+      url: 'get-ec-segments.php',
+      type: 'POST',
+      dataType: 'json',
+      data: { id_user: ecId }
+    }).then(function (response) {
+      let options = '<option value="" disabled selected>- Select Segment -</option>';
+      (response || []).forEach(function (seg) {
+        const isSelected = selectedSegment && (
+          String(selectedSegment) === String(seg.id) ||
+          String(selectedSegment).toLowerCase() === String(seg.segment).toLowerCase()
+        );
+        options += `<option value="${seg.id}" ${isSelected ? 'selected' : ''}>${seg.segment}</option>`;
+      });
+
+      $('#segment_input')
+        .off('select2:opening select2:selecting')
+        .html(options)
+        .trigger('change');
+    }).fail(function (xhr) {
+      console.error('Gagal load segment:', xhr.responseText);
     });
   }
 
@@ -1078,7 +1123,7 @@
 
   async function initDraftData(ecId, schoolId, programCode) {
     if (!ecId) {
-      hideContentLoading(); // safety
+      hideContentLoading();
       return;
     }
 
@@ -1087,6 +1132,11 @@
       if (!user) return;
 
       await fetchShool(user.username, schoolId);
+
+      // 🔥 load segment dulu (khusus admin) sebelum plan data
+      if (userRole === 'admin') {
+        await loadSegmentsByEc(ecId, currentSegment);
+      }
 
       await getMyPlanRef(myplanId, 'init');
     } catch (err) {
@@ -1551,7 +1601,6 @@
   let schoolId        = '<?= $school_name ?? 'null' ?>';
   let programCode     = '<?= $program ?? 'null' ?>';
   let booksBySeries   = <?= json_encode($books) ?>;
-  let userRole        = '<?= $role ?>';
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
   let programOmzetSettings = null;
@@ -1642,12 +1691,22 @@
 
     $('#inputEC').on('change', async function () {
       const userId = $(this).val();
-      if (!userId) return;
+
+      if (!userId) {
+        if (userRole === 'admin') loadSegmentsByEc(null);
+        return;
+      }
 
       const userData = await getUserData(userId);
       if (!userData) return;
 
       await fetchShool(userData.username);
+
+      // 🔥 load segment sesuai EC yang baru dipilih
+      if (userRole === 'admin') {
+        await loadSegmentsByEc(userId);
+      }
+
       getMyPlanRef();
     });
 
