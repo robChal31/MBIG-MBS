@@ -516,8 +516,8 @@
         $sheet->setCellValue('A2', 'PERHITUNGAN HARGA & BENEFIT PROGRAM');
         $sheet->getStyle('A2')->getFont()->setBold(true)->setSize(14);
         
-        $sheet->mergeCells('A2:H2');
-        $sheet->mergeCells('A4:H4');
+        $sheet->mergeCells('A2:G2');
+        $sheet->mergeCells('A4:G4');
         $sheet->getStyle('A2:A4')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->setCellValue('A5', 'Nama Sekolah');
         $sheet->setCellValue('B5', ': '.strtoupper($school_name2));
@@ -539,9 +539,9 @@
         // $sheet->setCellValue('C'.$row, 'Sub-benefit');
         $sheet->setCellValue('C'.$row, 'Nama Manfaat');
         $sheet->setCellValue('D'.$row, 'Deskripsi');
-        $sheet->setCellValue('F'.$row, 'Total Tahun 1');
-        $sheet->setCellValue('G'.$row, 'Total Tahun 2');
-        $sheet->setCellValue('H'.$row, 'Total Tahun 3');
+        $sheet->setCellValue('E'.$row, 'Total Tahun 1');
+        $sheet->setCellValue('F'.$row, 'Total Tahun 2');
+        $sheet->setCellValue('G'.$row, 'Total Tahun 3');
 
         $row++;
         $row++;
@@ -579,9 +579,9 @@
             // $sheet->setCellValue('C'.$row, $data['subbenefit']);
             $sheet->setCellValue('C'.$row, cleanBenefitName($data['benefit_name']));
             $sheet->setCellValue('D'.$row, buildBenefitDescriptionExcel($data));
-            $sheet->setCellValue('F'.$row, ($data['qty'] . ' ' . $data['satuan']) );
-            $sheet->setCellValue('G'.$row, ($data['qty2'] . ' ' . $data['satuan']) );
-            $sheet->setCellValue('H'.$row, ($data['qty3'] . ' ' . $data['satuan']) );
+            $sheet->setCellValue('E'.$row, ($data['qty'] . ' ' . $data['satuan']) );
+            $sheet->setCellValue('F'.$row, ($data['qty2'] . ' ' . $data['satuan']) );
+            $sheet->setCellValue('G'.$row, ($data['qty3'] . ' ' . $data['satuan']) );
             
             $j++; $row++;
         }
@@ -594,11 +594,11 @@
         $row=$row+6;
         $sheet->setCellValue('A'.$row,'Nama');
         $sheet->setCellValue('D'.$row,'HOR / HOS');
-        $sheet->setCellValue('H'.$row,'Dwinanto Setiawan');
+        $sheet->setCellValue('G'.$row,'Dwinanto Setiawan');
         $row++;
         $sheet->setCellValue('A'.$row,'E-signature *wajib');
         $sheet->setCellValue('D'.$row,'E-signature *wajib');
-        $sheet->setCellValue('H'.$row,'E-signature *wajib');
+        $sheet->setCellValue('G'.$row,'E-signature *wajib');
 
         // for($i = 'A'; $i !=  $spreadsheet->getActiveSheet()->getHighestColumn(); $i++) {
         //     $spreadsheet->getActiveSheet()->getColumnDimension($i)->setAutoSize(TRUE);
