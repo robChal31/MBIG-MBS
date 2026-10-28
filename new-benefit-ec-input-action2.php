@@ -673,7 +673,7 @@
                 }
             }
 
-            $sheet->setCellValue('H'.$row, $data['pelaksanaan']);
+            // $sheet->setCellValue('H'.$row, $data['pelaksanaan']);
 
             if(in_array($program, ['prestasi','cbls3','bsp']) || $show_year_2_and_3 == 1){
                 $sheet->setCellValue('I'.$row, "Tahun 1 : {$data['qty']} | Tahun 2 : {$data['qty2']} | Tahun 3 : {$data['qty3']}");
