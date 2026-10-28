@@ -95,6 +95,118 @@
     }
     // ===================== END FUNGSI SEND EMAIL =====================
 
+    if (!function_exists('buildBenefitDescriptionExcel')) {
+        function buildBenefitDescriptionExcel($item) {
+            // 🔥 Sanitize: strip tags + decode entities (&#38; → &, &amp; → &, &nbsp; → space)
+            $desc = trim(html_entity_decode(
+                strip_tags((string)($item['description'] ?? '')),
+                ENT_QUOTES | ENT_HTML5,
+                'UTF-8'
+            ));
+
+            $countMethod = $item['count_method'] ?? 'template';
+            $qty         = $item['qty'] ?? null;
+            $satuan      = trim((string)($item['satuan'] ?? ''));
+
+            // ---- Breakdown per Subjek & Level ----
+            // 🔥 subject_level  → breakdown DENGAN qty
+            // 🔥 book_series    → breakdown TANPA qty
+            $isSubjectLevel = ($countMethod === 'subject_level');
+            $isBookSeries   = ($countMethod === 'book_series');
+            $hasPairs       = !empty($item['subject_level_pairs']);
+            $skipQty        = ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0));
+
+            // book_series tetap tampil walau qty kosong/0 (karena ga butuh qty)
+            // subject_level wajib ada qty valid
+            $showBreakdown = $hasPairs && (
+                $isBookSeries || ($isSubjectLevel && !$skipQty)
+            );
+
+            if ($showBreakdown) {
+                $pairs = [];
+                foreach (explode(',', $item['subject_level_pairs']) as $pair) {
+                    $pair = trim($pair);
+                    if ($pair === '') continue;
+                    $parts = explode('|', $pair);
+
+                    // 🔥 Decode entities di nama subject/level
+                    $subj = trim(html_entity_decode($parts[0] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                    $lvl  = trim(html_entity_decode($parts[1] ?? '', ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+
+                    if ($subj === '' && $lvl === '') continue;
+                    $pairs[] = ['subject' => $subj, 'level' => $lvl];
+                }
+
+                usort($pairs, fn($a, $b) =>
+                    strcasecmp($a['level'], $b['level']) ?: strcasecmp($a['subject'], $b['subject'])
+                );
+
+                if (!empty($pairs)) {
+                    // Hitung qty per kombinasi HANYA kalau subject_level
+                    $qtyText = null;
+                    if ($isSubjectLevel) {
+                        $qtyFloat = (float)$qty;
+                        $qtyPer   = $qtyFloat / count($pairs);
+                        $qtyText  = (floor($qtyPer) == $qtyPer)
+                            ? (int)$qtyPer
+                            : rtrim(rtrim(number_format($qtyPer, 2, '.', ''), '0'), '.');
+                    }
+
+                    $desc .= "\n\nRincian per Subjek & Level:";
+                    foreach ($pairs as $pair) {
+                        $line = '• ';
+                        if ($pair['subject'] !== '' && $pair['level'] !== '') {
+                            $line .= $pair['subject'] . ' (' . $pair['level'] . ')';
+                        } elseif ($pair['subject'] !== '') {
+                            $line .= $pair['subject'];
+                        } else {
+                            $line .= $pair['level'];
+                        }
+
+                        // 🔥 Append qty HANYA untuk subject_level
+                        if ($isSubjectLevel && $qtyText !== null) {
+                            $line .= ' : ' . $qtyText;
+                            if ($satuan !== '') $line .= ' ' . $satuan;
+                        }
+
+                        $desc .= "\n" . $line;
+                    }
+                }
+            }
+
+            // ---- Book Series ----
+            if (!empty($item['book_series_names'])) {
+                $series = array_filter(array_map(function($s) {
+                    return trim(html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
+                }, explode(',', $item['book_series_names'])));
+
+                if (!empty($series)) {
+                    $desc .= "\n\nUntuk Penggunaan:";
+                    foreach ($series as $s) {
+                        $desc .= "\n• " . $s;
+                    }
+                }
+            }
+
+            return $desc;
+        }
+    }
+
+    function cleanBenefitName($string) {
+        if (!is_string($string) || $string === '') return '';
+        $string = html_entity_decode($string, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        $string = preg_replace('/^\d+\.\s*/', '', trim($string));
+        $removePatterns = [
+            '/\(?Luar\s*Jabodetabek\)?/i',
+            '/\(?Jabodetabek\)?/i'
+        ];
+        foreach ($removePatterns as $pattern) {
+            $string = preg_replace($pattern, '', $string);
+        }
+        $string = preg_replace('/\s+/', ' ', $string);
+        return trim($string);
+    }
+
     $program = ISSET($_POST["program"]) ? $_POST["program"] : (ISSET($_SESSION["program"]) ? $_SESSION['program'] : '');
     $sumalok = ISSET($_POST["sumalok"]) ? $_POST["sumalok"] : (ISSET($_SESSION["sumalok"]) ? $_SESSION['sumalok'] : 0);
 
@@ -505,27 +617,43 @@
         $row++;
 
         $sql = "SELECT 
-                    a.status, a.benefit_name, a.subbenefit, a.description, a.keterangan,
-                    a.qty, a.qty2, a.qty3, a.manualValue, a.pelaksanaan,
-                    b.valueMoney, a.calcValue
-                FROM draft_benefit_list a
-                LEFT JOIN draft_template_benefit b
-                    ON a.id_template = b.id_template_benefit
-                WHERE a.id_draft = $id_draft";
+            dbl.*, 
+            b.benefit, b.benefit_name, b.subbenefit, b.description, 
+            b.allow_multiple_subject_and_level, b.count_method, b.countable,
+            dbl.qty, dbl.qty2, dbl.qty3, 
+            b.qty1 as qty1_template, b.qty2 as qty2_template, b.qty3 as qty3_template, b.satuan,
+            b.valueMoney,
+            COALESCE(
+                GROUP_CONCAT(DISTINCT CONCAT(s.name, '|', ol.name) SEPARATOR ', '), 
+                ''
+            ) AS subject_level_pairs,
+            COALESCE(
+                GROUP_CONCAT(DISTINCT bs.name ORDER BY bs.name SEPARATOR ', '), 
+                ''
+            ) AS book_series_names
+        FROM draft_benefit_list dbl
+        LEFT JOIN draft_template_benefit b ON b.id_template_benefit = dbl.id_template
+        LEFT JOIN benefit_org_levels bol ON bol.draft_benefit_list_id = dbl.id_benefit_list
+        LEFT JOIN benefit_subject_levels bsl ON bsl.benefit_org_levels_id = bol.id
+        LEFT JOIN subjects s ON s.id = bsl.subject_id
+        LEFT JOIN levels ol ON ol.id = bol.level_id
+        LEFT JOIN benefit_book_series bbs ON bbs.draft_benefit_list_id = dbl.id_benefit_list
+        LEFT JOIN book_series bs ON bs.id = bbs.book_series_id
+        WHERE dbl.id_draft = $id_draft
+        GROUP BY dbl.id_benefit_list";
         $result = $conn->query($sql);
 
         $j = 1;
         while ($data = $result->fetch_assoc()) {
-            $description = html_entity_decode($data['description'], ENT_QUOTES | ENT_HTML5, 'UTF-8');
-            $description = str_replace(["&#13;", "\r", "\n"], PHP_EOL, $description);
+            $description = buildBenefitDescriptionExcel($data);
 
             $sheet->setCellValue('A'.$row, $j);
-            $sheet->setCellValue('B'.$row, $data['benefit_name']);
+            $sheet->setCellValue('B'.$row, cleanBenefitName($data['benefit_name']));
             $sheet->mergeCells('B'.$row.':C'.$row);
             $sheet->setCellValue('D'.$row, $description);
             $sheet->getStyle('D'.$row)->getAlignment()->setWrapText(true);
             $sheet->mergeCells('D'.$row.':F'.$row);
-
+            $sheet->setCellValue('H'.$row, $data['satuan']);
             if($data['manualValue'] == 0){
                 $valueMoney = $data['valueMoney'] ?: $data['calcValue'];
                 $sheet->setCellValue('G'.$row, $valueMoney);

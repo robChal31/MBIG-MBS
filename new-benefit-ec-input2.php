@@ -842,14 +842,14 @@
                       <tr>
                         <!-- <td class="td-cust text-center col-benefit" rowspan="2" style="width:5%;">Benefit</td>
                         <td class="td-cust text-center col-subbenefit" rowspan="2" style="width:5%;">Sub Benefit</td> -->
-                        <td class="td-cust text-center" style="width: 5px;" rowspan="2">ID</td>
-                        <td class="td-cust text-center" rowspan="2" style="width:15%;">Nama Benefit</td>
-                        <td class="td-cust text-center" rowspan="2" style="width:18%;">Deskripsi</td>
+                        <td class="td-cust text-center" style="min-width: 50px; width: 5%;" rowspan="2">ID</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:14%;">Nama Benefit</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:17%;">Deskripsi</td>
                         <!-- <td class="td-cust text-center" rowspan="2" style="width:10%;">Pelaksanaan</td> -->
-                        <td class="td-cust text-center" rowspan="2" style="width:20%;">Subjek × Level</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:18%;">Subjek × Level</td>
                         <td class="td-cust text-center" rowspan="2" style="width:10%;">Book</td>
                         <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Benefit</td>
-                        <td class="td-cust text-center" colspan="3" style="width:12%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
+                        <td class="td-cust text-center" colspan="3" style="width:11%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
                         <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Value</td>
                         <td class="td-cust text-center" rowspan="2" style="width:5%;">Action</td>
                       </tr>
@@ -956,7 +956,7 @@
                                   data-base-qty="<?= (int)$data['qty1_template'] ?>"
                                   placeholder="0" value="<?= $data['qty'] ?>" min="0" 
                                   onchange="updateDisabledField(this)"
-                                  <?php if($data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $year == 2 || $year == 3){echo "readonly";} ?>>
+                                  <?php if($data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $data['count_method'] == 'book_series' || $year == 2 || $year == 3){echo "readonly";} ?>>
                           </td>
 
                           <!-- Th 2 -->
@@ -966,7 +966,7 @@
                                   data-base-qty="<?= (int)$data['qty2_template'] ?>"
                                   placeholder="0" value="<?= $data['qty2'] ?>" min="0" 
                                   onchange="updateDisabledField(this)"
-                                  <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $year == 3){echo "readonly";} ?>>
+                                  <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $data['count_method'] == 'book_series' || $year == 3){echo "readonly";} ?>>
                           </td>
 
                           <!-- Th 3 -->
@@ -976,7 +976,7 @@
                                   data-base-qty="<?= (int)$data['qty3_template'] ?>"
                                   placeholder="0" value="<?= $data['qty3'] ?>" min="0" 
                                   onchange="updateDisabledField(this)"
-                                  <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level'){echo "readonly";} ?>>
+                                  <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $data['count_method'] == 'book_series'){echo "readonly";} ?>>
                           </td>
                           <td>
                             <input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]" placeholder="0" value="<?= number_format($data['calcValue'], '0', ',', '.') ?>" readonly>
@@ -1229,7 +1229,7 @@
             row.find('.count-method').val(data.count_method || 'template');
 
             // Kalau subject_level, set readonly juga
-            if (data.count_method == 'subject_level') {
+            if (data.count_method == 'subject_level' || data.count_method == 'book_series') {
               row.find('input[name="member[]"]').prop('readonly', true);
               row.find('input[name="member2[]"]').prop('readonly', true);
               row.find('input[name="member3[]"]').prop('readonly', true);
@@ -1436,17 +1436,27 @@
 
   function updateQtyBySubjectLevel(row) {
     const countMethod = row.find('.count-method').val() || 'template';
-    const rowId = row.attr('id') || '(no id)';
-    
-    if (countMethod != 'subject_level') {
-      return;
+
+    let multiplier = 1;
+    let needsUpdate = false;
+
+    // 🔥 Subjek × Level
+    if (countMethod === 'subject_level') {
+      let total = 0;
+      row.find('.lv-subj-select2').each(function () {
+        total += ($(this).val() || []).length;
+      });
+      multiplier = total || 1;
+      needsUpdate = true;
+
+    // 🔥 Book Series
+    } else if (countMethod === 'book_series') {
+      let selectedBooks = row.find('select.book-select').val() || [];
+      multiplier = selectedBooks.length || 1;
+      needsUpdate = true;
     }
 
-    let total = 0;
-    row.find('.lv-subj-select2').each(function () {
-      total += ($(this).val() || []).length;
-    });
-    const multiplier = total || 1;
+    if (!needsUpdate) return;
 
     const $q1 = row.find('input[name="member[]"]');
     const $q2 = row.find('input[name="member2[]"]');
@@ -1661,8 +1671,8 @@
     $('.select2').select2({
       width: '100%'
     });
-    $('.lv-subj-select2').each(function () {
-      bindLvSubjEvents($(this));
+    $(document).on('change select2:select select2:unselect', 'select.book-select', function() {
+      updateQtyBySubjectLevel($(this).closest('tr'));
     });
     $('.select2-benefit').select2({
       placeholder: 'Select a benefit',

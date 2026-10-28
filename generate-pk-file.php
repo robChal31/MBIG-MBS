@@ -37,7 +37,7 @@ $draft = mysqli_fetch_assoc($result) or die('Data draft tidak ditemukan');
 // 2. AMBIL DATA BENEFIT
 // ==================================================
 $sql = "SELECT 
-            dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.pelaksanaan, b.allow_multiple_subject_and_level, b.count_method, b.countable,
+            dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.allow_multiple_subject_and_level, b.count_method, b.countable,
             dbl.qty, dbl.qty2, dbl.qty3, b.qty1 as qty1_template, b.qty2 as qty2_template, b.qty3 as qty3_template, b.satuan,
             COUNT(DISTINCT bsl.id) AS total_combination,
             COUNT(DISTINCT bsl.subject_id) AS total_subject,
@@ -146,8 +146,8 @@ function formatSubjectLevelBreakdown($qty, $satuan, $item)
 {
     $countMethod = $item['count_method'] ?? 'template';
 
-    // 🔥 Cuma subject_level yang punya breakdown
-    if ($countMethod !== 'subject_level') return '';
+    // 🔥 Cuma subject_level / book_series yang punya breakdown
+    if ($countMethod !== 'subject_level' && $countMethod !== 'book_series') return '';
 
     if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '';
     if (empty($item['subject_level_pairs'])) return '';
@@ -173,16 +173,17 @@ function formatSubjectLevelBreakdown($qty, $satuan, $item)
         return strcasecmp($a['subject'], $b['subject']);
     });
 
-
     if (empty($pairs)) return '';
 
-    // 🔥 Per kombinasi = qty_db / jumlah kombinasi
-    $qtyPerCombination = $qty / count($pairs);
-
-    if (floor($qtyPerCombination) == $qtyPerCombination) {
-        $qtyText = (int)$qtyPerCombination;
-    } else {
-        $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
+    // 🔥 Hitung qtyText HANYA untuk subject_level
+    $qtyText = null;
+    if ($countMethod === 'subject_level') {
+        $qtyPerCombination = $qty / count($pairs);
+        if (floor($qtyPerCombination) == $qtyPerCombination) {
+            $qtyText = (int)$qtyPerCombination;
+        } else {
+            $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
+        }
     }
 
     $html  = '<div class="breakdown">';
@@ -197,10 +198,15 @@ function formatSubjectLevelBreakdown($qty, $satuan, $item)
         } else {
             $line .= esc($pair['level']);
         }
-        $line .= ' : ' . esc($qtyText);
-        if ($satuan !== '') {
-            $line .= ' ' . esc($satuan);
+
+        // 🔥 Qty HANYA muncul untuk subject_level
+        if ($countMethod === 'subject_level' && $qtyText !== null) {
+            $line .= ' : ' . esc($qtyText);
+            if ($satuan !== '') {
+                $line .= ' ' . esc($satuan);
+            }
         }
+
         $html .= '<span class="breakdown-line">' . $line . '</span>';
     }
 
@@ -663,10 +669,6 @@ function displayBenefitQty($qty, $satuan, $item)
                 $name = $item['benefit_name'] ?? $item['benefit'] ?? '-';
                 $cleanedName = cleanBenefitName($name);
                 $desc = formatDescription($item['description'] ?? '');
-
-                if ($pel = trim((string)($item['pelaksanaan'] ?? ''))) {
-                    $desc .= '<span class="pelaksanaan">' . esc($pel) . '</span>';
-                }
 
                 // 🔥 Breakdown per subjek & level — conditional by count_method (sudah dihandle di function)
                 $breakdown = formatSubjectLevelBreakdown($qty1, $item['satuan'] ?? '', $item);

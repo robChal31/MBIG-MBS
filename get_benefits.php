@@ -52,6 +52,7 @@
             $options .= "<optgroup label='$key'>";
             foreach ($grouped_benefit as $key => $benefit) {
               $benefit_name = $benefit['benefit_name'];
+              $id_template = $benefit['id_template_benefit'];
               $is_selected = '';
               if($selected) {
                 $is_selected = $selected == $benefit['id_template_benefit'] ? 'selected' : '';
@@ -61,7 +62,7 @@
               $subbenefit = $benefit['subbenefit'];
               $info = $benefit['info'] ? "data-bs-toggle='tooltip' title='$benefit[info]'" : '';
               $highlight_color = $benefit['highlight_color'] ? "data-color='$benefit[highlight_color]'" : '';
-              $options .= "<option value='$id_template' $is_selected $info $highlight_color >$subbenefit - $benefit_name</option>";
+              $options .= "<option value='$id_template' $is_selected $info $highlight_color >$benefit_group - $subbenefit - $benefit_name [$id_template]</option>";
   
             }
             $options .= "</optgroup>";

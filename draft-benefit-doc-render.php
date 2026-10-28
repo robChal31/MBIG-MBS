@@ -51,6 +51,28 @@ if (!function_exists('imageToDataUri')) {
     }
 }
 
+// 🔥 FUNGSI UNTUK MENGHITUNG DIMENSI GAMBAR AGAR WORD TIDAK KEGEDEAN
+if (!function_exists('imgDimensionsForWord')) {
+    function imgDimensionsForWord(string $path, float $targetPt): array
+    {
+        $targetPx = (int) round($targetPt * 96 / 72);
+
+        $info = @getimagesize($path);
+        if (!$info) {
+            return ['width' => $targetPx, 'height' => 0];
+        }
+
+        [$origW, $origH] = $info;
+        if ($origW <= 0) {
+            return ['width' => $targetPx, 'height' => 0];
+        }
+
+        $targetH = (int) round($targetPx * $origH / $origW);
+
+        return ['width' => $targetPx, 'height' => $targetH];
+    }
+}
+
 if (!function_exists('cleanBenefitName')) {
     function cleanBenefitName($string) {
         if (!is_string($string) || $string === '') return '';
@@ -71,7 +93,7 @@ if (!function_exists('cleanBenefitName')) {
 if (!function_exists('formatSubjectLevelBreakdown')) {
     function formatSubjectLevelBreakdown($qty, $satuan, $item) {
         $countMethod = $item['count_method'] ?? 'template';
-        if ($countMethod !== 'subject_level') return '';
+        if ($countMethod !== 'subject_level' && $countMethod !== 'book_series') return '';
         if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '';
         if (empty($item['subject_level_pairs'])) return '';
 
@@ -97,14 +119,18 @@ if (!function_exists('formatSubjectLevelBreakdown')) {
 
         if (empty($pairs)) return '';
 
-        $qtyPerCombination = $qty / count($pairs);
-        if (floor($qtyPerCombination) == $qtyPerCombination) {
-            $qtyText = (int)$qtyPerCombination;
-        } else {
-            $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
+        // 🔥 Hitung qtyText HANYA untuk subject_level
+        $qtyText = null;
+        if ($countMethod === 'subject_level') {
+            $qtyPerCombination = $qty / count($pairs);
+            if (floor($qtyPerCombination) == $qtyPerCombination) {
+                $qtyText = (int)$qtyPerCombination;
+            } else {
+                $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
+            }
         }
 
-        // 🔥 Pakai <div> per baris biar Word hormati line break
+        // 🔥 GUNAKAN <div> BUKAN <span> AGAR WORD MEMBUAT BARIS BARU
         $html  = '<div class="breakdown">';
         $html .= '<div class="breakdown-title">Rincian per Subjek &amp; Level:</div>';
         foreach ($pairs as $pair) {
@@ -116,108 +142,35 @@ if (!function_exists('formatSubjectLevelBreakdown')) {
             } else {
                 $line .= esc($pair['level']);
             }
-            $line .= ' : ' . esc($qtyText);
-            if ($satuan !== '') {
-                $line .= ' ' . esc($satuan);
+
+            // 🔥 Qty HANYA muncul untuk subject_level
+            if ($countMethod === 'subject_level' && $qtyText !== null) {
+                $line .= ' : ' . esc($qtyText);
+                if ($satuan !== '') {
+                    $line .= ' ' . esc($satuan);
+                }
             }
-            // 🔥 <div> per item + <br> safety net biar Word gak nyambung
+
             $html .= '<div class="breakdown-line">' . $line . '</div>';
         }
         $html .= '</div>';
         return $html;
     }
 }
-
 if (!function_exists('formatBookSeriesList')) {
     function formatBookSeriesList($item) {
         if (empty($item['book_series_names'])) return '';
         $series = array_filter(array_map('trim', explode(',', $item['book_series_names'])));
         if (empty($series)) return '';
 
-        // 🔥 Pakai <div> per baris
+        // 🔥 GUNAKAN <div> BUKAN <span> AGAR WORD MEMBUAT BARIS BARU
         $html  = '<div class="book-series">';
-        $html .= '<div class="book-series-title">Book Series:</div>';
+        $html .= '<div class="book-series-title">Untuk Penggunaan:</div>';
         foreach ($series as $s) {
             $html .= '<div class="book-series-line">&bull; ' . esc($s) . '</div>';
         }
         $html .= '</div>';
         return $html;
-    }
-}
-
-if (!function_exists('displayBenefitQty')) {
-    function displayBenefitQty($qty, $satuan, $item) {
-        if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '-';
-
-        $qty    = (float)$qty;
-        $satuan = trim((string)$satuan);
-        $countMethod = $item['count_method'] ?? 'template';
-
-        if ($countMethod !== 'subject_level') {
-            $text = (floor($qty) == $qty) ? (int)$qty : $qty;
-            $text = esc($text);
-            if ($satuan !== '') $text .= ' ' . esc($satuan);
-            return $text;
-        }
-
-        $pairs = [];
-        if (!empty($item['subject_level_pairs'])) {
-            foreach (explode(',', $item['subject_level_pairs']) as $pair) {
-                $pair = trim($pair);
-                if ($pair === '') continue;
-                $parts = explode('|', $pair);
-                $pairs[] = [
-                    'subject' => trim($parts[0] ?? ''),
-                    'level'   => trim($parts[1] ?? ''),
-                ];
-            }
-        }
-
-        if (empty($pairs)) {
-            $text = (floor($qty) == $qty) ? (int)$qty : $qty;
-            $text = esc($text);
-            if ($satuan !== '') $text .= ' ' . esc($satuan);
-            return $text;
-        }
-
-        $qtyPerCombination = $qty / count($pairs);
-        if (floor($qtyPerCombination) == $qtyPerCombination) {
-            $qtyText = (int)$qtyPerCombination;
-        } else {
-            $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
-        }
-
-        $results = [];
-        foreach ($pairs as $pair) {
-            $text = esc($qtyText);
-            if ($satuan !== '') $text .= ' ' . esc($satuan);
-            if ($pair['subject'] !== '') $text .= ' / ' . esc($pair['subject']);
-            if ($pair['level'] !== '') $text .= ' / ' . esc($pair['level']);
-            $results[] = $text;
-        }
-        // 🔥 <br> aja cukup di sini karena cuma di cell, bukan list
-        return implode('<br>', $results);
-    }
-}
-
-if (!function_exists('imgDimensionsForWord')) {
-    function imgDimensionsForWord(string $path, float $targetPt): array
-    {
-        $targetPx = (int) round($targetPt * 96 / 72);
-
-        $info = @getimagesize($path);
-        if (!$info) {
-            return ['width' => $targetPx, 'height' => 0];
-        }
-
-        [$origW, $origH] = $info;
-        if ($origW <= 0) {
-            return ['width' => $targetPx, 'height' => 0];
-        }
-
-        $targetH = (int) round($targetPx * $origH / $origW);
-
-        return ['width' => $targetPx, 'height' => $targetH];
     }
 }
 
@@ -229,11 +182,9 @@ if (!function_exists('renderBenefitDoc')) {
     {
         if ($id_draft <= 0) return '';
 
-        // ==================================================
         // 1. AMBIL DATA DRAFT
-        // ==================================================
-        $sql = "SELECT db.*, sc.name AS school_name2, ec.generalname AS ec_name, p.name AS program_name,
-                p.code AS program_code, pc.name AS program_category, pk.id as pk_id, pk.no_pk
+        $sql = "SELECT db.*, sc.name AS school_name2, ec.generalname AS ec_name, p.name AS program_name, 
+                p.code AS program_code, pc.name AS program_category, pc.logo_file AS program_logo_file, pk.id as pk_id, pk.no_pk
                 FROM draft_benefit db
                 LEFT JOIN schools sc ON sc.id = db.school_name
                 LEFT JOIN user ec ON ec.id_user = db.id_ec
@@ -247,19 +198,28 @@ if (!function_exists('renderBenefitDoc')) {
         $draft = mysqli_fetch_assoc($result);
         if (!$draft) return '';
 
-        // ==================================================
         // 2. AMBIL DATA BENEFIT
-        // ==================================================
         $sql = "SELECT 
-                    dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.pelaksanaan,
-                    b.allow_multiple_subject_and_level, b.count_method,
-                    dbl.qty, dbl.qty2, dbl.qty3, b.qty1 as qty1_template, b.qty2 as qty2_template,
-                    b.qty3 as qty3_template, b.satuan,
+                    dbl.*, b.benefit, b.benefit_name, b.subbenefit, b.description, b.allow_multiple_subject_and_level, b.count_method, b.countable,
+                    dbl.qty, dbl.qty2, dbl.qty3, b.qty1 as qty1_template, b.qty2 as qty2_template, b.qty3 as qty3_template, b.satuan,
                     COUNT(DISTINCT bsl.id) AS total_combination,
                     COUNT(DISTINCT bsl.subject_id) AS total_subject,
                     COUNT(DISTINCT bol.level_id) AS total_level,
-                    COALESCE(GROUP_CONCAT(DISTINCT CONCAT(s.name, '|', ol.name) SEPARATOR ', '), '') AS subject_level_pairs,
-                    COALESCE(GROUP_CONCAT(DISTINCT bs.name ORDER BY bs.name SEPARATOR ', '), '') AS book_series_names
+                    COALESCE(
+                        GROUP_CONCAT(
+                            DISTINCT CONCAT(s.name, '|', ol.name)
+                            SEPARATOR ', '
+                        ), 
+                        ''
+                    ) AS subject_level_pairs,
+                    COALESCE(
+                        GROUP_CONCAT(
+                            DISTINCT bs.name
+                            ORDER BY bs.name
+                            SEPARATOR ', '
+                        ), 
+                        ''
+                    ) AS book_series_names
                 FROM draft_benefit_list dbl
                 LEFT JOIN draft_template_benefit b ON b.id_template_benefit = dbl.id_template
                 LEFT JOIN benefit_org_levels bol ON bol.draft_benefit_list_id = dbl.id_benefit_list
@@ -269,40 +229,35 @@ if (!function_exists('renderBenefitDoc')) {
                 LEFT JOIN benefit_book_series bbs ON bbs.draft_benefit_list_id = dbl.id_benefit_list
                 LEFT JOIN book_series bs ON bs.id = bbs.book_series_id
                 WHERE dbl.id_draft = $id_draft
-                GROUP BY dbl.id_benefit_list
+                GROUP BY dbl.id_benefit_list 
                 ORDER BY dbl.id_benefit_list ASC";
         $benefit_result = mysqli_query($conn, $sql);
         $benefits = $benefit_result ? mysqli_fetch_all($benefit_result, MYSQLI_ASSOC) : [];
 
-        // ==================================================
-        // 3. LOGO
-        // ==================================================
-        $logoProgramPath = __DIR__ . '/img/prestasi-logo.png';
+        // 3. LOGO DINAMIS & DIMENSI UNTUK WORD
         $logoMentariPath = __DIR__ . '/img/comp-logo.png';
+        $logoProgramPath = __DIR__ . '/img/prestasi-logo.png';
+        
+        $logo_file = trim($draft['program_logo_file'] ?? '');
+        if ($logo_file !== '' && file_exists(__DIR__ . '/img/' . $logo_file)) {
+            $logoProgramPath = __DIR__ . '/img/' . $logo_file;
+        }
 
         $logo_program = imageToDataUri($logoProgramPath);
         $logo_mentari = imageToDataUri($logoMentariPath);
+        
+        // 150pt ~ 200px (53mm), 139pt ~ 185px (49mm)
+        $dimProgram = file_exists($logoProgramPath) ? imgDimensionsForWord($logoProgramPath, 150) : null;
+        $dimMentari = file_exists($logoMentariPath) ? imgDimensionsForWord($logoMentariPath, 139) : null;
 
-        $dimProgram = file_exists($logoProgramPath)
-            ? imgDimensionsForWord($logoProgramPath, 150)
-            : null;
-        $dimMentari = file_exists($logoMentariPath)
-            ? imgDimensionsForWord($logoMentariPath, 139)
-            : null;
-
-        // ==================================================
         // 4. DATA UNTUK VIEW
-        // ==================================================
         $program_title = trim(preg_replace('/^PROGRAM\s+/i', '',
             strtoupper($draft['program_category'] ?? $draft['program_name'] ?? 'PRESTASI'))) ?: 'PRESTASI';
         $school_name   = strtoupper($draft['school_name2'] ?? $draft['school_name'] ?? '-');
         $no_pk         = $draft['no_pk'] ?? '-';
-        $date          = formatTanggal($draft['created_at'] ?? date('Y-m-d'));
         $ec_name       = $draft['ec_name'] ?? 'EC';
 
-        // ==================================================
         // 5. RENDER HTML KE BUFFER
-        // ==================================================
         ob_start();
         ?>
 <html xmlns:o="urn:schemas-microsoft-com:office:office"
@@ -315,7 +270,6 @@ if (!function_exists('renderBenefitDoc')) {
     <xml>
         <w:WordDocument>
             <w:View>Print</w:View>
-            <w:Zoom>100</w:Zoom>
             <w:DoNotOptimizeForBrowser/>
             <w:AllowPNG/>
             <w:DoNotPromoteQF/>
@@ -350,24 +304,21 @@ if (!function_exists('renderBenefitDoc')) {
             margin: 0;
             padding: 0;
         }
-
         .document {
             width: 100%;
             margin: 0;
             padding: 0;
-            background: #fff;
         }
 
         /* ===== HEADER ===== */
         .document-number {
             width: 100%;
+            height: 6mm;
             text-align: right;
             font-weight: bold;
             font-size: 9pt;
             white-space: nowrap;
-            margin-bottom: 6pt;
         }
-
         .logo-table {
             width: 100%;
             border-collapse: collapse;
@@ -379,16 +330,25 @@ if (!function_exists('renderBenefitDoc')) {
             border: none;
             padding: 0;
             margin: 0;
-            vertical-align: top;
+            vertical-align: middle;
         }
-        .logo-left  { width: 50%; text-align: left; }
-        .logo-right { width: 50%; text-align: right; }
-
-        img.logo-program,
-        img.logo-mentari {
+        .logo-left {
+            width: 50%;
+            text-align: left;
+        }
+        .logo-right {
+            width: 50%;
+            text-align: right;
+        }
+        .logo-program {
+            display: block;
+            width: 53mm;
+            height: auto;
+        }
+        .logo-mentari {
             display: inline-block;
-            border: 0;
-            max-width: 100%;
+            width: 49mm;
+            height: auto;
         }
 
         /* ===== TITLE ===== */
@@ -397,9 +357,9 @@ if (!function_exists('renderBenefitDoc')) {
             text-align: center;
             font-size: 16pt;
             font-weight: bold;
-            line-height: 1.2;
-            margin-top: 22pt;
-            margin-bottom: 17pt;
+            line-height: 1;
+            margin-top: 8mm;
+            margin-bottom: 6mm;
         }
 
         /* ===== INTRO ===== */
@@ -408,10 +368,13 @@ if (!function_exists('renderBenefitDoc')) {
             text-align: center;
             font-size: 9pt;
             line-height: 1.15;
-            margin: 0 0 15pt 0;
+            margin: 0 0 5.5mm 0;
             padding: 0;
         }
-        .introduction p { margin: 0; padding: 0; }
+        .introduction p {
+            margin: 0;
+            padding: 0;
+        }
 
         /* ===== TABLE ===== */
         .benefit-table {
@@ -422,32 +385,42 @@ if (!function_exists('renderBenefitDoc')) {
             line-height: 1.12;
             mso-table-lspace: 0pt;
             mso-table-rspace: 0pt;
-            mso-table-layout-alt: fixed;
         }
-        .benefit-table col.col-no          { width: 31pt; }
-        .benefit-table col.col-program     { width: 133pt; }
-        .benefit-table col.col-description { width: 196pt; }
-        .benefit-table col.col-year        { width: 65pt; }
+        .benefit-table col.col-no         { width: 11mm; }
+        .benefit-table col.col-program    { width: 47mm; }
+        .benefit-table col.col-description{ width: 69mm; }
+        .benefit-table col.col-year       { width: 23mm; }
 
         .benefit-table th,
         .benefit-table td {
-            border: 1pt solid #000;
+            border: 1px solid #000;
             color: #000;
-            padding: 5pt 3pt;
+            padding: 2mm 1.2mm;
             vertical-align: top;
-            mso-line-height-rule: exactly;
         }
-        .benefit-table thead { display: table-header-group; }
-        .benefit-table thead tr { page-break-after: avoid; }
+        /* Header */
+        .benefit-table thead {
+            display: table-header-group;
+        }
+        .benefit-table thead tr {
+            page-break-after: avoid;
+        }
         .benefit-table thead th {
-            padding: 4pt 3pt;
+            height: 16mm;
+            padding: 1.2mm 1mm;
             font-size: 10.5pt;
             font-weight: bold;
             text-align: center;
             vertical-align: middle;
             line-height: 1.05;
         }
+        .year-header {
+            text-align: center;
+            vertical-align: middle;
+            line-height: 1.05;
+        }
 
+        /* Kolom */
         .col-no         { text-align: center; }
         .col-program    { text-align: left; }
         .col-description{ text-align: left; }
@@ -458,43 +431,21 @@ if (!function_exists('renderBenefitDoc')) {
         .benefit-table td.col-description{ vertical-align: top; text-align: left; }
         .benefit-table td.col-year       { text-align: center; vertical-align: middle; }
 
-        .description { margin: 0; padding: 0; }
-        .pelaksanaan {
-            display: block;
-            margin-top: 4pt;
-            font-size: 8pt;
-        }
-
-        tr { page-break-inside: avoid; }
-        .benefit-table tr { page-break-inside: avoid; }
-
-        /* ===== Breakdown + Book Series =====
-           🔥 Pakai div per baris, margin 0 biar rapet dan rapi di Word */
-        .breakdown,
-        .book-series {
-            margin-top: 5pt;
-            padding-top: 4pt;
-            border-top: 0.5pt solid #999;
-            font-size: 7.5pt;
-            line-height: 1.3;
-        }
-        .breakdown-title,
-        .book-series-title {
-            font-weight: bold;
-            font-style: italic;
-            margin: 0 0 2pt 0;
-            padding: 0;
-        }
-        .breakdown-line,
-        .book-series-line {
+        /* Deskripsi */
+        .description {
             margin: 0;
             padding: 0;
-            display: block;
-            mso-line-height-rule: exactly;
-            line-height: 1.3;
         }
 
-        /* ===== Khusus browser ===== */
+        /* Page Break */
+        tr {
+            page-break-inside: avoid;
+        }
+        .benefit-table tr {
+            page-break-inside: avoid;
+        }
+
+        /* ===== PREVIEW (layar) ===== */
         @media screen {
             body {
                 background: #e5e5e5;
@@ -505,19 +456,57 @@ if (!function_exists('renderBenefitDoc')) {
                 min-height: 297mm;
                 margin: 0 auto;
                 padding: 11mm 7mm;
+                background: #fff;
                 box-shadow: 0 0 10px rgba(0,0,0,.15);
             }
         }
 
-        /* ===== Khusus print browser ===== */
+        /* ===== PRINT ===== */
         @media print {
-            body { background: #fff; padding: 0; }
+            body {
+                background: #fff;
+                padding: 0;
+            }
             .document {
                 width: 100%;
                 margin: 0;
                 padding: 0;
                 box-shadow: none;
             }
+        }
+
+        /* ===== BREAKDOWN & BOOK SERIES ===== */
+        .breakdown {
+            margin-top: 2mm;
+            padding-top: 1.5mm;
+            border-top: 1px dashed #999;
+            font-size: 7.5pt;
+            line-height: 1.3;
+        }
+        .breakdown-title {
+            display: block;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 0.8mm;
+        }
+        .breakdown-line {
+            display: block;
+        }
+        .book-series {
+            margin-top: 2mm;
+            padding-top: 1.5mm;
+            border-top: 1px dashed #999;
+            font-size: 7.5pt;
+            line-height: 1.3;
+        }
+        .book-series-title {
+            display: block;
+            font-weight: bold;
+            font-style: italic;
+            margin-bottom: 0.8mm;
+        }
+        .book-series-line {
+            display: block;
         }
     </style>
 </head>
@@ -534,12 +523,18 @@ if (!function_exists('renderBenefitDoc')) {
         <table class="logo-table">
             <tr>
                 <td class="logo-left">
-                    <!--  -->
+                    <?php if ($logo_program && $dimProgram): ?>
+                        <img src="<?= $logo_program ?>" 
+                             class="logo-program" 
+                             width="<?= (int)$dimProgram['width'] ?>"
+                             <?php if ($dimProgram['height'] > 0): ?>height="<?= (int)$dimProgram['height'] ?>"<?php endif; ?>
+                             alt="Program Prestasi">
+                    <?php endif; ?>
                 </td>
                 <td class="logo-right">
                     <?php if ($logo_mentari && $dimMentari): ?>
-                        <img src="<?= esc($logo_mentari) ?>"
-                             class="logo-mentari"
+                        <img src="<?= $logo_mentari ?>" 
+                             class="logo-mentari" 
                              width="<?= (int)$dimMentari['width'] ?>"
                              <?php if ($dimMentari['height'] > 0): ?>height="<?= (int)$dimMentari['height'] ?>"<?php endif; ?>
                              alt="Mentari">
@@ -559,7 +554,7 @@ if (!function_exists('renderBenefitDoc')) {
                 Sebagai bentuk komitmen dukungan dari Mentari Group atas Perjanjian Kerja Sama Program <?= esc($program_title) ?>
                 antara Mentari Group<br>
                 dan <?= esc($school_name) ?> dengan Ref. No : <?= esc($no_pk) ?>, yang ditandatangani pada<br>
-                <?= esc($date) ?>, berikut adalah daftar dukungan yang kami berikan untuk sekolah:
+                ...., berikut adalah daftar dukungan yang kami berikan untuk sekolah:
             </p>
         </div>
 
@@ -587,21 +582,18 @@ if (!function_exists('renderBenefitDoc')) {
             <?php
             $no = 1;
             foreach ($benefits as $item):
-                $qty1 = $item['qty1'] ?? $item['qty'] ?? 0;
+                $qty1 = $item['qty'] ?? 0;
                 $qty2 = $item['qty2'] ?? 0;
                 $qty3 = $item['qty3'] ?? 0;
                 $name = $item['benefit_name'] ?? $item['benefit'] ?? '-';
                 $cleanedName = cleanBenefitName($name);
                 $desc = formatDescription($item['description'] ?? '');
 
-                if ($pel = trim((string)($item['pelaksanaan'] ?? ''))) {
-                    $desc .= '<span class="pelaksanaan">' . esc($pel) . '</span>';
-                }
-
                 $breakdown = formatSubjectLevelBreakdown($qty1, $item['satuan'] ?? '', $item);
                 if ($breakdown !== '') {
                     $desc .= $breakdown;
                 }
+                
                 $bookSeriesHtml = formatBookSeriesList($item);
                 if ($bookSeriesHtml !== '') {
                     $desc .= $bookSeriesHtml;
@@ -613,22 +605,26 @@ if (!function_exists('renderBenefitDoc')) {
                     <td class="col-description">
                         <?= $desc ?>
                     </td>
-                    <td class="col-year">
-                        <?= $qty1 ? ($qty1 . ' ' . $item['satuan']) : '-' ?>
-                    </td>
-                    <td class="col-year">
-                        <?= $qty2 ? ($qty2 . ' ' . $item['satuan']) : '-' ?>
-                    </td>
-                    <td class="col-year">
-                        <?= $qty3 ? ($qty3 . ' ' . $item['satuan']) : '-' ?>
-                    </td>
+                    <?php if($item['countable'] == 1) { ?>
+                        <td class="col-year">
+                            <?= $qty1 ? ($qty1 . ' ' . $item['satuan']) : '-' ?>
+                        </td>
+                        <td class="col-year">
+                            <?= $qty2 ? ($qty2 . ' ' . $item['satuan']) : '-' ?>
+                        </td>
+                        <td class="col-year">
+                            <?= $qty3 ? ($qty3 . ' ' . $item['satuan']) : '-' ?>
+                        </td>
+                    <?php } else { ?>
+                        <td colspan="3" style="text-align: center; vertical-align: middle;">Sesuai ketentuan</td>
+                    <?php } ?>
                 </tr>
             <?php endforeach; ?>
             </tbody>
         </table>
 
-    </div>
-</div>
+    </div><!-- end .document -->
+</div><!-- end .Section1 -->
 </body>
 </html>
         <?php

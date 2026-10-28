@@ -121,7 +121,7 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <select name="benefit" id="benefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>--Select Benefit --</option>
                         <?php foreach($benefits as $benefit) { ?>
-                            <option value="<?= $benefit['name'] ?>" <?= strpos(($template['benefit'] ?? ''), $benefit['name']) !== false ? 'selected' : '' ?>><?= $benefit['name'] ?></option>
+                        <option value="<?= $benefit['name'] ?>" data-id="<?= $benefit['id'] ?>" <?= strpos(($template['benefit'] ?? ''), $benefit['name']) !== false ? 'selected' : '' ?>><?= $benefit['name'] ?></option>
                         <?php } ; ?>
                     </select>
                 </div>
@@ -245,7 +245,7 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                         <!-- <option value="subject" <?= ($template['count_method'] ?? '') == 'subject' ? 'selected' : '' ?>>Dikalikan Jumlah Subjek</option>
                         <option value="level" <?= ($template['count_method'] ?? '') == 'level' ? 'selected' : '' ?>>Dikalikan Jumlah Level</option> -->
                         <option value="subject_level" <?= ($template['count_method'] ?? '') == 'subject_level' ? 'selected' : '' ?>>Dikalikan Subjek × Level</option>
-                        <!-- <option value="book_series" <?= ($template['count_method'] ?? '') == 'book_series' ? 'selected' : '' ?>>Dikalikan Jumlah Seri Buku</option> -->
+                        <option value="book_series" <?= ($template['count_method'] ?? '') == 'book_series' ? 'selected' : '' ?>>Dikalikan Jumlah Seri Buku</option>
                     </select>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
                         Menentukan bagaimana Qty Tahun 1/2/3 dihitung di setiap baris benefit.
@@ -431,15 +431,16 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
         });
 
         $('#benefit_list').on('change', function () {
-            var selectedValue = $(this).val();
-
-            if (!selectedValue) return;
+            // Ubah cara mengambil value, ambil data-id-nya
+            var selectedId = $(this).find(':selected').data('id'); 
+            
+            if (!selectedId) return;
 
             $.ajax({
                 url: './get-subbenefits.php',
                 type: 'POST',
                 data: {
-                    benefit_name: selectedValue
+                    benefit_id: selectedId // <-- Kirim ID, bukan nama
                 },
                 success: function (response) {
                     var options = '<option value="" disabled selected>--Select Sub Benefit--</option>';
@@ -451,7 +452,7 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     $('#subbenefit_list')
                         .html(options)      // 🔥 replace semua isi
                         .val(null)          // reset selected
-                        .trigger('change'); // refresh select2
+                        .trigger('change'); // refresh selec
                 },
                 error: function (err) {
                     console.log(err);

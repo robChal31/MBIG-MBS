@@ -571,16 +571,24 @@
 
   function updateQtyBySelection(row) {
     const countMethod = row.find('.count-method').first().val() || 'template';
+    let multiplier = 1; // Default pengali
 
-    // Cuma proses kalau subject_level
-    if (countMethod !== 'subject_level') return;
+    // Jika metode perhitungan adalah Subjek x Level
+    if (countMethod === 'subject_level') {
+      let total = 0;
+      row.find('.lv-subj-select2').each(function () {
+        total += ($(this).val() || []).length;
+      });
+      multiplier = total || 1;
 
-    // Hitung total subject di semua level
-    let total = 0;
-    row.find('.lv-subj-select2').each(function () {
-      total += ($(this).val() || []).length;
-    });
-    const multiplier = total || 1;
+    // Jika metode perhitungan adalah Jumlah Seri Buku
+    } else if (countMethod === 'book_series') {
+      let $bookSelect = row.find('.book_series_list');
+      if ($bookSelect.length > 0) {
+        let selectedBooks = $bookSelect.val() || [];
+        multiplier = selectedBooks.length || 1; // Jika kosong, anggap 1
+      }
+    }
 
     // Update tiap kolom qty (Th 1, 2, 3)
     row.find('.qty-cell').each(function () {
@@ -677,6 +685,11 @@
     let row = $(this).closest('tr');
     updateQtyBySelection(row);
     filterRowBookSeries(row);
+  });
+
+  $(document).on('change', '.book_series_list', function() {
+    let row = $(this).closest('tr');
+    updateQtyBySelection(row);
   });
 
   $(document).ready(function(){
