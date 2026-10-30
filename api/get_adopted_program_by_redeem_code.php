@@ -106,7 +106,6 @@ $sql = "SELECT
             bu.description        AS usage_description,
             bu.qty1, bu.qty2, bu.qty3,
             bu.used_at,
-            bu.status             AS usage_status,
             bu.created_at         AS usage_created_at,
 
             /* ---- draft_benefit_list ---- */
