@@ -796,7 +796,7 @@ ini_set('display_errors', 1);
     $('.select2').select2({
       width: '100%'
     });
-
+    $('#select_school').select2({ width: '100%', placeholder: 'Select a school' });
     setTimeout(function() {
       $('.sidebar-toggler').click();
     }, 100);
@@ -814,7 +814,14 @@ ini_set('display_errors', 1);
 
     $('#select_school').on('change', function() {
       var schoolId = $(this).val();
-      if (schoolId) getPrograms(schoolId, formatGroupItems);
+      if (schoolId) {
+        getPrograms(schoolId, formatGroupItems);
+      } else {
+        // 🔥 Sekolah di-clear → clear program
+        $('#program')
+          .html('<option value="" disabled selected>Select a Program</option>')
+          .trigger('change');
+      }
     });
 
     $('#inputEC').on('change', async function() {
@@ -829,9 +836,14 @@ ini_set('display_errors', 1);
       if (!userData) return;
 
       await loadSchoolSelect(userData.username);
+
+      // 🔥 EC ganti → clear program (school juga ke-reset oleh loadSchoolSelect)
+      $('#program')
+        .html('<option value="" disabled selected>Select a Program</option>')
+        .trigger('change');
+
       getMyPlanRef();
 
-      // Load segment sesuai EC yang dipilih (khusus admin)
       if (role === 'admin') {
         await loadSegmentsByEc(userId);
       }
@@ -845,11 +857,12 @@ ini_set('display_errors', 1);
 
     if (idDraft) {
       initDraftData();
-      // Khusus admin, kalau draft sudah punya EC → isi segment & restore yg tersimpan
-      if (role === 'admin' && idEc) {
+      if (role == 'admin' && idEc) {
         loadSegmentsByEc(idEc, currentSegment);
       }
-    } else {
+    } else if (role != 'admin') {
+      // 🔥 Non-admin create → langsung load sekolah sendiri
+      // Admin create → tunggu pilih EC dulu (via handler #inputEC)
       loadSchoolSelect();
     }
 
@@ -891,10 +904,12 @@ ini_set('display_errors', 1);
     });
 
     $('#book_series').on('change', function () {
-      // Loop semua baris di tabel benefit dan jalankan filter
       $('#input_form tbody tr').each(function() {
         if (typeof filterRowBookSeries === 'function') {
           filterRowBookSeries($(this));
+        }
+        if (typeof applyIhtMaxLimits === 'function') {
+          applyIhtMaxLimits($(this));   // 🔥 NEW
         }
       });
     });

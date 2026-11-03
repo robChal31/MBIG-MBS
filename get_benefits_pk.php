@@ -465,7 +465,7 @@
                     <input type="hidden" class="qty-base" value="<?= $base_qty1 ?>">
                     <input type="hidden" class="count-method" value="<?= $count_method ?>">
 
-                    <?php if($count_method === 'manual') { ?>
+                    <?php if($count_method === 'manual' || $count_method === 'iht_supervisi') { ?>
                       <input type="number" class="form-control form-control-sm qty-manual" 
                             name="qty1[]" value="<?= $base_qty1 ?>" min="0" 
                             style="width:70px; margin:auto;">
@@ -481,7 +481,7 @@
                     <input type="hidden" class="qty-base" value="<?= $base_qty2 ?>">
                     <input type="hidden" class="count-method" value="<?= $count_method ?>">
 
-                    <?php if($count_method === 'manual') { ?>
+                    <?php if($count_method === 'manual' || $count_method === 'iht_supervisi') { ?>
                       <input type="number" class="form-control form-control-sm qty-manual" 
                             name="qty2[]" value="<?= $base_qty2 ?>" min="0" 
                             style="width:70px; margin:auto;">
@@ -497,7 +497,7 @@
                     <input type="hidden" class="qty-base" value="<?= $base_qty3 ?>">
                     <input type="hidden" class="count-method" value="<?= $count_method ?>">
 
-                    <?php if($count_method === 'manual') { ?>
+                    <?php if($count_method === 'manual' || $count_method === 'iht_supervisi') { ?>
                       <input type="number" class="form-control form-control-sm qty-manual" 
                             name="qty3[]" value="<?= $base_qty3 ?>" min="0" 
                             style="width:70px; margin:auto;">
@@ -567,6 +567,29 @@
     } else {
         return formattedIntegerPart;
     }
+  }
+
+  function applyIhtMaxLimits(row) {
+    const countMethod = row.find('.count-method').first().val();
+    const $qtyInputs = row.find('.qty-manual');
+
+    // 🔥 reset dulu
+    $qtyInputs.removeAttr('max');
+
+    if (countMethod !== 'iht_supervisi') return;
+
+    const $bookSelect = row.find('.book_series_list');
+    // kalau benefit gak punya book selection, biarin unlimited
+    if ($bookSelect.length === 0) return;
+
+    // 🔥 max = jumlah book series terpilih di row ini
+    const bookCount = ($bookSelect.val() || []).length;
+
+    $qtyInputs.each(function () {
+      $(this).attr('max', bookCount);
+      const cur = parseInt($(this).val()) || 0;
+      if (cur > bookCount) $(this).val(bookCount);
+    });
   }
 
   function updateQtyBySelection(row) {
@@ -690,6 +713,26 @@
   $(document).on('change', '.book_series_list', function() {
     let row = $(this).closest('tr');
     updateQtyBySelection(row);
+    applyIhtMaxLimits(row);   // 🔥 NEW
+  });
+
+  $(document).on('input change', '.qty-manual', function () {
+    const row = $(this).closest('tr');
+    if (row.find('.count-method').first().val() !== 'iht_supervisi') return;
+
+    const maxAttr = $(this).attr('max');
+    if (maxAttr === undefined) return;
+
+    const max = parseInt(maxAttr) || 0;
+    const val = parseInt($(this).val()) || 0;
+
+    if (val > max) {
+      $(this).val(max).addClass('is-invalid');
+      const $inp = $(this);
+      clearTimeout($inp.data('invalidTimer'));
+      const t = setTimeout(() => $inp.removeClass('is-invalid'), 1500);
+      $inp.data('invalidTimer', t);
+    }
   });
 
   $(document).ready(function(){
@@ -707,6 +750,7 @@
     $('#input_form tbody tr').each(function() {
       updateQtyBySelection($(this));
       filterRowBookSeries($(this));
+      applyIhtMaxLimits($(this));   // 🔥 NEW
     });
 
   });

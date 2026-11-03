@@ -39,7 +39,7 @@
       //get draft benefit list count
       $sql = "SELECT 
                 dbl.type, dbl.id_template, dbl.subbenefit, dbl.benefit_name, dbl.description, dtb.pelaksanaan, dtb.allow_multiple_subject_and_level, dbl.keterangan, dbl.qty, dbl.qty2, dbl.qty3, dtb.valueMoney, dbl.manualValue, dbl.calcValue, dtb.editable_qty, dtb.book_selection, dtb.count_method, dbl.id_benefit_list,
-                dtb.qty1 as qty1_template, dtb.qty2 as qty2_template, dtb.qty3 as qty3_template,
+                dtb.qty1 as qty1_template, dtb.qty2 as qty2_template, dtb.qty3 as qty3_template, dtb.satuan,
               COALESCE(
                   (SELECT GROUP_CONCAT(DISTINCT bs.subject_id SEPARATOR ',')
                       FROM benefit_subjects bs
@@ -844,13 +844,14 @@
                         <td class="td-cust text-center col-subbenefit" rowspan="2" style="width:5%;">Sub Benefit</td> -->
                         <td class="td-cust text-center" style="min-width: 50px; width: 5%;" rowspan="2">ID</td>
                         <td class="td-cust text-center" rowspan="2" style="width:14%;">Nama Benefit</td>
-                        <td class="td-cust text-center" rowspan="2" style="width:17%;">Deskripsi</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:11%;">Deskripsi</td>
                         <!-- <td class="td-cust text-center" rowspan="2" style="width:10%;">Pelaksanaan</td> -->
-                        <td class="td-cust text-center" rowspan="2" style="width:18%;">Subjek × Level</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:16%;">Subjek × Level</td>
                         <td class="td-cust text-center" rowspan="2" style="width:10%;">Book</td>
                         <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Benefit</td>
-                        <td class="td-cust text-center" colspan="3" style="width:11%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
-                        <td class="td-cust text-center" rowspan="2" style="width:8%;">Nilai Value</td>
+                        <td class="td-cust text-center" colspan="3" style="width:10%; background: linear-gradient(135deg, #e8edf5, #dce4f0);">Quantity Per Tahun</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:5%;">Satuan</td>
+                        <td class="td-cust text-center" rowspan="2" style="width:7%;">Nilai Value</td>
                         <td class="td-cust text-center" rowspan="2" style="width:5%;">Action</td>
                       </tr>
                       <tr>
@@ -977,6 +978,9 @@
                                   placeholder="0" value="<?= $data['qty3'] ?>" min="0" 
                                   onchange="updateDisabledField(this)"
                                   <?php if($program=='cbls1'|| ($program=='cbls3' && !$ref_id) || $program=='bsp' || $data['count_method'] == 'template' || $data['count_method'] == 'subject_level' || $data['count_method'] == 'book_series'){echo "readonly";} ?>>
+                          </td>
+                          <td>
+                            <span class="text-muted"><?= $data['satuan'] ? ucfirst($data['satuan']) : '-' ?></span>
                           </td>
                           <td>
                             <input type="text" class="form-control form-control-sm usage" id="calcValue" name="calcValue[]" placeholder="0" value="<?= number_format($data['calcValue'], '0', ',', '.') ?>" readonly>
@@ -1138,6 +1142,9 @@
               onchange="updateDisabledField(this)">
       </td>
       <td>
+        <span class="satuan-placeholder" style="text-transform: capitalize;">—</span>
+      </td>
+      <td>
         <input type="text" class="form-control form-control-sm usage" name="calcValue[]" value="0" readonly>
       </td>
       <input type="hidden" name="valuedefault[]" value="">
@@ -1224,10 +1231,11 @@
             row.find('input[name="member[]"]').attr('data-base-qty', data.qty1 ?? 0);
             row.find('input[name="member2[]"]').attr('data-base-qty', data.qty2 ?? 0);
             row.find('input[name="member3[]"]').attr('data-base-qty', data.qty3 ?? 0);
+            row.find('span.satuan-placeholder').html(data.satuan ?? '-');
 
             // Set count_method ke hidden input
             row.find('.count-method').val(data.count_method || 'template');
-
+            applyIhtMaxLimits(row);
             // Kalau subject_level, set readonly juga
             if (data.count_method == 'subject_level' || data.count_method == 'book_series') {
               row.find('input[name="member[]"]').prop('readonly', true);
@@ -1340,6 +1348,46 @@
       });
   }
 
+  function applyIhtMaxLimits(row) {
+    var countMethod = row.find('.count-method').val();
+    var names = ['member[]', 'member2[]', 'member3[]'];
+
+    // 🔥 reset dulu biar bersih
+    names.forEach(function (name) {
+      row.find('input[name="' + name + '"]').removeAttr('max');
+    });
+
+    if (countMethod !== 'iht_supervisi') return;
+
+    // 🔥 max = jumlah book series yang dipilih di row ini
+    var $bookSelect = row.find('select.book-select');
+    var bookCount = ($bookSelect.val() || []).length;
+
+    names.forEach(function (name) {
+      var $inp = row.find('input[name="' + name + '"]');
+      $inp.attr('max', bookCount);
+
+      // clamp kalau current value udah kelebihan
+      var currentVal = parseInt($inp.val()) || 0;
+      if (currentVal > bookCount) {
+        $inp.val(bookCount);
+        updateDisabledField($inp[0]);
+      }
+    });
+  }
+
+  function initEditCalculation() {
+    // 🔥 apply max buat row existing
+    $('#input_form tbody tr').each(function () {
+      applyIhtMaxLimits($(this));
+    });
+
+    $('input[name="member[]"]').each(function () {
+      updateDisabledField(this);
+    });
+    accumulateValues();
+  }
+
   function updateBookOptions(row) {
     let data = row.data('benefit-data');
     // Jika tidak ada data atau benefit ini tidak butuh pilihan buku, abaikan
@@ -1418,6 +1466,7 @@
     });
     
     bookSeriesSelect.val(validValues).trigger('change.select2');
+    applyIhtMaxLimits(row);
   }
 
   function handleLvSubjChange() {
@@ -1672,7 +1721,9 @@
       width: '100%'
     });
     $(document).on('change select2:select select2:unselect', 'select.book-select', function() {
-      updateQtyBySubjectLevel($(this).closest('tr'));
+      var row = $(this).closest('tr');
+      updateQtyBySubjectLevel(row);
+      applyIhtMaxLimits(row);   // 🔥 re-apply max
     });
     $('.select2-benefit').select2({
       placeholder: 'Select a benefit',
@@ -1773,6 +1824,26 @@
         e.returnValue = '';
       }
     });
+  });
+
+  $(document).on('input change', '.qty-input', function () {
+    var row = $(this).closest('tr');
+    if (row.find('.count-method').val() !== 'iht_supervisi') return;
+
+    var maxAttr = $(this).attr('max');
+    if (maxAttr === undefined) return;
+
+    var max = parseInt(maxAttr) || 0;
+    var val = parseInt($(this).val()) || 0;
+
+    if (val > max) {
+      $(this).val(max).addClass('is-invalid');
+      var $inp = $(this);
+      clearTimeout($inp.data('invalidTimer'));
+      var t = setTimeout(function () { $inp.removeClass('is-invalid'); }, 1500);
+      $inp.data('invalidTimer', t);
+      updateDisabledField(this);
+    }
   });
 
   $(document).on('mousedown', 'select[name="benefit_id[]"]', function(event) {

@@ -246,6 +246,7 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                         <option value="level" <?= ($template['count_method'] ?? '') == 'level' ? 'selected' : '' ?>>Dikalikan Jumlah Level</option> -->
                         <option value="subject_level" <?= ($template['count_method'] ?? '') == 'subject_level' ? 'selected' : '' ?>>Dikalikan Subjek × Level</option>
                         <option value="book_series" <?= ($template['count_method'] ?? '') == 'book_series' ? 'selected' : '' ?>>Dikalikan Jumlah Seri Buku</option>
+                        <option value="iht_supervisi" <?= ($template['count_method'] ?? '') == 'iht_supervisi' ? 'selected' : '' ?>>IHT dan Supervisi</option>
                     </select>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
                         Menentukan bagaimana Qty Tahun 1/2/3 dihitung di setiap baris benefit.

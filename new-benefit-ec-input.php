@@ -264,6 +264,9 @@
                       <select name="nama_sekolah" id="select_school" class="form-select form-select-sm select2" required>
                         <option value="" disabled selected>- Select School -</option>
                       </select>
+                      <small class="programNote text-danger d-block mt-1" style="font-size: 11px !important;">
+                        Pilih sekolah terlebih dahulu sebelum memilih program
+                      </small>
                     </div>
                     <div class="loading_school text-center d-none mt-1">
                       <i class="fas fa-spinner fa-spin text-primary"></i>
@@ -522,22 +525,22 @@
 
           <div class="col-md-2">
             <label class="form-label small">Quantity</label>
-            <input type="text" name="jumlahsiswa[]" class="form-control form-control-sm only_number" onchange="updateDisabledField(this)">
+            <input type="text" name="jumlahsiswa[]" class="form-control form-control-sm only_number">
           </div>
 
           <div class="col-md-2 remove_if_has_omzet_scheme">
             <label class="form-label small">Usulan Harga</label>
-            <input type="text" name="usulanharga[]" class="form-control form-control-sm only_number" onchange="updateDisabledField(this)">
+            <input type="text" name="usulanharga[]" class="form-control form-control-sm only_number">
           </div>
 
           <div class="col-md-2">
             <label class="form-label small">Harga Normal</label>
-            <input type="text" name="harganormal[]" class="form-control form-control-sm only_number" onchange="updateDisabledField(this)">
+            <input type="text" name="harganormal[]" class="form-control form-control-sm only_number">
           </div>
 
           <div class="col-md-2">
             <label class="form-label small">Diskon (%)</label>
-            <input type="text" name="diskon[]" class="form-control form-control-sm only_decimal" onchange="updateDisabledField(this)">
+            <input type="text" name="diskon[]" class="form-control form-control-sm only_decimal">
           </div>
 
           <div class="col-md-3 d-none omzet_wrapper">
@@ -683,7 +686,7 @@
             options += `<option value="${data.id}" ${selected}>${data.name}</option>`;
           });
 
-          $('#select_school').html(options).val(schoolId).trigger('change').select2({ width: '100%' });
+          $('#select_school').html(options).val(schoolId).trigger('change.select2').select2({ width: '100%' });
           schoolReady = true;
         }
       },
@@ -841,7 +844,7 @@
   }
 
   function getSchoolPrograms(schoolId, selectedProgramCode = null) {
-    $.ajax({
+    return $.ajax({
       url: 'get-school-program.php',
       type: 'POST',
       dataType: 'json',
@@ -1122,29 +1125,35 @@
   }
 
   async function initDraftData(ecId, schoolId, programCode) {
-    if (!ecId) {
-      hideContentLoading();
-      return;
-    }
-
-    try {
-      const user = await getUserData(ecId);
-      if (!user) return;
-
-      await fetchShool(user.username, schoolId);
-
-      // 🔥 load segment dulu (khusus admin) sebelum plan data
-      if (userRole === 'admin') {
-        await loadSegmentsByEc(ecId, currentSegment);
+      if (!ecId) {
+        hideContentLoading();
+        return;
       }
 
-      await getMyPlanRef(myplanId, 'init');
-    } catch (err) {
-      console.error('Init draft failed:', err);
-    } finally {
-      hideContentLoading();
-      $('#program').val(programCode).trigger('change');
-    }
+      try {
+        const user = await getUserData(ecId);
+        if (!user) return;
+
+        await fetchShool(user.username, schoolId);
+
+        // 🔥 load program eksplisit & await biar ga race dengan $('program').val() di finally
+        if (schoolId) {
+          await getSchoolPrograms(schoolId, programCode);
+        }
+
+        if (userRole === 'admin') {
+          await loadSegmentsByEc(ecId, currentSegment);
+        }
+
+        await getMyPlanRef(myplanId, 'init');
+      } catch (err) {
+        console.error('Init draft failed:', err);
+      } finally {
+        hideContentLoading();
+        if (programCode) {
+          $('#program').val(programCode).trigger('change');
+        }
+      }
   }
 
   function fetchProgramOmzet(programCode) {
@@ -1660,6 +1669,42 @@
         $(this).val(formattedValue);
     });
 
+    // 🔥 Safari fix: 'change' Safari sering ga fire kalau value di-set
+    //                programmatic di handler 'input' (format ribuan).
+    //                Fallback: pakai 'blur' + debounced 'input'.
+
+    function _debounce(fn, delay) {
+      let t;
+      return function (...args) {
+        clearTimeout(t);
+        t = setTimeout(() => fn.apply(this, args), delay);
+      };
+    }
+
+    function recalcRow(el) {
+      const $row = $(el).closest('.book-row');
+      if (!$row.length) return;
+      updateDisabledField($row.find('[name="jumlahsiswa[]"]')[0]);
+    }
+
+    const debouncedRecalc = _debounce(recalcRow, 350);
+
+    // 🔥 Blur → recalc (pasti jalan di semua browser, termasuk Safari)
+    $(document).on('blur',
+      'input[name="usulanharga[]"], input[name="harganormal[]"], input[name="jumlahsiswa[]"], input[name="diskon[]"]',
+      function () {
+        recalcRow(this);
+      }
+    );
+
+    // 🔥 Input → recalc debounced (biar live-update, opsional)
+    $(document).on('input',
+      'input[name="usulanharga[]"], input[name="harganormal[]"], input[name="jumlahsiswa[]"], input[name="diskon[]"]',
+      function () {
+        debouncedRecalc(this);
+      }
+    );
+
     $(document).on('input', '.only_decimal', function () {
       let val = $(this).val();
 
@@ -1702,7 +1747,11 @@
 
       await fetchShool(userData.username);
 
-      // 🔥 load segment sesuai EC yang baru dipilih
+      // 🔥 EC ganti → sekolah belum dipilih → kosongkan program
+      $('#program')
+        .html('<option value="" disabled selected>Select a program</option>')
+        .trigger('change');
+
       if (userRole === 'admin') {
         await loadSegmentsByEc(userId);
       }
@@ -1717,6 +1766,11 @@
         if (!isMyplanSelected) {
           getSchoolPrograms(schoolId);
         }
+      } else {
+        // 🔥 Sekolah kosong → kosongkan program juga
+        $('#program')
+          .html('<option value="" disabled selected>Select a program</option>')
+          .trigger('change');
       }
     });
 
@@ -1841,6 +1895,10 @@
       accumulateAlokasi();
     });
 
+    $(document).on('blur', '#additional_price', function () {
+      $(this).trigger('change');
+    });
+
     $('#submt').on('click', function (e) {
       const form = document.getElementById('input_form_benefit');
       const $btn = $(this);
@@ -1935,12 +1993,11 @@
           .removeClass('is-invalid');
       }
     });
-
-    getSchoolPrograms();
     
-    await initDraftData(ecDraftOwnerID, schoolId, programCode)
-
-    await loadBooks();
+    if (!(userRole === 'admin' && !idDraft)) {
+      await initDraftData(ecDraftOwnerID, schoolId, programCode);
+      await loadBooks();
+    }
 
     if(userRole == 'ec' && !idDraft) {
       let ecId = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();

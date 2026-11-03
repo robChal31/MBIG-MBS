@@ -210,6 +210,7 @@ if ($result->num_rows > 0) {
                             <thead>
                                 <tr>
                                     <th>No</th>
+                                    <th>ID Benefit</th>
                                     <th>Benefit</th>
                                     <th>Sub Benefit</th>
                                     <th>Benefit Name</th>
@@ -249,6 +250,7 @@ if ($result->num_rows > 0) {
                                 ?>
                                     <tr class="<?= ($row['tot_usage1'] > 0 || $row['tot_usage2'] > 0 || $row['tot_usage3'] > 0) ? 'bg-info text-white' : '' ?>">
                                         <td><?= $no ?></td>
+                                        <td><?= $row['id_template'] ?></td>
                                         <td><?= $row['type'] ?></td>
                                         <td><?= $row['subbenefit'] ?></td>
                                         <td><?= $row['benefit_name'] ?></td>

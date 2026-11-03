@@ -93,7 +93,7 @@ if (!function_exists('cleanBenefitName')) {
 if (!function_exists('formatSubjectLevelBreakdown')) {
     function formatSubjectLevelBreakdown($qty, $satuan, $item) {
         $countMethod = $item['count_method'] ?? 'template';
-        if ($countMethod !== 'subject_level' && $countMethod !== 'book_series') return '';
+        if ($countMethod !== 'subject_level') return '';
         if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '';
         if (empty($item['subject_level_pairs'])) return '';
 

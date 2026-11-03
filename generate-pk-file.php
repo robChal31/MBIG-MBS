@@ -147,7 +147,7 @@ function formatSubjectLevelBreakdown($qty, $satuan, $item)
     $countMethod = $item['count_method'] ?? 'template';
 
     // 🔥 Cuma subject_level / book_series yang punya breakdown
-    if ($countMethod !== 'subject_level' && $countMethod !== 'book_series') return '';
+    if ($countMethod !== 'subject_level') return '';
 
     if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '';
     if (empty($item['subject_level_pairs'])) return '';
