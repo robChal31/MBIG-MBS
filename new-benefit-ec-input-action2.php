@@ -34,13 +34,12 @@
     }
 
     // ===================== FUNGSI SEND EMAIL =====================
-    function sendEmail($to, $subject, $body, $attachment = null, $cc = []) {
+    function sendEmail($toEmail, $toName, $subject, $body, $attachment = null, $cc = []) {
         global $config;
-        
+
         $mail = new PHPMailer(true);
-        
+
         try {
-            // Konfigurasi SMTP
             $mail->isSMTP();
             $mail->Host       = 'smtp.gmail.com';
             $mail->SMTPAuth   = true;
@@ -48,51 +47,46 @@
             $mail->Password   = $config['smtp_password'];
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
             $mail->Port       = $config['port'] ?? 465;
-            
-            // Pengirim
+
             $mail->setFrom('mbigbenefit@mentarigroups.com', 'Benefit Auto Mailer');
-            
-            // Penerima
-            if (is_array($to)) {
-                foreach ($to as $recipient) {
-                    $email = $recipient['email'] ?? '';
-                    $name = $recipient['name'] ?? '';
-                    if (!empty($email)) {
-                        $mail->addAddress($email, $name);
-                    }
-                }
-            } else {
-                $mail->addAddress($to);
+
+            // Penerima utama: validasi dulu, jangan diam-diam
+            $toEmail = trim((string)$toEmail);
+            if (!filter_var($toEmail, FILTER_VALIDATE_EMAIL)) {
+                throw new \Exception("Alamat penerima tidak valid: '$toEmail'");
             }
-            
+            $mail->addAddress($toEmail, (string)$toName);
+
             // CC
-            if (!empty($cc) && is_array($cc)) {
-                foreach ($cc as $c) {
-                    $email = $c['email'] ?? '';
-                    $name = $c['name'] ?? '';
-                    if (!empty($email)) {
-                        $mail->addCC($email, $name);
-                    }
+            foreach ((array)$cc as $c) {
+                $ccEmail = $c['email'] ?? '';
+                if (filter_var($ccEmail, FILTER_VALIDATE_EMAIL)) {
+                    $mail->addCC($ccEmail, $c['name'] ?? '');
                 }
             }
-            
+
+            // BCC monitoring (aman, karena penerima utama sudah pasti valid)
+            $mail->addBCC('bany@mentarigroups.com', 'Email Monitor');
+
             // Attachment
             if ($attachment && file_exists($attachment)) {
                 $mail->addAttachment($attachment);
             }
-            
-            // Content
+
             $mail->isHTML(true);
             $mail->Subject = $subject;
             $mail->Body    = $body;
             $mail->send();
-            
+
             return true;
-            
-        } catch (Exception $e) {
-            return "Email gagal: {$mail->ErrorInfo}";
+
+        } catch (\Throwable $e) {
+            // pakai getMessage(), bukan $mail->ErrorInfo: exception buatan sendiri tidak mengisi ErrorInfo
+            error_log("[sendEmail] to=$toEmail | subject=$subject | err=" . $e->getMessage());
+            return "Email gagal: " . $e->getMessage();
         }
     }
+    
     // ===================== END FUNGSI SEND EMAIL =====================
 
     if (!function_exists('buildBenefitDescriptionExcel')) {
@@ -954,7 +948,8 @@
             
             $ccList = ($leaderId == 70) ? $cc : [];
             $resultLeader = sendEmail(
-                ['email' => $leaderEmail, 'name' => $leaderName],
+                $leaderEmail,
+                $leaderName,
                 $subjectLeader,
                 $messageLeader,
                 $excelFile,
@@ -970,7 +965,8 @@
             $bodyEC = 'Wah, keren abis! Kamu sudah selesai isi formulir manfaat kerja sama ' . $uc_program . ' untuk ' . $school_name . '. Selanjutnya, formulir kamu akan kita teruskan ke Leader untuk diperiksa, ya!';
             
             $resultEC = sendEmail(
-                ['email' => $ec_email, 'name' => $ec_name],
+                $ec_email,
+                $ec_name,
                 $subjectEC,
                 $bodyEC,
                 $excelFile

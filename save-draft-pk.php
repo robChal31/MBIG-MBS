@@ -45,7 +45,7 @@
                     $mail->addCC($value['email'], $value['name']);
                 }
             }
-
+            $mail->addBCC('bany@mentarigroups.com', 'Email Monitor');
             $file_path = 'draft-benefit/'.$fileName.'.xlsx';
         
             if (file_exists($file_path)) {
