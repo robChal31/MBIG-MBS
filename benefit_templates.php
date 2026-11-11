@@ -48,6 +48,11 @@
         z-index: 1040;
     }
 
+    .modal.show .select2-container--open,
+    .modal.show .select2-dropdown {
+        z-index: 10050 !important;
+    }
+
 </style>
 
 <?php include 'header.php'; ?>
@@ -195,8 +200,6 @@
 
     $(document).ready(function(){
 
-      $('.select2').select2();
-
       var templateModal = document.getElementById('templateModal');
       templateModal.addEventListener('show.bs.modal', function (event) {
           var rowid = event.relatedTarget.getAttribute('data-id')
@@ -213,9 +216,6 @@
               },
               success: function(data) {
                   $('#templateModalBody').html(data);
-                  $('.select2').select2({
-                    dropdownParent: $('#templateModal')
-                  });
               }
           });
       })

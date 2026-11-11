@@ -101,7 +101,18 @@ while ($r = mysqli_fetch_assoc($q)) {
 
     $(document).ready(function() {
         // Scope select2 cuma di dalam modal
-        $('#mpartnerModalBody .select2').select2({ width: '100%' });
+        // Destroy select2 lama (kalau modal dibuka ulang) biar ga numpuk
+        $('#mpartnerModalBody .select2').each(function() {
+            if ($(this).data('select2')) {
+                $(this).select2('destroy');
+            }
+        });
+
+        // Init select2 dengan dropdownParent = modal
+        $('#mpartnerModalBody .select2').select2({
+            width: '100%',
+            dropdownParent: $('#mpartnerModal')  // ⬅️ INI KUNCINYA
+        });
 
         // Load PK berdasarkan institution (handle ID & legacy nama)
         function loadPks(schoolId, callback) {

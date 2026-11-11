@@ -396,9 +396,22 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
     }
 
     $(document).ready(function() {
-        $('.select2').select2({
+        // Pake closest('.modal') — ga peduli class .show udah ada atau belum
+        var $modal = $('#form_template').closest('.modal');
+        if (!$modal.length) $modal = $('#templateModal'); // hardcode fallback
+
+        // Destroy select2 yang mungkin udah di-init parent
+        $('#form_template').find('.select2').each(function() {
+            if ($(this).data('select2')) {
+                $(this).select2('destroy');
+            }
+        });
+
+        // Init dengan dropdownParent + search selalu muncul
+        $('#form_template').find('.select2').select2({
             width: '100%',
-            minimumResultsForSearch: 0
+            dropdownParent: $modal,
+            minimumResultsForSearch: 0   // ⬅️ search muncul walau opsi < 20
         });
 
         toggleAllowedBooks();
