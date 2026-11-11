@@ -235,6 +235,7 @@ if (!empty($subjects)) {
 
 // 🔥 FIX: event_group_code condition - lebih aman
 $eventGroupCondition = "";
+$event_group_code = $event_group_code == "ASTAPS" ? "" : $event_group_code;
 if (!empty($event_group_code)) {
     $event_group_code = mysqli_real_escape_string($conn, $event_group_code);
     $eventGroupCondition = " AND (peg.code = '$event_group_code' or peg.code = 'MENTARI-MPP') ";
