@@ -72,6 +72,12 @@
                             ), ''
                         ) AS banned_level_ids,
                         COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT alb.subject_id SEPARATOR ',')
+                             FROM banned_subject_benefits as alb
+                             WHERE alb.id_template_benefit = b.id_template_benefit
+                            ), ''
+                        ) AS banned_subject_ids,
+                        COALESCE(
                             (SELECT GROUP_CONCAT(DISTINCT abb.book_series_id SEPARATOR ',')
                              FROM allowed_book_benefits as abb
                              WHERE abb.id_template_benefit = b.id_template_benefit
@@ -156,6 +162,12 @@
                              WHERE alb.id_template_benefit = b.id_template_benefit
                             ), ''
                         ) AS banned_level_ids,
+                        COALESCE(
+                            (SELECT GROUP_CONCAT(DISTINCT alb.subject_id SEPARATOR ',')
+                             FROM banned_subject_benefits as alb
+                             WHERE alb.id_template_benefit = b.id_template_benefit
+                            ), ''
+                        ) AS banned_subject_ids,
                         COALESCE(
                             (SELECT GROUP_CONCAT(DISTINCT abb.book_series_id SEPARATOR ',')
                              FROM allowed_book_benefits as abb
@@ -394,9 +406,20 @@
                           : [];
                       $banned_per_row = array_values(array_filter($banned_per_row, fn($v) => $v !== ''));
 
+                      /* ===== 🔥 TAMBAHAN: Filter banned subject KHUSUS row ini ===== */
+                      $banned_subjects_per_row = !empty($data_template['banned_subject_ids']) 
+                          ? array_map('trim', explode(',', $data_template['banned_subject_ids'])) 
+                          : [];
+                      $banned_subjects_per_row = array_values(array_filter($banned_subjects_per_row, fn($v) => $v !== ''));
+
                       /* ===== Visible levels = $all_levels - banned_row ===== */
                       $visible_levels = array_values(array_filter($all_levels, function($l) use ($banned_per_row) {
                           return !in_array((string)$l['id'], $banned_per_row, true);
+                      }));
+
+                      /* ===== 🔥 Visible subjects = $all_subjects - banned_subjects_row ===== */
+                      $visible_subjects = array_values(array_filter($all_subjects, function($s) use ($banned_subjects_per_row) {
+                          return !in_array((string)$s['id'], $banned_subjects_per_row, true);
                       }));
                     ?>
 
@@ -414,7 +437,8 @@
                         ?>
                           <div class="lv-cell">
                             <select name="pairs_<?= $tid ?>[<?= $l['id'] ?>][]" class="select2 lv-subj-select2" multiple>
-                              <?php foreach($all_subjects as $s): ?>
+                              <?php // 🔥 GANTI $all_subjects MENJADI $visible_subjects ?>
+                              <?php foreach($visible_subjects as $s): ?>
                                 <option value="<?= $s['id'] ?>" <?= in_array($s['id'], $saved) ? 'selected' : '' ?>>
                                   <?= htmlspecialchars($s['name']) ?>
                                 </option>

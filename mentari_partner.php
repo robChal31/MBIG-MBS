@@ -342,7 +342,7 @@
 <?php include 'footer.php'; ?>
 
 <script>
-    let selectedPk = [];
+    // let selectedPk = [];
 
     // ===== Add/Edit MP modal =====
     var addmpartnerModal = document.getElementById('mpartnerModal');
@@ -360,6 +360,9 @@
             data: { id: rowid },
             success: function(data) {
                 $('#mpartnerModalBody').html(data);
+            },
+            error: function(data) {
+                console.log(data);
             }
         });
     })

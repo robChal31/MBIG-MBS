@@ -56,6 +56,7 @@ $countable      = $_POST['countable'] ?? NULL;
 $book_selection = $_POST['book_selection'] ?? 0;
 $allow_multiple_subject_and_level     = $_POST['allow_multiple_subject_and_level'] ?? 'template';
 $levels             = $_POST['levels'] ?? [];
+$subjects           = $_POST['subjects'] ?? [];
 $allowed_books      = $_POST['allowed_books'] ?? []; 
 if (!is_array($allowed_books)) {
     $allowed_books = [];
@@ -116,6 +117,11 @@ try {
             throw new Exception('Query failed: ' . $conn->error);
         }
 
+        $sql = "DELETE FROM banned_subject_benefits WHERE id_template_benefit = '$id_template'";
+        if (!$conn->query($sql)) {
+            throw new Exception('Query failed: ' . $conn->error);
+        }
+
         $sql_delete_books = "DELETE FROM allowed_book_benefits WHERE id_template_benefit = '$id_template'";
         if (!$conn->query($sql_delete_books)) {
             throw new Exception('Query failed: ' . $conn->error);
@@ -152,6 +158,13 @@ try {
 
     foreach($levels as $level){
         $sql = "INSERT INTO banned_level_benefits (id_template_benefit, level_id) VALUES ('$id_template', '$level')";
+        if (!$conn->query($sql)) {
+            throw new Exception('Query failed: ' . $conn->error);
+        }
+    }
+
+    foreach($subjects as $sub){
+        $sql = "INSERT INTO banned_subject_benefits (id_template_benefit, subject_id) VALUES ('$id_template', '$sub')";
         if (!$conn->query($sql)) {
             throw new Exception('Query failed: ' . $conn->error);
         }

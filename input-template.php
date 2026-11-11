@@ -20,10 +20,17 @@ if (mysqli_num_rows($draft_exec) > 0) {
 $template = $template[0] ?? [];
 
 $banned_level_benefits = [];
-$allowed_level_benefit_q = "SELECT * FROM banned_level_benefits WHERE id_template_benefit = '$id_template'";
-$allowed_level_benefit_exec = mysqli_query($conn, $allowed_level_benefit_q);
-if (mysqli_num_rows($allowed_level_benefit_exec) > 0) {
-  $banned_level_benefits = mysqli_fetch_all($allowed_level_benefit_exec, MYSQLI_ASSOC);    
+$banned_level_benefit_q = "SELECT * FROM banned_level_benefits WHERE id_template_benefit = '$id_template'";
+$banned_level_benefit_exec = mysqli_query($conn, $banned_level_benefit_q);
+if (mysqli_num_rows($banned_level_benefit_exec) > 0) {
+  $banned_level_benefits = mysqli_fetch_all($banned_level_benefit_exec, MYSQLI_ASSOC);    
+}
+
+$banned_subject_benefits = [];
+$banned_subject_benefit_q = "SELECT * FROM banned_subject_benefits WHERE id_template_benefit = '$id_template'";
+$banned_subject_benefit_exec = mysqli_query($conn, $banned_subject_benefit_q);
+if (mysqli_num_rows($banned_subject_benefit_exec) > 0) {
+  $banned_subject_benefits = mysqli_fetch_all($banned_subject_benefit_exec, MYSQLI_ASSOC);    
 }
 
 $business_units = [];
@@ -89,7 +96,15 @@ if (mysqli_num_rows($levels_exec) > 0) {
   $levels = mysqli_fetch_all($levels_exec, MYSQLI_ASSOC);    
 }
 
-$allowedLevelIds = array_column($banned_level_benefits, 'level_id');
+$subjects = [];
+$subjects_q = "SELECT * FROM subjects";
+$subjects_exec = mysqli_query($conn, $subjects_q);
+if (mysqli_num_rows($subjects_exec) > 0) {
+  $subjects = mysqli_fetch_all($subjects_exec, MYSQLI_ASSOC);    
+}
+
+$banned_level_ids = array_column($banned_level_benefits, 'level_id');
+$banned_subject_ids = array_column($banned_subject_benefits, 'subject_id');
 
 $book_series = [];
 $query_book_series = "SELECT bs.*, lv.name AS level, sb.name AS subject
@@ -202,12 +217,9 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <label class="form-label" style="font-size: .85rem;">Subject</label>
                     <select name="subject" id="subject" class="form-control form-control-sm select2">
                         <option value="" selected>--Select Subject--</option>
-                        <?php 
-                            $sql_subject = "SELECT * FROM subjects where name not like '%other%'";
-                            $result_subject = $conn->query($sql_subject);
-                            while($subject = $result_subject->fetch_assoc()) { ?>
-                                <option value="<?= $subject['name'] ?>" <?= ($template['subject'] ?? '') == $subject['name'] ? 'selected' : '' ?>><?= $subject['name'] ?></option>
-                            <?php } ; ?>
+                        <?php foreach($subjects as $subject): ?>
+                            <option value="<?= $subject['name'] ?>" <?= ($template['subject'] ?? '') == $subject['name'] ? 'selected' : '' ?>><?= htmlspecialchars($subject['name']) ?></option> 
+                        <?php endforeach; ?>
                     </select>
                     <small class="text-muted d-block mt-1" style="font-size: 11px !important;">Untuk program MPP, jika benefit memeiliki subject, benefit tersebut hanya akan muncul jika EC mengisi cakupan subject yang sesuai dengan subject benefit</small>
                 </div>
@@ -311,11 +323,27 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                 </div>
 
                 <div class="col-6 mb-3">
+                    <label class="form-label" style="font-size: .85rem;">Exclude Subject</label>
+
+                    <select name="subjects[]" id="subjects" class="form-control form-control-sm select2" multiple>
+                        <?php foreach($subjects as $subject): ?>
+                            <option value="<?= $subject['id'] ?>" <?= in_array($subject['id'], $banned_subject_ids) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($subject['name']) ?>
+                            </option>  
+                        <?php endforeach; ?>
+                    </select>
+
+                    <small class="text-muted d-block mt-1" style="font-size: 11px !important;">
+                        Subject yang dipilih akan dibatasi untuk bisa mendapat benefit ini
+                    </small>
+                </div>
+
+                <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Exclude School Level</label>
 
                     <select name="levels[]" id="levels" class="form-control form-control-sm select2" multiple>
                         <?php foreach($levels as $level): ?>
-                            <option value="<?= $level['id'] ?>" <?= in_array($level['id'], $allowedLevelIds) ? 'selected' : '' ?>>
+                            <option value="<?= $level['id'] ?>" <?= in_array($level['id'], $banned_level_ids) ? 'selected' : '' ?>>
                                 <?= htmlspecialchars($level['name']) ?>
                             </option>  
                         <?php endforeach; ?>

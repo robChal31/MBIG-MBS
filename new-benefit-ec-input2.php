@@ -65,6 +65,12 @@
                 ), ''
             ) AS banned_level_ids,
             COALESCE(
+                (SELECT GROUP_CONCAT(DISTINCT alb.subject_id SEPARATOR ',')
+                  FROM banned_subject_benefits as alb
+                  WHERE alb.id_template_benefit = dtb.id_template_benefit
+                ), ''
+            ) AS banned_subject_ids,
+            COALESCE(
                 (SELECT GROUP_CONCAT(DISTINCT abb.book_series_id SEPARATOR ',')
                   FROM allowed_book_benefits as abb
                   WHERE abb.id_template_benefit = dtb.id_template_benefit
@@ -899,21 +905,34 @@
                             <?php 
                               $tid = $data['id_template'];
                               $level_subject_map = $data['level_subject_map'] ?? [];
+                              
+                              // 🔥 Filter banned level
+                              $banned_levels_arr = !empty($data['banned_level_ids']) ? explode(',', $data['banned_level_ids']) : [];
+                              $visible_levels = array_filter($all_levels, function($l) use ($banned_levels_arr) {
+                                  return !in_array((string)$l['id'], $banned_levels_arr, true);
+                              });
+
+                              // 🔥 Filter banned subject
+                              $banned_subjects_arr = !empty($data['banned_subject_ids']) ? explode(',', $data['banned_subject_ids']) : [];
+                              $visible_subjects = array_filter($all_subjects, function($s) use ($banned_subjects_arr) {
+                                  return !in_array((string)$s['id'], $banned_subjects_arr, true);
+                              });
                             ?>
 
                             <?php if($data['allow_multiple_subject_and_level'] == 1) { ?>
-                              <div class="lv-grid" style="--cols: <?= count($all_levels) ?>;">
-                                <?php foreach($all_levels as $l): ?>
+                              <div class="lv-grid" style="--cols: <?= count($visible_levels) ?>;">
+                                <?php foreach($visible_levels as $l): ?>
                                   <div class="lv-head"><?= htmlspecialchars($l['name']) ?></div>
                                 <?php endforeach; ?>
 
-                                <?php foreach($all_levels as $l): 
+                                <?php foreach($visible_levels as $l): 
                                   $saved = $level_subject_map[$l['id']] ?? [];
                                 ?>
                                   <div class="lv-cell">
                                     <select name="pairs_<?= $tid ?>[<?= $l['id'] ?>][]" 
                                             class="select2 lv-subj-select2" multiple>
-                                      <?php foreach($all_subjects as $s): ?>
+                                      <?php // 🔥 Ganti $all_subjects jadi $visible_subjects ?>
+                                      <?php foreach($visible_subjects as $s): ?>
                                         <option value="<?= $s['id'] ?>" <?= in_array($s['id'], $saved) ? 'selected' : '' ?>>
                                           <?= htmlspecialchars($s['name']) ?>
                                         </option>
@@ -1260,9 +1279,17 @@
 
             if (data.allow_multiple_subject_and_level == 1) {
               var tid = data.id_template_benefit;
+              
+              // Filter Level
               var bannedLevels = data.banned_level_ids ? data.banned_level_ids.split(',').map(Number) : [];
               var allowedLevels = allLevels.filter(function (l) {
                 return !bannedLevels.includes(Number(l.id));
+              });
+
+              // 🔥 Filter Subject
+              var bannedSubjects = data.banned_subject_ids ? data.banned_subject_ids.split(',').map(Number) : [];
+              var allowedSubjects = allSubjects.filter(function (s) {
+                return !bannedSubjects.includes(Number(s.id));
               });
 
               var gridHtml = '<div class="lv-grid" style="--cols: ' + allowedLevels.length + ';">';
@@ -1276,9 +1303,12 @@
               allowedLevels.forEach(function (l) {
                 gridHtml += '<div class="lv-cell">';
                 gridHtml += '<select name="pairs_' + tid + '[' + l.id + '][]" class="select2 lv-subj-select2" multiple>';
-                allSubjects.forEach(function (s) {
+                
+                // 🔥 Gunakan allowedSubjects di sini
+                allowedSubjects.forEach(function (s) {
                   gridHtml += '<option value="' + s.id + '">' + s.name + '</option>';
                 });
+                
                 gridHtml += '</select>';
                 gridHtml += '</div>';
               });

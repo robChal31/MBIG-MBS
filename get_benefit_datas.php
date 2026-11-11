@@ -13,6 +13,12 @@
                   ), ''
               ) AS banned_level_ids,
               COALESCE(
+                  (SELECT GROUP_CONCAT(DISTINCT alb.subject_id SEPARATOR ',')
+                    FROM banned_subject_benefits as alb
+                    WHERE alb.id_template_benefit = dtb.id_template_benefit
+                  ), ''
+              ) AS banned_subject_ids,
+              COALESCE(
                   (SELECT GROUP_CONCAT(DISTINCT abb.book_series_id SEPARATOR ',')
                     FROM allowed_book_benefits as abb
                     WHERE abb.id_template_benefit = dtb.id_template_benefit

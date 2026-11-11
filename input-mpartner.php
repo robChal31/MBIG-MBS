@@ -1,54 +1,42 @@
 <?php
-
 session_start();
 include 'db_con.php';
 ini_set('display_errors', '1');
 ini_set('display_startup_errors', '1');
 error_reporting(E_ALL);
 
-$id = $_POST['id'] ? $_POST['id'] : 0;
+$id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 
 $mpartner = [];
-$mp_sql = "SELECT mpu.*
-            FROM mp_users AS mpu
-            WHERE mpu.id = $id";
+$mp_sql = "SELECT mpu.* FROM mp_users AS mpu WHERE mpu.id = $id";
 $draft_exec = mysqli_query($conn, $mp_sql);
 if (mysqli_num_rows($draft_exec) > 0) {
-  $mpartner = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);    
+    $mpartner = mysqli_fetch_all($draft_exec, MYSQLI_ASSOC);
 }
 $mpartner = $mpartner[0] ?? [];
 
 $schools = [];
 $school_q = "SELECT * 
-                FROM schools as sc 
-            INNER JOIN draft_benefit AS db ON db.school_name = sc.id
-            WHERE db.confirmed = 1
-            GROUP BY sc.id ORDER BY name ASC";
+             FROM schools as sc 
+             INNER JOIN draft_benefit AS db ON (db.school_name = sc.id OR db.school_name = sc.name)
+             WHERE db.confirmed = 1
+             GROUP BY sc.id ORDER BY name ASC";
 $school_exec = mysqli_query($conn, $school_q);
 if (mysqli_num_rows($school_exec) > 0) {
-  $schools = mysqli_fetch_all($school_exec, MYSQLI_ASSOC);    
+    $schools = mysqli_fetch_all($school_exec, MYSQLI_ASSOC);
 }
 
+// PK TIDAK di-load di sini — akan di-load via AJAX berdasarkan institution
 $pks = [];
-$pks_q = "SELECT pk.benefit_id, pk.no_pk, pk.id, IFNULL(sc.name, db.school_name) as school_name, IFNULL(prog.name, db.program) as program
-            FROM pk as pk
-            LEFT JOIN draft_benefit as db on db.id_draft = pk.benefit_id
-            LEFT JOIN programs as prog on (prog.name = db.program OR prog.code = db.program)
-            LEFT JOIN schools as sc on sc.id = db.school_name
-            WHERE db.deleted_at IS NULL";
-$pks_exec = mysqli_query($conn, $pks_q);
-if (mysqli_num_rows($pks_exec) > 0) {
-  $pks = mysqli_fetch_all($pks_exec, MYSQLI_ASSOC);    
-}
 
+// selected_pks untuk mode edit
 $selected_pks = [];
-// selected_pks
 $q = mysqli_query($conn, "SELECT pk_id FROM mp_user_pks WHERE user_id = $id");
 while ($r = mysqli_fetch_assoc($q)) {
     $selected_pks[] = $r['pk_id'];
 }
-
 ?>
+
     <div class="p-2">
         <!-- <h6>Detail Benefit</h6> -->
         <form method="POST" enctype="multipart/form-data" id="form_input">
@@ -85,11 +73,13 @@ while ($r = mysqli_fetch_assoc($q)) {
 
                 <div class="col-12 mb-3">
                     <label class="form-label d-flex" style="font-size: .85rem;">PK</label>
-                    <select name="pks[]" id="pks" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple required>
-                        <?php foreach($pks as $pk) { ?>
-                            <option value="<?= $pk['id'] ?>">[ <?= $pk['school_name'] ?> - <?= $pk['program'] ?> ] - <?= $pk['no_pk'] ?></option>
-                        <?php } ; ?>
+                    <select name="pks[]" id="pks" class="form-control form-control-sm select2 col-12" 
+                            style="width: 100%;" multiple required>
+                        <!-- Di-populate via AJAX -->
                     </select>
+                    <small class="text-muted" id="pk-hint" style="font-size:.7rem;">
+                        Pilih Institution dulu untuk memuat PK
+                    </small>
                 </div>
 
                 <input type="hidden" name="id" value="<?= $id == 0 ? '' : $id ?>">
@@ -104,24 +94,85 @@ while ($r = mysqli_fetch_assoc($q)) {
     </div>
 
 <script>
-    selectedPk = <?= json_encode($selected_pks) ?>;
-    $(document).ready(function() {
-        $('.select2').select2({
-            width: '100%'
-        });
+(function() {
+    // Rename biar ga konflik dengan global scope
+    var mppSelectedPk = <?= json_encode($selected_pks) ?>;
+    var mppIsEdit = <?= $id > 0 ? 'true' : 'false' ?>;
 
-        if (selectedPk.length) {
-            $('#pks').val(selectedPk).trigger('change');
+    $(document).ready(function() {
+        // Scope select2 cuma di dalam modal
+        $('#mpartnerModalBody .select2').select2({ width: '100%' });
+
+        // Load PK berdasarkan institution (handle ID & legacy nama)
+        function loadPks(schoolId, callback) {
+            if (!schoolId) {
+                $('#pks').empty().trigger('change');
+                $('#pk-hint').text('Pilih Institution dulu untuk memuat PK');
+                if (callback) callback();
+                return;
+            }
+
+            $('#pk-hint').text('Memuat PK...');
+
+            $.ajax({
+                url: './get-pks.php',
+                method: 'POST',
+                data: { school_id: schoolId },
+                dataType: 'json',
+                success: function(pks) {
+                    $('#pks').empty();
+
+                    if (!pks.length) {
+                        $('#pk-hint').text('Tidak ada PK untuk institution ini');
+                    } else {
+                        $('#pk-hint').text(pks.length + ' PK tersedia');
+                    }
+
+                    pks.forEach(function(pk) {
+                        var text = '[ ' + (pk.school_name || '-') + ' - ' + (pk.program || '-') + ' ] - ' + pk.no_pk;
+                        var opt = new Option(text, pk.id, false, false);
+                        $('#pks').append(opt);
+                    });
+
+                    $('#pks').trigger('change');
+                    if (callback) callback();
+                },
+                error: function(xhr) {
+                    console.error('Error load PK:', xhr.responseText);
+                    $('#pk-hint').text('Gagal memuat PK');
+                    if (callback) callback();
+                }
+            });
         }
 
-        $('#form_input').on('submit', function(event) {
+        // Saat institution berubah → reset & reload PK
+        // .off() dulu biar ga double-bind kalau modal dibuka ulang
+        $('#institution_id').off('change').on('change', function() {
+            mppSelectedPk = [];
+            loadPks($(this).val());
+        });
+
+        // INIT: mode edit → load PK dulu, baru set selected
+        if (mppIsEdit) {
+            var initialSchoolId = $('#institution_id').val();
+            if (initialSchoolId) {
+                loadPks(initialSchoolId, function() {
+                    if (mppSelectedPk.length) {
+                        $('#pks').val(mppSelectedPk).trigger('change');
+                    }
+                });
+            }
+        }
+
+        // Submit form — .off() biar ga double-submit kalau modal dibuka ulang
+        $('#form_input').off('submit').on('submit', function(event) {
             event.preventDefault();
             var formData = new FormData(this);
             $.ajax({
-                url: './save-mpartner.php', 
+                url: './save-mpartner.php',
                 method: 'POST',
                 data: formData,
-                cache:false,
+                cache: false,
                 contentType: false,
                 processData: false,
                 beforeSend: function() {
@@ -130,24 +181,19 @@ while ($r = mysqli_fetch_assoc($q)) {
                         title: 'Loading...',
                         html: 'Please wait while we save your data.',
                         allowOutsideClick: false,
-                        didOpen: () => {
-                            Swal.showLoading()
-                        }
+                        didOpen: () => { Swal.showLoading() }
                     });
                 },
                 success: function(response) {
-                    console.log('response: ', response);
                     Swal.close();
-                    if(response.status == 'success') {
+                    if (response.status == 'success') {
                         Swal.fire({
                             title: "Saved!",
                             text: response.message,
                             icon: "success"
                         });
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }else {
+                        setTimeout(function() { location.reload(); }, 1000);
+                    } else {
                         Swal.fire({
                             title: "Failed!",
                             text: response.message,
@@ -171,8 +217,8 @@ while ($r = mysqli_fetch_assoc($q)) {
                 }
             });
         });
-
-    })
+    });
+})();
 </script>
 
 
