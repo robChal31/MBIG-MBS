@@ -121,16 +121,22 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <select name="benefit" id="benefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>--Select Benefit --</option>
                         <?php foreach($benefits as $benefit) { ?>
-                        <option value="<?= $benefit['name'] ?>" data-id="<?= $benefit['id'] ?>" <?= strpos(($template['benefit'] ?? ''), $benefit['name']) !== false ? 'selected' : '' ?>><?= $benefit['name'] ?></option>
+                            <option value="<?= $benefit['name'] ?>" data-id="<?= $benefit['id'] ?>" 
+                                <?= html_entity_decode($template['benefit'] ?? '') === html_entity_decode($benefit['name']) ? 'selected' : '' ?>>
+                                <?= $benefit['name'] ?>
+                            </option>
                         <?php } ; ?>
                     </select>
                 </div>
                 <div class="col-6 mb-3">
                     <label class="form-label" style="font-size: .85rem;">Sub-benefit</label>
                     <select name="subbenefit" id="subbenefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
-                        <option value="" disabled selected>--Select Benefit --</option>
+                        <option value="" disabled selected>--Select Sub-benefit --</option>
                         <?php foreach($subbenefits as $subbenefit) { ?>
-                            <option value="<?= $subbenefit['name'] ?>" <?= strpos(($template['subbenefit'] ?? ''), $subbenefit['name']) !== false ? 'selected' : '' ?>><?= $subbenefit['name'] ?></option>
+                            <option value="<?= $subbenefit['name'] ?>" 
+                                <?= html_entity_decode($template['subbenefit'] ?? '') === html_entity_decode($subbenefit['name']) ? 'selected' : '' ?>>
+                                <?= $subbenefit['name'] ?>
+                            </option>
                         <?php } ; ?>
                     </select>
                 </div>
@@ -143,7 +149,10 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <label class="form-label d-flex" style="font-size: .85rem;">Avail Code</label>
                     <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple required>
                         <?php foreach($programs as $prog) { ?>
-                            <option value="<?= $prog['code'] ?>" <?= strpos(($template['avail'] ?? ''), $prog['code']) !== false ? 'selected' : '' ?>><?= $prog['name'] ?></option>
+                            <option value="<?= $prog['code'] ?>" 
+                                <?= in_array($prog['code'], explode(',', $template['avail'] ?? '')) ? 'selected' : '' ?>>
+                                <?= $prog['name'] ?>
+                            </option>
                         <?php } ; ?>
                     </select>
                 </div>
@@ -364,7 +373,8 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
 
     $(document).ready(function() {
         $('.select2').select2({
-            width: '100%'
+            width: '100%',
+            minimumResultsForSearch: 0
         });
 
         toggleAllowedBooks();
