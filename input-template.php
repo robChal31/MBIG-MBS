@@ -48,36 +48,35 @@ if (mysqli_num_rows($benefits_exec) > 0) {
 }
 
 $subbenefits = [];
+$benefit_id_found = 0;
 
 if (!empty($template['benefit'])) {
+    // 🔥 Decode HTML entities untuk menghindari mismatch (& vs &amp;)
+    $template_benefit_decoded = html_entity_decode(trim($template['benefit']), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    
+    // Cari ID benefit via array (lebih aman daripada query SQL string matching)
+    foreach ($benefits as $b) {
+        $db_benefit_decoded = html_entity_decode(trim($b['name']), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+        if (strcasecmp($template_benefit_decoded, $db_benefit_decoded) === 0) {
+            $benefit_id_found = $b['id'];
+            break;
+        }
+    }
 
-    $benefit_name = mysqli_real_escape_string($conn, $template['benefit']);
-
-    $benefit_q = "SELECT id FROM benefits WHERE name = '$benefit_name' LIMIT 1";
-    $benefit_exec = mysqli_query($conn, $benefit_q);
-
-    if ($benefit_exec && mysqli_num_rows($benefit_exec) > 0) {
-
-        $benefit_row = mysqli_fetch_assoc($benefit_exec);
-        $benefit_id  = $benefit_row['id'];
-
-        $subbenefits_q = "SELECT * FROM subbenefits 
-                          WHERE benefit_id = '$benefit_id'
-                          ORDER BY name ASC";
-
+    if ($benefit_id_found > 0) {
+        $subbenefits_q = "SELECT * FROM subbenefits WHERE benefit_id = '$benefit_id_found' ORDER BY name ASC";
         $subbenefits_exec = mysqli_query($conn, $subbenefits_q);
-
         if ($subbenefits_exec && mysqli_num_rows($subbenefits_exec) > 0) {
             $subbenefits = mysqli_fetch_all($subbenefits_exec, MYSQLI_ASSOC);
         }
     }
+}
 
-} else {
-
-    // kalau benefit kosong → ambil semua
+// Fallback: Jika ID tidak ditemukan, benefit kosong, atau data subbenefit tidak ada
+// maka tarik semua subbenefit agar dropdown tidak kosong melompong
+if (empty($subbenefits)) {
     $subbenefits_q = "SELECT * FROM subbenefits ORDER BY name ASC";
     $subbenefits_exec = mysqli_query($conn, $subbenefits_q);
-
     if ($subbenefits_exec && mysqli_num_rows($subbenefits_exec) > 0) {
         $subbenefits = mysqli_fetch_all($subbenefits_exec, MYSQLI_ASSOC);
     }
@@ -133,9 +132,9 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <select name="subbenefit" id="subbenefit_list" class="form-control form-control-sm select2 col-12" style="width: 100%;" required>
                         <option value="" disabled selected>--Select Sub-benefit --</option>
                         <?php foreach($subbenefits as $subbenefit) { ?>
-                            <option value="<?= $subbenefit['name'] ?>" 
-                                <?= html_entity_decode($template['subbenefit'] ?? '') === html_entity_decode($subbenefit['name']) ? 'selected' : '' ?>>
-                                <?= $subbenefit['name'] ?>
+                            <option value="<?= htmlspecialchars($subbenefit['name'], ENT_QUOTES, 'UTF-8') ?>" 
+                                <?= html_entity_decode(trim($template['subbenefit'] ?? ''), ENT_QUOTES | ENT_HTML5, 'UTF-8') === html_entity_decode(trim($subbenefit['name']), ENT_QUOTES | ENT_HTML5, 'UTF-8') ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($subbenefit['name']) ?>
                             </option>
                         <?php } ; ?>
                     </select>
@@ -149,10 +148,7 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
                     <label class="form-label d-flex" style="font-size: .85rem;">Avail Code</label>
                     <select name="avail[]" id="avail" class="form-control form-control-sm select2 col-12" style="width: 100%;" multiple required>
                         <?php foreach($programs as $prog) { ?>
-                            <option value="<?= $prog['code'] ?>" 
-                                <?= in_array($prog['code'], explode(',', $template['avail'] ?? '')) ? 'selected' : '' ?>>
-                                <?= $prog['name'] ?>
-                            </option>
+                            <option value="<?= $prog['code'] ?>" <?= strpos(($template['avail'] ?? ''), $prog['code']) !== false ? 'selected' : '' ?>><?= $prog['name'] ?></option>
                         <?php } ; ?>
                     </select>
                 </div>
