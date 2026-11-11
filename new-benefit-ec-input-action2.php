@@ -103,18 +103,13 @@
             $satuan      = trim((string)($item['satuan'] ?? ''));
 
             // ---- Breakdown per Subjek & Level ----
-            // 🔥 subject_level  → breakdown DENGAN qty
-            // 🔥 book_series    → breakdown TANPA qty
+            // 🔥 SAMA seperti versi HTML: HANYA subject_level yang punya breakdown.
+            //    book_series / template / lainnya → TIDAK menampilkan breakdown.
             $isSubjectLevel = ($countMethod === 'subject_level');
-            $isBookSeries   = ($countMethod === 'book_series');
             $hasPairs       = !empty($item['subject_level_pairs']);
             $skipQty        = ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0));
 
-            // book_series tetap tampil walau qty kosong/0 (karena ga butuh qty)
-            // subject_level wajib ada qty valid
-            $showBreakdown = $hasPairs && (
-                $isBookSeries || ($isSubjectLevel && !$skipQty)
-            );
+            $showBreakdown = $isSubjectLevel && $hasPairs && !$skipQty;
 
             if ($showBreakdown) {
                 $pairs = [];
@@ -136,15 +131,12 @@
                 );
 
                 if (!empty($pairs)) {
-                    // Hitung qty per kombinasi HANYA kalau subject_level
-                    $qtyText = null;
-                    if ($isSubjectLevel) {
-                        $qtyFloat = (float)$qty;
-                        $qtyPer   = $qtyFloat / count($pairs);
-                        $qtyText  = (floor($qtyPer) == $qtyPer)
-                            ? (int)$qtyPer
-                            : rtrim(rtrim(number_format($qtyPer, 2, '.', ''), '0'), '.');
-                    }
+                    // Hitung qty per kombinasi (karena $isSubjectLevel === true di sini)
+                    $qtyFloat = (float)$qty;
+                    $qtyPer   = $qtyFloat / count($pairs);
+                    $qtyText  = (floor($qtyPer) == $qtyPer)
+                        ? (int)$qtyPer
+                        : rtrim(rtrim(number_format($qtyPer, 2, '.', ''), '0'), '.');
 
                     $desc .= "\n\nRincian per Subjek & Level:";
                     foreach ($pairs as $pair) {
@@ -157,11 +149,8 @@
                             $line .= $pair['level'];
                         }
 
-                        // 🔥 Append qty HANYA untuk subject_level
-                        if ($isSubjectLevel && $qtyText !== null) {
-                            $line .= ' : ' . $qtyText;
-                            if ($satuan !== '') $line .= ' ' . $satuan;
-                        }
+                        $line .= ' : ' . $qtyText;
+                        if ($satuan !== '') $line .= ' ' . $satuan;
 
                         $desc .= "\n" . $line;
                     }
@@ -169,6 +158,7 @@
             }
 
             // ---- Book Series ----
+            // 🔥 Ini BUKAN bagian dari breakdown; tetap tampil seperti versi HTML.
             if (!empty($item['book_series_names'])) {
                 $series = array_filter(array_map(function($s) {
                     return trim(html_entity_decode($s, ENT_QUOTES | ENT_HTML5, 'UTF-8'));
