@@ -348,12 +348,15 @@
     var addmpartnerModal = document.getElementById('mpartnerModal');
     addmpartnerModal.addEventListener('show.bs.modal', function (event) {
         var button = event.relatedTarget;
-        var rowid = button.getAttribute('data-id');
-        let action = event.relatedTarget.getAttribute('data-action');
+        var rowid = button ? button.getAttribute('data-id') : 0;
+        let action = button ? button.getAttribute('data-action') : 'create';
 
         var modalTitle = addmpartnerModal.querySelector('.modal-title')
         modalTitle.textContent = action == 'create' ?  "Add Mentari Partner" : "Edit Mentari Partner";
         
+        // 🔥 RESET BODY DULU SEBELUM AJAX (Biar ga numpuk & ga ada sisa Select2 lama)
+        $('#mpartnerModalBody').html('<div class="text-center p-5"><i class="fa fa-spinner fa-spin fa-2x"></i><br><br>Loading data...</div>');
+
         $.ajax({
             url: 'input-mpartner.php',
             type: 'POST',
@@ -362,6 +365,7 @@
                 $('#mpartnerModalBody').html(data);
             },
             error: function(data) {
+                $('#mpartnerModalBody').html('<div class="text-danger text-center p-4">Gagal memuat data.</div>');
                 console.log(data);
             }
         });
