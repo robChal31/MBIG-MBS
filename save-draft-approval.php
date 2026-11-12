@@ -344,7 +344,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars($notes)).'
+                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
 
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
@@ -416,7 +416,7 @@
                     . '<br><br>
                         <strong>Notes dari Approver:</strong><br>
                         <div style=\"background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;\">
-                            ' . nl2br(htmlspecialchars($notes)) . '
+                            ' . nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) . '
                         </div>'
                     . $pic_html;
                 
@@ -472,7 +472,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars($notes)).'
+                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
         
         
@@ -551,7 +551,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars($notes)).'
+                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
 
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
@@ -678,7 +678,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars($notes)).'
+                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
         
         
@@ -695,7 +695,7 @@
 
             <strong>Notes dari Approver:</strong><br>
             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                '.nl2br(htmlspecialchars($notes)).'
+                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
             </div>';
 
             $approver_query = "SELECT u.generalname as name, u.username as email 

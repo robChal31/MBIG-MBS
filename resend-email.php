@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_draft'])) {
 
             <strong>Notes dari Approver:</strong><br>
             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                '.nl2br(htmlspecialchars($latest_notes)).'
+                '.nl2br(htmlspecialchars(html_entity_decode($latest_notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
             </div>';
 
             $approver_query = "SELECT u.generalname as name, u.username as email 
@@ -169,7 +169,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_draft'])) {
                         <p>Mohon untuk memperbarui data secara berkala di MBS selama perencanaan dan implementasi benefit berlangsung.<p>
                         <p>Sarangheyo, Kamsahamnida💖💖💖</p>" . '<br><br>
                         <strong>Notes dari Approver:</strong><br>
-                        <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">'.nl2br(htmlspecialchars($latest_notes)).'</div>';
+                        <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">'.nl2br(htmlspecialchars(html_entity_decode($latest_notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'</div>';
 
             $send_result = sendEmail('secretary@mentaribooks.com', 'Putri', $subject, $message, $config, $fileUrl, $cc);
             $message_result = "<div class='alert alert-info'>Status: <b>Confirmed</b>. Mengirim email konfirmasi ke Secretary (cc: EC & Unit Bisnis) beserta Notes.</div>";
@@ -231,7 +231,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_draft'])) {
             $message = "<p>Yeay, formulir $program buat $school_name sudah disetujui! Sekarang kamu bisa download formulirnya dan ajukan ke divisi terkait dengan happy-happy!</p>"
                 . '<br><br>
                     <strong>Notes dari Approver:</strong><br>
-                    <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">' . nl2br(htmlspecialchars($latest_notes)) . '</div>' . $pic_html;
+                    <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">' . nl2br(htmlspecialchars(html_entity_decode($latest_notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) . '</div>' . $pic_html;
 
             $send_result = sendEmail($ec_email, $ec_name, $subject, $message, $config, $fileUrl, $cc, $extraAttachments);
             $message_result = "<div class='alert alert-success'>Status: <b>Final Approved</b>. Mengirim email persetujuan beserta dokumen Word & PIC ke EC (dengan Notes dari Top Leader).</div>";
@@ -320,7 +320,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_draft'])) {
                         <div style='text-align: center; margin-top: 35px;'><span style='text-align: center; font-size: .85rem; color: #333'>Mentari Benefit System</span></div>
                     </div>" . '<br><br>
                         <strong>Notes dari Approver:</strong><br>
-                        <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">'.nl2br(htmlspecialchars($latest_notes)).'</div>';
+                        <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">'.nl2br(htmlspecialchars(html_entity_decode($latest_notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'</div>';
                 
                 $send_result = sendEmail($leaders['lead3_email'], $leaders['lead3_name'], $year == 1 ? "Mentari Benefit | Formulir $school_name sedang menunggu pengecekan dan persetujuan Anda" : "Mentari Benefit | Formulir perubahan PK Tahun Ke-$year $school_name sedang menunggu persetujuan Anda", $msgTop, $config, $fileUrl);
                 
@@ -330,7 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id_draft'])) {
                 // Pending Novi (Admin/HoS sudah verifikasi)
                 $latest_notes = getLatestNotes($conn, $id_draft, 1); // Notes dari Admin
                 $subject = $year == 1 ? "Program $program di $school_name Telah Berhasil diverifikasi" : "Program perubahan PK Tahun Ke-$year di $school_name Telah Berhasil diverifikasi";
-                $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil diverifikasi oleh Marketing Secretary.</p><p> Mohon untuk segera mengecek dan konfirmasi program tersebut.</p><p>Sarangheyo, Kamsahamnida💖💖💖</p>" . '<br><br><strong>Notes dari Approver:</strong><br><div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">'.nl2br(htmlspecialchars($latest_notes)).'</div>';
+                $message = "<p>Kami ingin menginformasikan bahwa program $program untuk $school_name telah berhasil diverifikasi oleh Marketing Secretary.</p><p> Mohon untuk segera mengecek dan konfirmasi program tersebut.</p><p>Sarangheyo, Kamsahamnida💖💖💖</p>" . '<br><br><strong>Notes dari Approver:</strong><br><div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">'.nl2br(htmlspecialchars(html_entity_decode($latest_notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'</div>';
                 $send_result = sendEmail('novitasari@mentaribooks.com', 'Novi', $subject, $message, $config, $fileUrl);
                 $message_result = "<div class='alert alert-info'>Status: <b>Menunggu Verifikasi Admin</b>. Mengirim ulang email ke Novi (beserta Notes dari Admin).</div>";
             } else {
