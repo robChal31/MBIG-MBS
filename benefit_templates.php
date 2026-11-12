@@ -1,12 +1,4 @@
 <style>
-    select {
-        max-width: 400px;
-        word-wrap: break-word;
-    }
-
-    textarea {
-        width: 100%;
-    }
 
     .benefit-desc {
       transition: width 0.5s ease;
@@ -48,10 +40,10 @@
         z-index: 1040;
     }
 
-    .modal.show .select2-container--open,
+    /* .modal.show .select2-container--open,
     .modal.show .select2-dropdown {
         z-index: 10050 !important;
-    }
+    } */
 
 </style>
 
@@ -200,6 +192,26 @@
 
     $(document).ready(function(){
 
+      // 🔥 JADIKAN FUNGSI GLOBAL AGAR BISA DIPANGGIL DARI php.txt
+      window.initSelect2Modal = function() {
+          var $modal = $('#templateModal');
+          var $modalBody = $modal.find('.modal-body'); // 🔥 Gunakan modal-body agar scroll-nya sinkron
+          
+          // Hancurkan Select2 yang mungkin sudah pernah di-init sebelumnya
+          $modal.find('.select2').each(function() {
+              if ($(this).data('select2')) {
+                  $(this).select2('destroy');
+              }
+          });
+
+          // Inisialisasi ulang Select2
+          $modal.find('.select2').select2({
+              width: '100%',
+              dropdownParent: $modalBody, 
+              minimumResultsForSearch: 0
+          });
+      }
+
       var templateModal = document.getElementById('templateModal');
       templateModal.addEventListener('show.bs.modal', function (event) {
           var rowid = event.relatedTarget.getAttribute('data-id')
@@ -216,6 +228,11 @@
               },
               success: function(data) {
                   $('#templateModalBody').html(data);
+                  
+                  // 🔥 GUNAKAN SETTIMEOUT AGAR ANIMASI MODAL SELESAI DULU
+                  setTimeout(function() {
+                      window.initSelect2Modal();
+                  }, 250); 
               }
           });
       })
@@ -236,9 +253,11 @@
               },
               success: function(data) {
                   $('#templateModalBody').html(data);
-                  $('.select2').select2({
-                    dropdownParent: $('#templateModal')
-                  });
+                  
+                  // 🔥 GUNAKAN SETTIMEOUT JUGA DI SINI
+                  setTimeout(function() {
+                      window.initSelect2Modal();
+                  }, 250); 
               }
           });
       })

@@ -387,32 +387,15 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
         let isBookSelection = $('#book_selection').val();
         
         if (isBookSelection == '1') {
-            $('.allowed-books').show(); // Munculkan jika Yes
+            $('.allowed-books').show();
         } else {
-            $('.allowed-books').hide(); // Sembunyikan jika No atau kosong
-            // Opsional: Kosongkan pilihan buku jika di-hide agar tidak tersimpan tidak sengaja
-            // $('#allowed_books').val(null).trigger('change'); 
+            $('.allowed-books').hide();
         }
     }
 
     $(document).ready(function() {
-        // Pake closest('.modal') — ga peduli class .show udah ada atau belum
-        var $modal = $('#form_template').closest('.modal');
-        if (!$modal.length) $modal = $('#templateModal'); // hardcode fallback
-
-        // Destroy select2 yang mungkin udah di-init parent
-        $('#form_template').find('.select2').each(function() {
-            if ($(this).data('select2')) {
-                $(this).select2('destroy');
-            }
-        });
-
-        // Init dengan dropdownParent + search selalu muncul
-        $('#form_template').find('.select2').select2({
-            width: '100%',
-            dropdownParent: $modal,
-            minimumResultsForSearch: 0   // ⬅️ search muncul walau opsi < 20
-        });
+        // 🔥 HAPUS TOTAL BAGIAN INISIALISASI SELECT2 DI SINI
+        // Biarkan style.txt (parent) yang mengurus inisialisasi Select2 via AJAX success
 
         toggleAllowedBooks();
 
@@ -472,35 +455,32 @@ $allowedBookSeriesIds = array_column($allowed_book_series, 'book_series_id');
 
         $(document).on('input', '.only_number', function() {
             let sanitizedValue = $(this).val().replace(/^0+|\D/g, '');
-
             let formattedValue = sanitizedValue.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-            
             $(this).val(formattedValue);
         });
 
         $('#benefit_list').on('change', function () {
-            // Ubah cara mengambil value, ambil data-id-nya
             var selectedId = $(this).find(':selected').data('id'); 
-            
             if (!selectedId) return;
 
             $.ajax({
                 url: './get-subbenefits.php',
                 type: 'POST',
                 data: {
-                    benefit_id: selectedId // <-- Kirim ID, bukan nama
+                    benefit_id: selectedId
                 },
                 success: function (response) {
                     var options = '<option value="" disabled selected>--Select Sub Benefit--</option>';
-
                     $.each(response, function (index, item) {
                         options += '<option value="' + item.name + '">' + item.name + '</option>';
                     });
 
+                    // 🔥 Karena kita pakai Select2, setelah ganti HTML, panggil .trigger('change')
+                    // Biarkan Select2 parent yang mengurus render ulang
                     $('#subbenefit_list')
-                        .html(options)      // 🔥 replace semua isi
-                        .val(null)          // reset selected
-                        .trigger('change'); // refresh selec
+                        .html(options)
+                        .val(null)
+                        .trigger('change');
                 },
                 error: function (err) {
                     console.log(err);
