@@ -158,10 +158,11 @@
                         db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, 
                         leader.id_user as leader_id, db.year, db.verified, db.status, db.segment,
                         us.leadid, us.leadid2, us.leadid3, 
-                        IFNULL(sc.name, db.school_name) as school_name, db.program, 
+                        IFNULL(sc.name, db.school_name) as school_name, db.program, IFNULL(prog.`name`, db.program) AS program_name, 
                         ec.sa_email, leader.generalname as approver_name
                     FROM draft_approval da 
                     LEFT JOIN draft_benefit db on db.id_draft = da.id_draft
+                    LEFT JOIN programs as prog ON prog.name = db.program OR prog.code = db.program
                     LEFT JOIN schools as sc on sc.id = db.school_name 
                     LEFT JOIN user leader on da.id_user_approver = leader.id_user
                     LEFT JOIN user as ec on ec.id_user = db.id_ec  
@@ -176,6 +177,7 @@
                 $for_approve_cc_ec_email    = $dra['username'];
                 $school_name                = $dra['school_name'];
                 $program                    = $dra['program'];
+                $program_name               = $dra['program_name'];
                 $ecname                     = $dra['generalname'];
                 $for_approve_cc_ec_name     = $dra['generalname'];
                 $approver_name              = $dra['approver_name'];
@@ -195,7 +197,7 @@
             exit();
         }
 
-        $uc_program = ISSET($program) ? strtoupper($program) : '';
+        $uc_program = ISSET($program_name) ? strtoupper($program_name) : '';
 
         // Guard: cek approval chain ada
         if (empty($leadid) && empty($leadid2) && empty($leadid3)) {
