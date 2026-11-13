@@ -4,7 +4,7 @@
     use PHPMailer\PHPMailer\PHPMailer;
 
     $config = require 'config.php';
-
+    mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
     ob_start();
     session_start();
 
@@ -104,10 +104,11 @@
             $mail->Body    = $message;
             $mail->send();
         } catch (Exception $e) {
-            $_SESSION['toast_status'] = "Error";
-            $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
-            header('Location: ./draft-approval-list.php');
-            exit();
+            // $_SESSION['toast_status'] = "Error";
+            // $_SESSION['toast_msg'] = "Message could not be sent. Mailer Error: {$mail->ErrorInfo}";
+            // header('Location: ./draft-approval-list.php');
+            // exit();
+            throw new Exception("Mailer Error: {$mail->ErrorInfo}");
         }
     }
 
@@ -129,7 +130,7 @@
         $id_draft           = ISSET($_POST['id_draft']) ? $_POST['id_draft'] : '';
         $id_user            = ISSET($_POST['id_user']) ? $_POST['id_user'] : '';
         $id_draft_approval  = ISSET($_POST['id_draft_approval']) ? $_POST['id_draft_approval'] : '';
-        $notes              = ISSET($_POST['notes']) ? $_POST['notes'] : '';
+        $notes              = ISSET($_POST['notes']) ? mysqli_real_escape_string($conn, $_POST['notes']) : '';
         $approver_id        = $_SESSION['id_user'];
         
         $status_msg = $status == 1 ? 'Approve' : 'Reject';
@@ -156,12 +157,13 @@
             // $sql = "select * from draft_benefit a left join user b on a.id_user = b.id_user where id_draft = $id_draft";
             $sql = "SELECT 
                         db.fileUrl, ec.username, ec.generalname, ec.id_user as ec_id_user, 
-                        leader.id_user as leader_id, db.year, db.verified, db.status, db.segment,
+                        leader.id_user as leader_id, db.year, db.verified, db.status, db.segment, seg.segment as segment_name,
                         us.leadid, us.leadid2, us.leadid3, 
                         IFNULL(sc.name, db.school_name) as school_name, db.program, IFNULL(prog.`name`, db.program) AS program_name, 
                         ec.sa_email, leader.generalname as approver_name
                     FROM draft_approval da 
                     LEFT JOIN draft_benefit db on db.id_draft = da.id_draft
+                    LEFT JOIN segments as seg on seg.id = db.segment
                     LEFT JOIN programs as prog ON prog.name = db.program OR prog.code = db.program
                     LEFT JOIN schools as sc on sc.id = db.school_name 
                     LEFT JOIN user leader on da.id_user_approver = leader.id_user
@@ -189,8 +191,10 @@
                 $year                       = $dra['year'];
                 $verified                   = $dra['verified'];
                 $draft_status               = $dra['status'];
+                $segment                    = $dra['segment_name'];
             }
         }else{
+            mysqli_rollback($conn); // 🔥 Tambahkan ini
             $_SESSION['toast_status'] = "Error";
             $_SESSION['toast_msg'] = "Sudah pernah approve. Operation terminated";
             header($url_redirect);
@@ -295,7 +299,7 @@
                 }
 
                 $subject    = 'Mentari Benefit | Formulir '.$school_name.' sudah disetujui oleh leader';
-                $message    = $year == 1 ? "Yeay, formulir $program buat $school_name sudah disetujui oleh leader! Menunggu pengecekan dari secretary dan persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $program buat $school_name sudah disetujui oleh leader! Menunggu pengecekan dari secretary dan persetujuan top leader";
+                $message    = $year == 1 ? "Yeay, formulir $uc_program buat $school_name sudah disetujui oleh leader! Menunggu pengecekan dari secretary dan persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $uc_program buat $school_name sudah disetujui oleh leader! Menunggu pengecekan dari secretary dan persetujuan top leader";
                 
                 if(ISSET($saemail)) {
                     $sa_name = explode('@', $saemail)[0];
@@ -344,7 +348,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
+                                '.nl2br(htmlspecialchars(html_entity_decode(stripslashes($notes), ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
 
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
@@ -416,7 +420,7 @@
                     . '<br><br>
                         <strong>Notes dari Approver:</strong><br>
                         <div style=\"background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;\">
-                            ' . nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))) . '
+                            ' . nl2br(htmlspecialchars(html_entity_decode(stripslashes($notes), ENT_QUOTES | ENT_HTML5, 'UTF-8'))) . '
                         </div>'
                     . $pic_html;
                 
@@ -472,7 +476,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
+                                '.nl2br(htmlspecialchars(html_entity_decode(stripslashes($notes), ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
         
         
@@ -486,7 +490,7 @@
                 }
 
                 $subject    = 'Mentari Benefit | Formulir '.$school_name.' sudah diperiksa oleh secretary';
-                $message    = $year == 1 ? "Yeay, formulir $program buat $school_name sudah diperiksa oleh secretary! Menunggu persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $program buat $school_name sudah diperiksa oleh secretary! Menunggu persetujuan top leader";
+                $message    = $year == 1 ? "Yeay, formulir $uc_program buat $school_name sudah diperiksa oleh secretary! Menunggu persetujuan top leader" : "Yeay, formulir perubahan PK Tahun Ke-$year $uc_program buat $school_name sudah diperiksa oleh secretary! Menunggu persetujuan top leader";
                 
                 if(ISSET($saemail)) {
                     $sa_name = explode('@', $saemail)[0];
@@ -551,7 +555,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
+                                '.nl2br(htmlspecialchars(html_entity_decode(stripslashes($notes), ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
 
                 sendEmail($leademail, $leadname, $subject, $message, $config, $fileUrl);
@@ -678,7 +682,7 @@
 
                             <strong>Notes dari Approver:</strong><br>
                             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
+                                '.nl2br(htmlspecialchars(html_entity_decode(stripslashes($notes), ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
                             </div>';
         
         
@@ -695,7 +699,7 @@
 
             <strong>Notes dari Approver:</strong><br>
             <div style="background:#f8f9fa;padding:10px;border-left:4px solid #dc3545;margin-top:6px;">
-                '.nl2br(htmlspecialchars(html_entity_decode($notes, ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
+                '.nl2br(htmlspecialchars(html_entity_decode(stripslashes($notes), ENT_QUOTES | ENT_HTML5, 'UTF-8'))).'
             </div>';
 
             $approver_query = "SELECT u.generalname as name, u.username as email 
@@ -730,6 +734,7 @@
 
         exit();
     } catch (\Throwable $th) {
+        mysqli_rollback($conn);
         $_SESSION['toast_status']   = "Error";
         $_SESSION['toast_msg']      = "Failed " . json_encode($th->getMessage());
         header($url_redirect);
