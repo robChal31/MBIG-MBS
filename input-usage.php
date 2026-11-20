@@ -363,7 +363,7 @@ Nama Peserta: </textarea>
         console.log('event_group_code: ', event_group_code);
         if(redeemable == 1 && group) {
             $.ajax({
-                url: `https://hadiryuk.id/api/EventBenefit?limit=300?type=${group}&subject=${subject}&event_group=${event_group_code}`, 
+                url: `https://hadiryuk.id/api/EventBenefit?limit=300&type=${group}&subject=${subject}&event_group=${event_group_code}`, 
                 method: 'GET',
                 cache: false,
                 contentType: false,
