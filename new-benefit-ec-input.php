@@ -844,119 +844,133 @@
   }
 
   function getSchoolPrograms(schoolId, selectedProgramCode = null) {
-    return $.ajax({
-      url: 'get-school-program.php',
-      type: 'POST',
-      dataType: 'json',
-      data: {
-          school_id: schoolId,
-      },
-      success: function(response) {
-        let options = '<option value="" disabled selected>Select a program</option>';
-        if(response.length > 0) {
-          response.map((data) => {
-            const selected = selectedProgramCode && data.code && selectedProgramCode.toLowerCase() === data.code.toLowerCase() ? 'selected' : '';
-            options += `<option value="${data.code}" ${selected}>${data.name}</option>`
-          }) 
-        }
+      return $.ajax({
+          url: 'get-school-program.php',
+          type: 'POST',
+          dataType: 'json',
+          data: { school_id: schoolId },
+          success: function (response) {
+              let options = '<option value="" disabled selected>Select a program</option>';
+              const ref = (selectedProgramCode || '').toString().trim().toLowerCase();
 
-        $('#program').html(options).trigger('change');
-        // $('#program').select2();
-      },
-      error: function(jqXHR, textStatus, errorThrown) {
-          console.error('Error:', textStatus, errorThrown);
-          Swal.fire({
-            title: "Failed!",
-            text: "Failed to get program",
-            icon: "error"
-          })
-      }
-    });
+              if (response.length > 0) {
+                  response.forEach(data => {
+                      const codeMatch = data.code && data.code.toLowerCase() === ref;
+                      const nameMatch = data.name && data.name.toLowerCase() === ref;
+                      const selected = ref && (codeMatch || nameMatch) ? 'selected' : '';
+                      options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
+                  });
+              }
+
+              $('#program').html(options).trigger('change');
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+              console.error('Error:', textStatus, errorThrown);
+              Swal.fire({
+                  title: "Failed!",
+                  text: "Failed to get program",
+                  icon: "error"
+              });
+          }
+      });
   }
 
   function getMyPlanRef(myplanId = null, action = null) {
-    const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
-    if(ec) {
-      return $.ajax({
-        url: 'get-ec-plan.php',
-        type: 'POST',
-        dataType: 'json',
-        data: {
-            id_draft: idDraft,
-            ec: ec,
-        },
-        success: function(response) {
-          let options = '<option value="" selected>Select a plan</option>';
-          if(response.length > 0) {
-             response.map((data, index) => {
-              // let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : (index === 0 ? 'selected' : '');
-              let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : ('');
-              options += `<option value="${data.value}" ${selected}>${data.label}</option>`
-            }) 
-          }
+      const ec = $('input[name="inputEC"]').val() ?? $('select[name="inputEC"]').val();
+      if (!ec) return Promise.resolve();
 
-          $('#myplan_id').html(options);
-          let planId = $('#myplan_id').val();
-          if(planId) {
-            getPlanData(planId);
-          }else {
-            if(action != 'init') clearMyplan();
+      return $.ajax({
+          url: 'get-ec-plan.php',
+          type: 'POST',
+          dataType: 'json',
+          data: {
+              id_draft: idDraft,
+              ec: ec,
+          },
+          success: async function (response) {
+              let options = '<option value="" selected>Select a plan</option>';
+              if (response.length > 0) {
+                  response.map((data) => {
+                      let selected = myplanId !== null ? (myplanId == data.value ? 'selected' : '') : '';
+                      options += `<option value="${data.value}" ${selected}>${data.label}</option>`;
+                  });
+              }
+
+              $('#myplan_id').html(options);
+              let planId = $('#myplan_id').val();
+
+              if (planId) {
+                  await getPlanData(planId);
+              } else {
+                  if (action != 'init') clearMyplan();
+              }
+          },
+          error: function (jqXHR, textStatus, errorThrown) {
+              console.error('Error:', textStatus, errorThrown);
+              Swal.fire({
+                  title: "Failed!",
+                  text: "Failed to get myplan",
+                  icon: "error"
+              });
           }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.error('Error:', textStatus, errorThrown);
-          Swal.fire({
-            title: "Failed!",
-            text: "Failed to get myplan",
-            icon: "error"
-          })
-        }
       });
-    }
-    return;
   }
 
-  function getPlanData(planId) {
-
-    if (!schoolReady) {
-      console.warn('School not ready yet');
-      return;
-    }
-
-    $.ajax({
-      url: 'get-myplan-data.php',
-      method: 'POST',
-      data: { myplan_id: planId },
-      dataType: 'json',
-      success: function (res) {
-        if (res && res.program) {
-          const programName = res.program.trim();
-          if (res.level_ids.length) {
-            $('#adoption_levels').val(res.level_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
-          }
-          if (res.subject_ids.length) {
-            $('#adoption_subjects').val(res.subject_ids).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
-          }
-          $('#program').val(programName).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
-          $('#select_school').val(res.school_id).trigger('change.select2').on('select2:opening select2:selecting', e => e.preventDefault());
-          if($('#select_school').val() == null) {
-            $('#select_school').val('').trigger('change').off('select2:opening select2:selecting');
-          }
-          $('#segment_input').val(res.segment).trigger('change').on('select2:opening select2:selecting', e => e.preventDefault());
-          $('textarea[name="wilayah"]').val(res.wilayah).prop('readonly', true);
-        } else {
-          $('#program').val('').trigger('change');
-        }
-      },
-      error: function (jqXHR, textStatus, errorThrown) {
-        console.error('Error:', textStatus, errorThrown);
-        Swal.fire({
-          title: "Failed!",
-          text: "Failed to get myplan",
-          icon: "error"
-        })
+  async function getPlanData(planId) {
+      if (!schoolReady) {
+          console.warn('School not ready yet');
+          return;
       }
-    });
+
+      try {
+          const res = await $.ajax({
+              url: 'get-myplan-data.php',
+              method: 'POST',
+              data: { myplan_id: planId },
+              dataType: 'json'
+          });
+
+          if (!res || !res.program) {
+              $('#program').val('').trigger('change');
+              return;
+          }
+
+          // 1. Set school dulu
+          $('#select_school').val(res.school_id).trigger('change.select2');
+
+          // 2. Fetch program untuk school tsb, baru set (INI KUNCI FIX-NYA)
+          await getSchoolPrograms(res.school_id, res.program);
+
+          // 3. Levels & Subjects
+          if (res.level_ids?.length) {
+              $('#adoption_levels')
+                  .off('select2:opening select2:selecting.planLock')
+                  .val(res.level_ids).trigger('change')
+                  .on('select2:opening select2:selecting.planLock', e => e.preventDefault());
+          }
+          if (res.subject_ids?.length) {
+              $('#adoption_subjects')
+                  .off('select2:opening select2:selecting.planLock')
+                  .val(res.subject_ids).trigger('change')
+                  .on('select2:opening select2:selecting.planLock', e => e.preventDefault());
+          }
+
+          // 4. Segment & wilayah
+          $('#segment_input')
+              .off('select2:opening select2:selecting.planLock')
+              .val(res.segment).trigger('change')
+              .on('select2:opening select2:selecting.planLock', e => e.preventDefault());
+
+          $('textarea[name="wilayah"]').val(res.wilayah).prop('readonly', true);
+
+      } catch (err) {
+          console.error('Error:', err);
+          Swal.fire({
+              title: "Failed!",
+              text: "Failed to get myplan",
+              icon: "error"
+          });
+      }
   }
 
   function removeNonDigits(numberString) {
