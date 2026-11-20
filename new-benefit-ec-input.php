@@ -303,7 +303,6 @@
                             </option>
                           <?php endwhile;
                         }
-                        // admin: diisi via AJAX setelah EC dipilih
                       ?>
                     </select>
                   </div>

@@ -50,10 +50,6 @@
 
   }
 
-  $segment_query    = "SELECT * from segments";
-  $result           = mysqli_query($conn, $segment_query);
-  $segment_rows     = mysqli_fetch_all($result, MYSQLI_ASSOC);
-
 ?>
 
 <style>
@@ -170,13 +166,25 @@
 
               <div class="form-group">
                 <label>Segment</label>
-                <select name="segment" class="form-select form-select-sm select2" required>
+                <select name="segment" id="segment_input" class="form-select form-select-sm select2" required>
                   <option value="" disabled selected>Select a segment</option>
-                  <?php foreach($segment_rows as $s): ?>
-                    <option value="<?= $s['id'] ?>" <?= $segment == $s['id'] || (strtolower($segment) == strtolower($s['segment'])) ? 'selected' : '' ?>>
-                      <?= $s['segment'] ?>
-                    </option>
-                  <?php endforeach; ?>
+                  <?php 
+                    if($role != 'admin') {
+                      $seg_sql = "SELECT seg.* 
+                                  FROM user_segments as us
+                                  LEFT JOIN segments as seg on us.segment_id = seg.id
+                                  WHERE us.id_user = '$id_user'";
+                      $segQ = mysqli_query($conn, $seg_sql);
+                      while ($row = mysqli_fetch_assoc($segQ)) : ?>
+                        <option value='<?= $row['id'] ?>' <?= (
+                              $segment == $row['id'] ||
+                              strtolower(trim((string)$segment)) === strtolower(trim($row['segment']))
+                          ) ? 'selected' : '' ?>>
+                          <?= $row['segment'] ?>
+                        </option>
+                      <?php endwhile;
+                    }
+                  ?>
                 </select>
               </div>
 
@@ -286,31 +294,32 @@
   }
 
   function loadPrograms(schoolId, programId = false) {
-    if (schoolId !== '' && schoolId !== null) {
-      $.ajax({
+    if (!schoolId) { alert('No school selected'); return; }
+
+    $.ajax({
         url: 'get-school-program.php',
         type: 'POST',
         dataType: 'json',
-        data: {
-          school_id: schoolId,
-        },
-        success: function(response) {
-          let options = '<option value="" disabled selected>Select a program</option>';
-          response.map((data) => {
-            const selected = programId ? (data.code == programId ? 'selected' : '') : '';
-            options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
-          });
+        data: { school_id: schoolId },
+        success: function (response) {
+            const ref = (programId || '').toString().trim().toLowerCase();
+            let options = '<option value="" disabled selected>Select a program</option>';
 
-          $('#program').html(options).select2();
+            response.forEach(data => {
+                const match =
+                    (data.code && data.code.toLowerCase() === ref) ||
+                    (data.name && data.name.toLowerCase() === ref);
+                const selected = ref && match ? 'selected' : '';
+                options += `<option value="${data.code}" ${selected}>${data.name}</option>`;
+            });
+
+            $('#program').html(options).trigger('change');
         },
-        error: function(jqXHR, textStatus, errorThrown) {
-          console.log('Error:', textStatus, errorThrown);
-          alert("Failed to get program");
+        error: function (jqXHR, textStatus, errorThrown) {
+            console.log('Error:', textStatus, errorThrown);
+            alert("Failed to get program");
         }
-      });
-    } else {
-      alert('No school selected');
-    }
+    });
   }
 
   async function getUserData(userId) {
@@ -336,6 +345,39 @@
     }
   }
 
+  function loadSegmentsByEc(ecId, selectedSegment = null) {
+    if (!ecId) {
+      $('#segment_input')
+        .off('select2:opening select2:selecting')
+        .html('<option value="" disabled selected>- Select Segment -</option>')
+        .trigger('change');
+      return $.Deferred().resolve().promise();
+    }
+
+    return $.ajax({
+      url: 'get-ec-segments.php',
+      type: 'POST',
+      dataType: 'json',
+      data: { id_user: ecId }
+    }).then(function (response) {
+      let options = '<option value="" disabled selected>- Select Segment -</option>';
+      (response || []).forEach(function (seg) {
+        const isSelected = selectedSegment && (
+          String(selectedSegment) === String(seg.id) ||
+          String(selectedSegment).toLowerCase() === String(seg.segment).toLowerCase()
+        );
+        options += `<option value="${seg.id}" ${isSelected ? 'selected' : ''}>${seg.segment}</option>`;
+      });
+
+      $('#segment_input')
+        .off('select2:opening select2:selecting')
+        .html(options)
+        .trigger('change');
+    }).fail(function (xhr) {
+      console.error('Gagal load segment:', xhr.responseText);
+    });
+  }
+
   async function initPlanUser(userIdPlan, school_id) {
     if (!userIdPlan) return;
 
@@ -353,6 +395,7 @@
   let idUser      = "<?= $id_user ?>";
   let username    = "<?= $username ?>";
   let program     = "<?= $program ?? '' ?>";
+  let currentSegment = "<?= $segment ?? '' ?>";
 
   const selectedLevels = <?= json_encode($selected_levels) ?>;
   const selectedSubjects = <?= json_encode($selected_subjects) ?>;
@@ -377,12 +420,24 @@
     });
 
     $('#select_ec').on('change', async function () {
-      const userId = $(this).val();
-      if (!userId) return;
-      const userData = await getUserData(userId);
-      if(userData) {
-        fetchShool(userData.username);
-      }
+        const userId = $(this).val();
+
+        $('#program').html('<option value="" disabled selected>Select a program</option>').trigger('change');
+
+        // 🔥 tambahkan ini
+        $('#adoption_levels').val(null).trigger('change');
+        $('#adoption_subjects').val(null).trigger('change');
+
+        if (!userId) {
+            loadSegmentsByEc(null);
+            return;
+        }
+
+        const userData = await getUserData(userId);
+        if (userData) {
+            fetchShool(userData.username);
+            await loadSegmentsByEc(userId);
+        }
     });
 
     if(school_id !== '' && school_id !== null) {
@@ -396,7 +451,15 @@
 
     initPlanUser(userIdPlan, school_id);
 
-    if(role == 'ec') {
+    if (role === 'admin' && userIdPlan) {
+      loadSegmentsByEc(userIdPlan, currentSegment);
+    }
+
+    if (role === 'admin' && userIdPlan) {
+      loadSegmentsByEc(userIdPlan, currentSegment);
+    }
+
+    if(role == 'ec' && !idPlan) {
       fetchShool(username);
     }
 
