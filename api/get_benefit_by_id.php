@@ -104,6 +104,120 @@ function getActiveQuota($startAt, $expiredAt, $qty1, $qty2, $qty3, $usedQty1, $u
     ];
 }
 
+/**
+ * Bersihkan description DB → plain text dengan \n asli.
+ * Berbeda dengan versi Word (draft-benefit-doc-render.php) yang pakai nl2br + esc,
+ * di sini kita biarkan \n mentah supaya receiver bisa render dengan
+ * whitespace-pre-line (React) atau nl2br (PHP lain), sesuai konteksnya.
+ */
+function cleanDescriptionText($text) {
+    if ($text === null || $text === '') return '';
+
+    $text = (string)$text;
+
+    // 1) Decode entities DULU (&#38; → &, &#13;&#10; → \r\n)
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // 2) Baru normalisasi line endings
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+    // 3) <br> → \n; </p>, </div>, </li> → \n; <li> → bullet
+    $text = preg_replace('/<br\s*\/?>/i', "\n", $text);
+    $text = preg_replace('/<\/(p|div|li|h[1-6])>/i', "\n", $text);
+    $text = preg_replace('/<li[^>]*>/i', '• ', $text);
+
+    // 4) Strip sisa tag HTML
+    $text = strip_tags($text);
+
+    // 5) Buang zero-width, BOM, soft hyphen
+    $text = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{00AD}]/u', '', $text);
+
+    // 6) Spasi "aneh" → spasi biasa
+    $text = preg_replace('/[\x{00A0}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', ' ', $text);
+
+    // 7) Trim trailing space per baris
+    $text = preg_replace('/[ \t]+$/m', '', $text);
+
+    // 8) Collapse 3+ newline → max 2
+    $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+    return trim($text);
+}
+
+/**
+ * Breakdown subjek & level → plain text (bukan HTML)
+ */
+function buildBreakdownText($qty, $satuan, $item) {
+    $countMethod = $item['count_method'] ?? 'template';
+    if ($countMethod !== 'subject_level') return '';
+    if ($qty === null || $qty === '' || (is_numeric($qty) && (float)$qty == 0)) return '';
+    if (empty($item['subject_level_pairs'])) return '';
+
+    $qty    = (float)$qty;
+    $satuan = trim((string)$satuan);
+
+    $pairs = [];
+    foreach (explode(',', $item['subject_level_pairs']) as $pair) {
+        $pair = trim($pair);
+        if ($pair === '') continue;
+        $parts = explode('|', $pair);
+        $subj = trim($parts[0] ?? '');
+        $lvl  = trim($parts[1] ?? '');
+        if ($subj === '' && $lvl === '') continue;
+        $pairs[] = ['subject' => $subj, 'level' => $lvl];
+    }
+
+    usort($pairs, function ($a, $b) {
+        $cmp = strcasecmp($a['level'], $b['level']);
+        if ($cmp !== 0) return $cmp;
+        return strcasecmp($a['subject'], $b['subject']);
+    });
+
+    if (empty($pairs)) return '';
+
+    $qtyPerCombination = $qty / count($pairs);
+    if (floor($qtyPerCombination) == $qtyPerCombination) {
+        $qtyText = (int)$qtyPerCombination;
+    } else {
+        $qtyText = rtrim(rtrim(number_format($qtyPerCombination, 2, '.', ''), '0'), '.');
+    }
+
+    $lines = ['Rincian per Subjek & Level:'];
+    foreach ($pairs as $pair) {
+        $line = '• ';
+        if ($pair['subject'] !== '' && $pair['level'] !== '') {
+            $line .= $pair['subject'] . ' (' . $pair['level'] . ')';
+        } elseif ($pair['subject'] !== '') {
+            $line .= $pair['subject'];
+        } else {
+            $line .= $pair['level'];
+        }
+        $line .= ' : ' . $qtyText;
+        if ($satuan !== '') {
+            $line .= ' ' . $satuan;
+        }
+        $lines[] = $line;
+    }
+
+    return implode("\n", $lines);
+}
+
+/**
+ * Book series → plain text
+ */
+function buildBookSeriesText($item) {
+    if (empty($item['book_series_names'])) return '';
+
+    $series = array_filter(array_map('trim', explode(',', $item['book_series_names'])));
+    if (empty($series)) return '';
+
+    $lines = ['Untuk Penggunaan:'];
+    foreach ($series as $s) {
+        $lines[] = '• ' . $s;
+    }
+    return implode("\n", $lines);
+}
+
 // Cek method
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     jsonResponse('error', 'Method not allowed', null, 405);
@@ -201,10 +315,25 @@ $benefitSql = "SELECT
                     d.updated_at,
                     dt.redeemable,
                     dt.subject as subject_benefit,
+                    dt.satuan,
+                    dt.count_method,
+                    dt.countable,
                     sb.group as subbenefit_group,
                     peg.code as event_group_code,
                     prog.name as program_name,
-                    dt.countable
+                    COALESCE(
+                        GROUP_CONCAT(
+                            DISTINCT CONCAT(s.name, '|', ol.name)
+                            SEPARATOR ', '
+                        ), ''
+                    ) AS subject_level_pairs,
+                    COALESCE(
+                        GROUP_CONCAT(
+                            DISTINCT bs.name
+                            ORDER BY bs.name
+                            SEPARATOR ', '
+                        ), ''
+                    ) AS book_series_names
                 FROM draft_benefit_list d
                 LEFT JOIN draft_template_benefit dt ON d.id_template = dt.id_template_benefit
                 LEFT JOIN benefits b ON dt.benefit = b.name
@@ -213,7 +342,15 @@ $benefitSql = "SELECT
                 LEFT JOIN programs as prog ON prog.name = db.program OR prog.code = db.program
                 LEFT JOIN program_categories as pc ON pc.id = prog.program_category_id
                 LEFT JOIN program_event_groups as peg ON peg.id = pc.program_event_group_id
+                LEFT JOIN benefit_org_levels bol ON bol.draft_benefit_list_id = d.id_benefit_list
+                LEFT JOIN benefit_subject_levels bsl ON bsl.benefit_org_levels_id = bol.id
+                LEFT JOIN subjects s ON s.id = bsl.subject_id
+                LEFT JOIN levels ol ON ol.id = bol.level_id
+                LEFT JOIN benefit_book_series bbs ON bbs.draft_benefit_list_id = d.id_benefit_list
+                LEFT JOIN book_series bs ON bs.id = bbs.book_series_id
                 WHERE d.id_benefit_list = '$benefitId'
+                GROUP BY d.id_benefit_list
+                LIMIT 1
             ";
 
 $result = mysqli_query($conn, $benefitSql);
@@ -306,7 +443,15 @@ if(count($benefitDetail)) {
     }
     $subjects = implode(';', $subjects);
 }
+// Bersihkan description (untuk field lama)
+$descriptionClean = cleanDescriptionText($benefitDetail['description'] ?? '');
 
+// Bentuk description_full = description + breakdown + book series
+$breakdownText  = buildBreakdownText($benefitDetail['qty'], $benefitDetail['satuan'] ?? '', $benefitDetail);
+$bookSeriesText = buildBookSeriesText($benefitDetail);
+
+$descriptionParts = array_filter([$descriptionClean, $breakdownText, $bookSeriesText]);
+$descriptionFull  = implode("\n\n", $descriptionParts);
 // 8. Susun response
 $responseData = [
     'user' => [
@@ -322,7 +467,8 @@ $responseData = [
         'id_template' => $benefitDetail['id_template'],
         'benefit_name' => $benefitDetail['benefit_name'],
         'subbenefit' => $benefitDetail['subbenefit'],
-        'description' => $benefitDetail['description'],
+        'description' => $descriptionFull,        // ← bersih, tanpa breakdown
+        'description_full' => $descriptionFull,    // ← SIAP PAKAI (ada breakdown + book series)
         'keterangan' => $benefitDetail['keterangan'],
         'pelaksanaan' => $benefitDetail['pelaksanaan'],
         'type' => $benefitDetail['type'],

@@ -122,7 +122,7 @@
                                     <td class="fw-semibold"><?= $template['benefit'] ?></td>
                                     <td><?= $template['subbenefit'] ?></td>
                                     <td><?= $template['benefit_name'] ?></td>
-                                    <td><?= $template['description'] ?></td>
+                                    <td><?= formatBenefitText($template['description']) ?></td>
                                     <td><?= $template['pelaksanaan'] ?></td>
                                     <td><?= $template['avail'] ?></td>
                                     <td><?= $template['unit_bisnis'] ?></td>

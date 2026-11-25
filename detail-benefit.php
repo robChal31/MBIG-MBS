@@ -215,7 +215,7 @@ if ($result->num_rows > 0) {
                                     <th>Sub Benefit</th>
                                     <th>Benefit Name</th>
                                     <th>Description</th>
-                                    <th>Implementation</th>
+                                    <th>Satuan</th>
                                     <th>Benefit Value</th>
                                     <th>Year 1</th>
                                     <th>Total Usage Year 1</th>
@@ -229,7 +229,7 @@ if ($result->num_rows > 0) {
                             </thead>
                             <tbody>
                                 <?php 
-                                    $sql = "SELECT dbl.*, bu.*, dbt.redeemable
+                                    $sql = "SELECT dbl.*, bu.*, dbt.redeemable, dbt.satuan
                                             FROM draft_benefit_list AS dbl
                                             LEFT JOIN (
                                                 SELECT 
@@ -254,8 +254,8 @@ if ($result->num_rows > 0) {
                                         <td><?= $row['type'] ?></td>
                                         <td><?= $row['subbenefit'] ?></td>
                                         <td><?= $row['benefit_name'] ?></td>
-                                        <td style="width: 20%"><?= $row['description'] ?></td>
-                                        <td style="width: 20%"><?= $row['pelaksanaan'] ?></td>
+                                        <td style="width: 20%"><?= formatBenefitText($row['description']) ?></td>
+                                        <td style="width: 20%"><?= $row['satuan'] ?></td>
                                         <td class="text-end"><?= number_format($row['manualValue'], '0', ',', '.') ?></td>
                                         <td class="text-end"><?= $row['qty'] ?></td>
                                         <td class="text-end"><?= $row['tot_usage1'] ?? 0?></td>

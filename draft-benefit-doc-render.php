@@ -38,8 +38,32 @@ if (!function_exists('formatTanggal')) {
 
 if (!function_exists('formatDescription')) {
     function formatDescription($text) {
-        $text = strip_tags((string)$text);
+        $text = (string)$text;
+
+        // 1) 🔥 DECODE DULU: &#38; → &, &nbsp; → spasi, &#13;&#10; → \r\n, &#10; → \n
+        $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+        // 2) 🔥 BARU NORMALISASI line endings (biar hasil decode ikut kena)
+        $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+        // 3) Baru strip tag HTML (kalau ada <b>, <p>, dll dari editor)
+        $text = strip_tags($text);
+
+        // 4) Buang sisa karakter sampah
+        $text = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{00AD}]/u', '', $text);
+        $text = preg_replace('/[\x{00A0}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', ' ', $text);
+        $text = preg_replace('/[ \t]+$/m', '', $text);
+
+        // 5) Rapatkan 3+ newline jadi max 2 (jaga paragraf)
+        $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+        // 6) Trim
+        $text = trim($text);
+
+        // 7) Baru escape untuk HTML output
         $text = esc($text);
+
+        // 8) newline → <br>
         return nl2br($text, false);
     }
 }

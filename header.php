@@ -230,7 +230,23 @@
             </div>
         </div> -->
         <!-- Spinner End -->
-
+        <?php 
+            function formatBenefitText($text) {
+                if (empty($text)) return '-';
+                
+                // 1. Decode entities (misal &amp;#13; jadi &#13;)
+                $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+                
+                // 2. Ganti sisa karakter enter yang masih berupa teks entity menjadi baris baru asli (\n)
+                $text = str_replace(['&#13;', '&#10;', '&amp;#13;', '&amp;#10;'], ["\n", "\n", "\n", "\n"], $text);
+                
+                // 3. Normalisasi enter
+                $text = str_replace(["\r\n", "\r"], "\n", $text);
+                
+                // 4. Escape tag HTML agar aman (XSS) & ubah enter jadi <br>
+                return nl2br(htmlspecialchars($text, ENT_QUOTES, 'UTF-8'));
+            }
+        ?>
 
         <!-- Sidebar Start -->
         <?php include('sidebar.php'); ?>

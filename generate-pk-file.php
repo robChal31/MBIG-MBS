@@ -100,8 +100,32 @@ function formatTanggal($date) {
 }
 
 function formatDescription($text) {
-    $text = strip_tags((string)$text);
+    $text = (string)$text;
+
+    // 1) Normalisasi line endings
+    $text = str_replace(["\r\n", "\r"], "\n", $text);
+
+    // 2) 🔥 DECODE DULU: &#38; → &, &nbsp; → spasi, &#13;&#10; → newline
+    $text = html_entity_decode($text, ENT_QUOTES | ENT_HTML5, 'UTF-8');
+
+    // 3) Baru strip tag HTML (kalau ada <b>, <p>, dll dari editor)
+    $text = strip_tags($text);
+
+    // 4) Buang sisa karakter sampah
+    $text = preg_replace('/[\x{200B}-\x{200D}\x{FEFF}\x{00AD}]/u', '', $text);           // zero-width, BOM, soft hyphen
+    $text = preg_replace('/[\x{00A0}\x{2000}-\x{200A}\x{202F}\x{205F}\x{3000}]/u', ' ', $text); // space "aneh"
+    $text = preg_replace('/[ \t]+$/m', '', $text);                                        // trailing space per baris
+
+    // 5) Rapatkan 3+ newline jadi max 2 (jaga paragraf)
+    $text = preg_replace('/\n{3,}/', "\n\n", $text);
+
+    // 6) Trim
+    $text = trim($text);
+
+    // 7) 🔥 Baru escape untuk HTML output
     $text = esc($text);
+
+    // 8) newline → <br>
     return nl2br($text, false);
 }
 
